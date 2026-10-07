@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Plan } from '../../shared/plan.schema';
+import { findPlannedDose, readyForMoreWeight } from '../../shared/progression';
 import type { ExerciseNote, SetLog } from '../../shared/records.schema';
 import { formatDose, formatIntensity, formatRange, getExercise, setRows, type ResolvedExercise } from '../../shared/resolve';
 import { startTimer } from '../data/timer';
@@ -42,6 +43,10 @@ export function ExerciseBlock({
   const logFor = (side: string | null, setNo: number) => mine.find((s) => s.side === side && s.set_no === setNo);
   const key = (side: SetLog['side'], setNo: number) => ({ workoutUuid, exerciseId: exercise.id, side, setNo });
 
+  // "Klar til mere vægt": sidste gang ramte alle sæt toppen af intervallet ved RPE ≤ planens mål.
+  const lastPlan = last && findPlannedDose(plan, last.workout.planned_session_id, last.workout.week_no, exercise.id);
+  const ready = !!last && !!lastPlan && readyForMoreWeight(lastPlan.exercise, lastPlan.dose, last.sets, last.rpe);
+
   const meta = [formatDose(exercise, dose), formatIntensity(dose), `pause ${dose.restSec} s`].filter(Boolean).join(' · ');
   const intensity = dose.intensity?.kind === 'rpe' ? formatRange(dose.intensity) : undefined;
 
@@ -64,6 +69,11 @@ export function ExerciseBlock({
         )}
       </header>
 
+      {ready && (
+        <p className="mb-2 inline-flex min-h-8 items-center gap-1.5 rounded-full border-2 border-mob px-3 text-sm font-semibold text-mob-ink">
+          <span aria-hidden="true">↑</span> Klar til mere vægt
+        </p>
+      )}
       <div className="mb-3 rounded-lg bg-surface px-3 py-2 text-sm">
         {last ? (
           <>

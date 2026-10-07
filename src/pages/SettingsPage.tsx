@@ -4,6 +4,7 @@ import { Screen, Section } from '../components/Screen';
 import { usePlan } from '../data/plan';
 import { api } from '../lib/api';
 import { formatWithYear } from '../lib/dates';
+import { exportData } from '../lib/export';
 import { setToken } from '../lib/token';
 
 const sourceLabel: Record<PlanVersionMeta['source'], string> = {
@@ -17,6 +18,8 @@ export function SettingsPage() {
   const [versions, setVersions] = useState<PlanVersionMeta[]>();
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState<number>();
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState<string>();
 
   const load = () =>
     api<PlanVersionMeta[]>('/plan/versions')
@@ -37,6 +40,19 @@ export function SettingsPage() {
       setError((e as Error).message);
     } finally {
       setBusy(undefined);
+    }
+  }
+
+  async function runExport() {
+    setExporting(true);
+    setExportMsg(undefined);
+    try {
+      const source = await exportData();
+      setExportMsg(source === 'lokal' ? 'Offline: eksporterede den lokale kopi. Eksportér igen med net for den fulde version fra serveren.' : 'Eksporteret fra serveren.');
+    } catch (e) {
+      setExportMsg(`Eksport fejlede: ${(e as Error).message}`);
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -87,6 +103,23 @@ export function SettingsPage() {
               </li>
             ))}
           </ul>
+        )}
+      </Section>
+
+      <Section title="Data">
+        <p className="mb-3 text-sm text-muted">Alle træninger, sæt, noter, lyske- og ankelmålinger samt planversioner som én JSON-fil.</p>
+        <button
+          type="button"
+          onClick={() => void runExport()}
+          disabled={exporting}
+          className="min-h-12 rounded-lg border border-line px-4 font-medium disabled:opacity-40"
+        >
+          {exporting ? 'Eksporterer …' : 'Eksportér alle data (JSON)'}
+        </button>
+        {exportMsg && (
+          <p role="status" className="mt-2 text-sm text-muted">
+            {exportMsg}
+          </p>
         )}
       </Section>
 
