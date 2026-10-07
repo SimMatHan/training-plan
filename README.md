@@ -139,8 +139,17 @@ npx wrangler secret put CAL_TOKEN
 Hver push til `main` bygger og deployer automatisk og kører eventuelle nye migrationer først.
 Andre branches bygges som preview-versioner uden migrationer.
 
-Appen opdaterer sig selv: service workeren henter den nye version i baggrunden, og den bruges
-næste gang appen åbnes.
+### Opdatering af appen på telefonen
+
+Appen skifter **ikke** version af sig selv, så den aldrig genindlæser midt i en træning. Service workeren
+henter den nye version i baggrunden (når appen åbnes eller får fokus, og hver 30. minut), og så:
+
+- vises bjælken **Ny version klar** over bundmenuen. Tryk **Opdater**. Bjælken vises ikke under en session,
+  og **Senere** skjuler den, til appen åbnes igen.
+- eller tryk **Indstillinger → App → Søg efter opdatering → Opdater til ny version**.
+
+Versionen under **Indstillinger → App** er commit-id'et fra Workers Builds, så du kan se, om telefonen kører
+det seneste deploy.
 
 ## Migrationer
 
@@ -310,7 +319,7 @@ Fase 2 (kalenderfeed):
 | Kalenderen siger, at abonnementet ikke kan hentes (404) | `CAL_TOKEN` er ikke sat, eller URL'en er fra før tokenet blev roteret. |
 | "Kalenderfeedet er ikke slået til" under Indstillinger | `CAL_TOKEN` mangler på Worker'en (trin 5). |
 | Status "Sync-fejl" | Tryk på statussen for fejlbeskeden. Data ligger sikkert lokalt og sendes ved næste sync. |
-| Appen viser gammel version | Luk den helt og åbn den igen. Service workeren skifter ved næste start. |
+| Appen viser gammel version | Tryk **Opdater** i bjælken eller under **Indstillinger → App**. Kommer der ingen knap (en installation fra før knappen fandtes), så luk appen helt i app-skifteren og åbn den igen. Hjælper det ikke: tjek at statussen siger **Synket**, slet appen fra hjemmeskærmen og tilføj den igen fra Safari. |
 
 Logs: **Workers & Pages → traeningsnav → Logs** (observability er slået til), eller `npx wrangler tail`.
 
