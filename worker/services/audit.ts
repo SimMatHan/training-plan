@@ -1,15 +1,9 @@
 // Revisionslog for MCP-kald og rate limit for kodeordet på /authorize.
 // Logger aldrig input-indhold: kun værktøj, tidspunkt og udfald.
+import type { McpAuditEntry } from '../../shared/proposals';
 
-export type McpErrorKind = 'ugyldigt-input' | 'ikke-fundet' | 'konflikt' | 'serverfejl';
-
-export interface McpAuditEntry {
-  at: string;
-  tool: string;
-  ok: boolean;
-  error: McpErrorKind | null;
-  durationMs: number | null;
-}
+export type McpErrorKind = NonNullable<McpAuditEntry['error']>;
+export type { McpAuditEntry };
 
 export async function recordMcpCall(db: D1Database, e: Omit<McpAuditEntry, 'at'>, now = new Date().toISOString()): Promise<void> {
   await db

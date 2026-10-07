@@ -3,13 +3,16 @@ import { effectiveSessions } from '../../shared/schedule';
 import { AnkleCard } from '../components/AnkleCard';
 import { GateBox } from '../components/GateBox';
 import { AddActivityButton } from '../components/AddActivitySheet';
+import { CoachNotes } from '../components/CoachNotes';
 import { MorningGroinCard } from '../components/MorningGroinCard';
+import { ProposalBanner } from '../components/ProposalBanner';
 import { Screen, Section } from '../components/Screen';
 import { SessionAction } from '../components/SessionAction';
 import { SessionMark } from '../components/SessionMark';
 import { WeekSessions } from '../components/WeekSessions';
 import { usePlan } from '../data/plan';
 import { useGroinAssessments } from '../data/health';
+import { useCoachNotes } from '../data/notes';
 import { useWeekOverrides } from '../data/schedule';
 import { useWeekWorkouts } from '../data/workouts';
 import { formatLong, todayIso, weekday } from '../lib/dates';
@@ -23,6 +26,7 @@ export function TodayPage() {
   const workouts = useWeekWorkouts(week?.weekNo);
   const groin = useGroinAssessments();
   const overrides = useWeekOverrides(week?.weekNo);
+  const notes = useCoachNotes(week?.weekNo, { general: true });
   if (!active) return <PlanStatus title="I dag" />;
 
   const { plan } = active;
@@ -33,6 +37,8 @@ export function TodayPage() {
   return (
     <Screen title={week ? `Uge ${week.weekNo}` : 'Uden for planen'} eyebrow={formatLong(today)}>
       <MorningGroinCard />
+      <ProposalBanner />
+      <CoachNotes notes={notes} plan={plan} />
       {week ? (
         <>
           <Section title="I dag">

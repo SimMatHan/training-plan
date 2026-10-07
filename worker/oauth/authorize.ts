@@ -5,13 +5,12 @@ import { AuthorizationError, CimdFetchError } from '@cloudflare/workers-oauth-pr
 import { safeEqual } from '../auth';
 import type { Env } from '../env';
 import { authAttemptStatus, recordAuthAttempt } from '../services/audit';
-import { isAllowedRedirect } from './redirects';
+import { CLAUDE_REDIRECT_URIS, isAllowedRedirect } from './redirects';
 
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 const SECURITY_HEADERS: Record<string, string> = {
   'Content-Type': 'text/html; charset=utf-8',
-  'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
@@ -36,15 +35,24 @@ const STYLE = `
   .err { color:var(--err); font-weight:600; }
 `;
 
-function page(body: string, status = 200, headers?: Headers): Response {
-  const h = new Headers(headers);
-  for (const [k, v] of Object.entries(SECURITY_HEADERS)) h.set(k, v);
-  const html = `<!doctype html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex"><title>Giv Claude adgang · Træningsnav</title><style>${STYLE}</style></head><body><main>${body}</main></body></html>`;
-  return new Response(html, { status, headers: h });
+/**
+ * form-action gælder også redirectet efter formularen (302 til Claudes callback), så de
+ * tilladte callback-origins skal stå der; ellers blokerer browseren det sidste trin.
+ */
+function csp(allowLocalhost: boolean): string {
+  const targets = ["'self'", ...new Set(CLAUDE_REDIRECT_URIS.map((u) => new URL(u).origin)), ...(allowLocalhost ? ['http://localhost:*', 'http://127.0.0.1:*'] : [])];
+  return `default-src 'none'; style-src 'unsafe-inline'; form-action ${targets.join(' ')}; frame-ancestors 'none'; base-uri 'none'`;
 }
 
-const message = (title: string, text: string, status: number) => page(`<h1>${escape(title)}</h1><p>${escape(text)}</p>`, status);
+function page(body: string, opts: { status?: number; headers?: Headers; allowLocalhost: boolean }): Response {
+  const h = new Headers(opts.headers);
+  for (const [k, v] of Object.entries(SECURITY_HEADERS)) h.set(k, v);
+  h.set('Content-Security-Policy', csp(opts.allowLocalhost));
+  const html = `<!doctype html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>Giv Claude adgang · Træningsnav</title><style>${STYLE}</style></head><body><main>${body}</main></body></html>`;
+  return new Response(html, { status: opts.status ?? 200, headers: h });
+}
+
 
 function form(handle: string, opts: { clientName?: string; redirectHost?: string; error?: string }): string {
   return `<h1>Giv Claude adgang til Træningsnav?</h1>
@@ -70,6 +78,8 @@ export async function handleAuthorize(request: Request, env: Env): Promise<Respo
   const oauth = env.OAUTH_PROVIDER;
   if (!oauth) throw new Error('OAUTH_PROVIDER mangler; /authorize skal kaldes gennem OAuthProvider');
   const allowLocalhost = env.OAUTH_ALLOW_LOCALHOST === 'true';
+  const show = (body: string, status = 200, headers?: Headers) => page(body, { status, headers, allowLocalhost });
+  const message = (title: string, text: string, status: number) => show(`<h1>${escape(title)}</h1><p>${escape(text)}</p>`, status);
   if (!env.OWNER_PASSWORD) return message('Ikke sat op', 'OWNER_PASSWORD mangler på Worker’en (se README).', 503);
 
   try {
@@ -79,7 +89,7 @@ export async function handleAuthorize(request: Request, env: Env): Promise<Respo
         return message('Ikke tilladt', 'Kun Claude (claude.ai) kan forbindes til Træningsnav.', 400);
       const details = await oauth.describeConsent(authRequest);
       const consent = await oauth.beginConsent(authRequest);
-      return page(form(consent.handle, { clientName: details.clientName, redirectHost: details.redirectHost }), 200, consent.headers);
+      return show(form(consent.handle, { clientName: details.clientName, redirectHost: details.redirectHost }), 200, consent.headers);
     }
 
     if (request.method === 'POST') {
@@ -93,12 +103,12 @@ export async function handleAuthorize(request: Request, env: Env): Promise<Respo
       const now = new Date();
       const limit = await authAttemptStatus(env.DB, now);
       if (!limit.allowed)
-        return page(form(handle, { error: `For mange forkerte forsøg. Prøv igen efter kl. ${clock(limit.retryAt!)}.` }), 429);
+        return show(form(handle, { error: `For mange forkerte forsøg. Prøv igen efter kl. ${clock(limit.retryAt!)}.` }), 429);
 
       const password = String(data.get('password') ?? '');
       const ok = password.length > 0 && (await safeEqual(password, env.OWNER_PASSWORD));
       await recordAuthAttempt(env.DB, ok, now);
-      if (!ok) return page(form(handle, { error: 'Forkert kodeord.' }), 401);
+      if (!ok) return show(form(handle, { error: 'Forkert kodeord.' }), 401);
 
       const approved = await oauth.approveConsent(request, handle);
       // Anmodningen kommer fra lageret, ikke fra formularen; tjek alligevel igen.

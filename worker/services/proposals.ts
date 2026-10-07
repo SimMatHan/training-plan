@@ -5,11 +5,11 @@ import { z } from 'zod';
 import { applyPatch, JsonPatch, PatchError } from '../../shared/jsonPatch';
 import { describePlanChange } from '../../shared/planDiff';
 import { PlanSchema, type Plan } from '../../shared/plan.schema';
+import { PROPOSAL_STATUSES, type Proposal, type ProposalStatus } from '../../shared/proposals';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
 import { getActivePlan, getPlanVersion, listPlanVersions } from './plan';
 
-export const PROPOSAL_STATUSES = ['afventer', 'godkendt', 'afvist', 'forældet'] as const;
-export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number];
+export { PROPOSAL_STATUSES, type Proposal, type ProposalStatus };
 
 /** Største tilladte patch (serialiseret JSON). */
 export const MAX_PATCH_BYTES = 50_000;
@@ -31,19 +31,6 @@ interface ProposalRow {
   status: ProposalStatus;
   decided_at: string | null;
   result_version: number | null;
-}
-
-export interface Proposal {
-  id: string;
-  createdAt: string;
-  baseVersion: number;
-  summary: string;
-  rationale: string;
-  status: ProposalStatus;
-  decidedAt: string | null;
-  resultVersion: number | null;
-  /** Læsbare ændringer, fx "Styrke A · Enbens RDL, uge 5–8: 3 × 8/side → 3 × 10/side". */
-  diff: string[];
 }
 
 const byteLength = (s: string) => new TextEncoder().encode(s).length;
