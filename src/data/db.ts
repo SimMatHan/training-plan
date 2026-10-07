@@ -6,6 +6,7 @@ import type {
   GroinCheck,
   MobilityCheck,
   MobilityMeasurement,
+  CoachNote,
   ScheduleOverride,
   SetLog,
   SyncTable,
@@ -33,6 +34,7 @@ export interface RecordTypes {
   mobility_measurements: MobilityMeasurement;
   mobility_checks: MobilityCheck;
   schedule_overrides: ScheduleOverride;
+  coach_notes: CoachNote;
 }
 
 class LocalDb extends Dexie {
@@ -45,6 +47,7 @@ class LocalDb extends Dexie {
   mobility_measurements!: Table<MobilityMeasurement, string>;
   mobility_checks!: Table<MobilityCheck, string>;
   schedule_overrides!: Table<ScheduleOverride, string>;
+  coach_notes!: Table<CoachNote, string>;
 
   constructor() {
     super('traeningsnav');
@@ -60,6 +63,8 @@ class LocalDb extends Dexie {
     });
     // Flytninger af planlagte sessioner; aktivitetsnavn ligger på workouts (intet indeks nødvendigt).
     this.version(3).stores({ schedule_overrides: 'uuid, week_no' });
+    // Fase 3: noter fra Claude.
+    this.version(4).stores({ coach_notes: 'uuid, week_no' });
   }
 }
 

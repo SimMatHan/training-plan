@@ -20,10 +20,13 @@ const META_COLUMNS = 'id, version, created_at, source, note, based_on_version, i
 
 const toMeta = (r: PlanVersionRow): PlanVersionMeta => ({ ...r, is_active: r.is_active === 1 });
 
-// plan_json ændres aldrig for en eksisterende version, så den parsede plan kan caches pr. version.
-const planCache = new Map<number, Plan>();
+// plan_json ændres aldrig for en eksisterende version, så den parsede plan kan caches pr. version
+// (pr. database, så tests med hver deres database ikke deler cache).
+const planCaches = new WeakMap<D1Database, Map<number, Plan>>();
 
 async function loadPlan(db: D1Database, version: number): Promise<Plan> {
+  let planCache = planCaches.get(db);
+  if (!planCache) planCaches.set(db, (planCache = new Map()));
   const cached = planCache.get(version);
   if (cached) return cached;
   const row = await db.prepare('SELECT plan_json FROM plan_versions WHERE version = ?').bind(version).first<{ plan_json: string }>();
@@ -62,6 +65,8 @@ export async function activatePlanVersion(db: D1Database, version: number, now =
     db.prepare('UPDATE plan_versions SET is_active = 0 WHERE is_active = 1 AND version <> ?').bind(version),
     // activated_at: kalenderfeedet tæller skiftet som en ændring af alle events (SEQUENCE).
     db.prepare('UPDATE plan_versions SET is_active = 1, activated_at = ? WHERE version = ?').bind(now, version),
+    // Claudes ventende forslag mod en anden version kan ikke længere anvendes.
+    db.prepare("UPDATE plan_proposals SET status = 'forældet', decided_at = ? WHERE status = 'afventer' AND base_version <> ?").bind(now, version),
   ]);
   return (await getPlanVersion(db, version)).meta;
 }

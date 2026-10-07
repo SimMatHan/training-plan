@@ -11,4 +11,5 @@ export const SYNC_TABLES = [
   'mobility_measurements',
   'mobility_checks',
   'schedule_overrides',
+  'coach_notes',
 ] as const;
