@@ -85,3 +85,39 @@ describe('flytning og aktiviteter i D1', () => {
     expect(changes.workouts![0]).toMatchObject({ activity: 'Padel', type: 'cardio' });
   });
 });
+
+describe('sprunget over', () => {
+  it('logges med årsag og tæller ikke som lavet eller i trafiklyset', async () => {
+    const db = await createSeededD1();
+    await pushChanges(db, {
+      workouts: [
+        {
+          uuid: '50000000-0000-4000-8000-0000000000bb',
+          planned_session_id: 'rehab-b',
+          plan_version: 1,
+          week_no: 2,
+          date: '2026-10-08',
+          started_at: null,
+          finished_at: null,
+          type: 'styrke',
+          rpe: null,
+          note: 'Lysken stram efter løbet',
+          groin_during: null,
+          source: 'app',
+          external_id: null,
+          distance_km: null,
+          duration_sec: null,
+          avg_hr: null,
+          skipped_at: '2026-10-08T15:00:00.000Z',
+          skip_reason: 'Lyske/smerte',
+          updated_at: ts,
+        },
+      ],
+    });
+    const w = await getWeeklySummary(db, 2, '2026-10-12');
+    expect(w.sessions.find((s) => s.sessionId === 'rehab-b')).toMatchObject({ status: 'sprunget-over', skipReason: 'Lyske/smerte' });
+    expect(w).toMatchObject({ done: 0, skipped: 1, lights: [] });
+    const { changes } = await pullChanges(db, null, new Date('2026-10-12T00:00:00Z'));
+    expect(changes.workouts![0]).toMatchObject({ skip_reason: 'Lyske/smerte', skipped_at: '2026-10-08T15:00:00.000Z' });
+  });
+});

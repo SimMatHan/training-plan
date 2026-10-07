@@ -68,7 +68,7 @@ export function exerciseHistory(
   return limit ? entries.slice(0, limit) : entries;
 }
 
-export type SessionStatus = 'lavet' | 'i-gang' | 'ikke-lavet';
+export type SessionStatus = 'lavet' | 'i-gang' | 'ikke-lavet' | 'sprunget-over';
 
 export interface WeeklySummary {
   weekNo: number;
@@ -83,12 +83,16 @@ export interface WeeklySummary {
     plannedDay: number;
     optional: boolean;
     status: SessionStatus;
+    /** Årsag hvis sessionen er markeret som sprunget over. */
+    skipReason?: string | null;
     workoutUuid?: string;
     light?: GroinLight;
   }[];
   /** Ikke-valgfrie sessioner lavet / planlagt. */
   done: number;
   planned: number;
+  /** Ikke-valgfrie sessioner markeret som sprunget over. */
+  skipped: number;
   /** Dage med mobilitetsblokken taget alene. */
   mobilityDays: number;
   /** Aktiviteter uden for planen, fx padel. */
@@ -120,7 +124,8 @@ export function weeklySummary(
       day: s.day,
       plannedDay: s.plannedDay,
       optional: s.optional,
-      status: (w ? (w.finished_at ? 'lavet' : 'i-gang') : 'ikke-lavet') as SessionStatus,
+      status: (w ? (w.skipped_at ? 'sprunget-over' : w.finished_at ? 'lavet' : 'i-gang') : 'ikke-lavet') as SessionStatus,
+      ...(w?.skipped_at && { skipReason: w.skip_reason }),
       ...(w && { workoutUuid: w.uuid }),
       ...(w && lightOf.has(w.uuid) && { light: lightOf.get(w.uuid) }),
     };
@@ -152,6 +157,7 @@ export function weeklySummary(
     phase: week.phase,
     sessions,
     done: sessions.filter((s) => !s.optional && s.status === 'lavet').length,
+    skipped: sessions.filter((s) => !s.optional && s.status === 'sprunget-over').length,
     planned: sessions.filter((s) => !s.optional).length,
     mobilityDays: new Set(inWeek.filter((w) => w.type === 'mobilitet').map((w) => w.date)).size,
     extras: inWeek

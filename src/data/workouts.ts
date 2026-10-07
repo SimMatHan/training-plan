@@ -55,12 +55,35 @@ export function useWeekWorkouts(weekNo: number | undefined): Workout[] | undefin
   );
 }
 
-export type SessionStatus = 'ikke-lavet' | 'i-gang' | 'lavet';
+export type SessionStatus = 'ikke-lavet' | 'i-gang' | 'lavet' | 'sprunget-over';
 
 export function statusOf(workouts: Workout[], sessionId: string, today = todayIso()): { status: SessionStatus; workout?: Workout } {
   const workout = workouts.find((w) => matches(w, sessionId, today));
   if (!workout) return { status: 'ikke-lavet' };
+  if (workout.skipped_at) return { status: 'sprunget-over', workout };
   return { status: workout.finished_at ? 'lavet' : 'i-gang', workout };
+}
+
+/**
+ * Markerer en planlagt session som sprunget over, så det logges. Gemmes som en
+ * træning uden sæt, dateret til sessionens (evt. flyttede) dag.
+ */
+export async function skipSession(opts: { session: Session; weekNo: number; planVersion: number; date: string; reason: string | null; note: string | null }) {
+  const now = new Date().toISOString();
+  await saveRecord(
+    'workouts',
+    emptyWorkout({
+      date: opts.date,
+      type: typeOf(opts.session.kind),
+      planned_session_id: opts.session.id,
+      plan_version: opts.planVersion,
+      week_no: opts.weekNo,
+      started_at: null,
+      skipped_at: now,
+      skip_reason: opts.reason,
+      note: opts.note,
+    }),
+  );
 }
 
 // ─── Sæt, noter og mobilitet ────────────────────────────────────────────────
