@@ -1,4 +1,4 @@
-// Cloudflare Worker: serverer PWA'en (static assets) og API'et (/api) fra ét projekt.
+// Cloudflare Worker: serverer PWA'en (static assets), API'et (/api) og MCP-connectoren (/mcp) fra ét projekt.
 // database_id udfyldes efter "wrangler d1 create traeningsnav" (se README, deploy trin 2).
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
@@ -15,7 +15,12 @@
 		"not_found_handling": "single-page-application",
 		"run_worker_first": [
 			"/api/*",
-			"/cal/*"
+			"/cal/*",
+			"/mcp",
+			"/mcp/*",
+			"/authorize",
+			"/oauth/*",
+			"/.well-known/*"
 		]
 	},
 	"d1_databases": [
@@ -24,6 +29,13 @@
 			"database_name": "traeningsnav",
 			"database_id": "841c96a2-9e95-4858-be05-d23fdfefbc28",
 			"migrations_dir": "migrations"
+		}
+	],
+	// Fase 3: OAuth-tokens for MCP-connectoren. Uden "id" opretter wrangler deploy namespacet selv;
+	// vil du styre det, så opret det og indsæt id'et (README, Claude-connector trin 1).
+	"kv_namespaces": [
+		{
+			"binding": "OAUTH_KV"
 		}
 	]
 }

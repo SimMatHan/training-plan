@@ -1,3 +1,6 @@
 # Kopiér til .dev.vars (gitignored) til lokal udvikling.
 API_TOKEN=lokal-udviklings-token
 CAL_TOKEN=lokal-kalender-token
+# Fase 3: kodeord på /authorize, og tillad MCP Inspector's localhost-callback (kun lokalt!).
+OWNER_PASSWORD=lokalt-kodeord
+OAUTH_ALLOW_LOCALHOST=true

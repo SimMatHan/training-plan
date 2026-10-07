@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useSearch } from 'wouter';
 import { dateOfDay, weekForDate } from '../../shared/resolve';
 import { AddActivityButton } from '../components/AddActivitySheet';
+import { CoachNotes } from '../components/CoachNotes';
 import { GateBox } from '../components/GateBox';
 import { Screen } from '../components/Screen';
 import { WeekSessions } from '../components/WeekSessions';
+import { useCoachNotes } from '../data/notes';
 import { usePlan } from '../data/plan';
 import { formatShort, todayIso } from '../lib/dates';
 import { PlanStatus } from './PlanStatus';
@@ -17,9 +19,10 @@ export function WeekPage() {
   // ?uge=<n> fra et kalenderlink åbner den uge.
   const linked = Number(new URLSearchParams(useSearch()).get('uge')) || undefined;
   const [weekNo, setWeekNo] = useState<number | undefined>(linked);
+  const shown = plan && weekNo && plan.weeks.some((w) => w.weekNo === weekNo) ? weekNo : current;
+  const notes = useCoachNotes(shown);
   if (!plan) return <PlanStatus title="Uge" />;
 
-  const shown = weekNo && plan.weeks.some((w) => w.weekNo === weekNo) ? weekNo : current;
   const index = plan.weeks.findIndex((w) => w.weekNo === shown);
   const week = plan.weeks[index];
   const step = (d: number) => setWeekNo(plan.weeks[index + d]?.weekNo ?? shown);
@@ -36,6 +39,7 @@ export function WeekPage() {
       </div>
       {week.focus && <p className="mb-3 text-sm text-muted">{week.focus}</p>}
       {week.kmLabel && <p className="mb-3 text-sm text-muted">Km i ugen: <span className="num">{week.kmLabel}</span></p>}
+      <CoachNotes notes={notes} plan={plan} />
       <WeekSessions plan={plan} week={week} today={today} />
       <AddActivityButton />
       <div className="mt-6">

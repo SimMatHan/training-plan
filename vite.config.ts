@@ -42,7 +42,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         globIgnores: ['**/*vietnamese*'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/cal\//],
+        // Worker-ruter: må aldrig få app-skallen fra service workeren (fx /authorize i browseren).
+        navigateFallbackDenylist: [/^\/api\//, /^\/cal\//, /^\/mcp/, /^\/authorize/, /^\/oauth\//, /^\/\.well-known\//],
         cleanupOutdatedCaches: true,
         // Første installation overtager siden med det samme (offline fra første besøg).
         // Senere versioner venter stadig på "Opdater" (skipWaiting er slået fra).

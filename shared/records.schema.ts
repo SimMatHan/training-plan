@@ -20,7 +20,8 @@ const SyncFields = {
 export const WorkoutType = z.enum(['styrke', 'løb', 'cardio', 'mobilitet']);
 export type WorkoutType = z.infer<typeof WorkoutType>;
 
-export const WorkoutSource = z.enum(['app', 'strava']);
+/** Hvor træningen kom fra. 'claude' = logget af Claude via MCP-connectoren (fase 3). */
+export const WorkoutSource = z.enum(['app', 'strava', 'claude']);
 
 export const Workout = z.object({
   ...SyncFields,
@@ -113,6 +114,19 @@ export const ScheduleOverride = z.object({
 });
 export type ScheduleOverride = z.infer<typeof ScheduleOverride>;
 
+/** Note fra Claude (træneren), knyttet til en uge, en session i en uge eller ingen af delene. */
+export const CoachNote = z.object({
+  ...SyncFields,
+  created_at: IsoTimestamp,
+  week_no: z.int().min(1).nullable(),
+  /** Planens session-id. Kun sammen med week_no. */
+  session_id: Slug.nullable(),
+  text: z.string().trim().min(1).max(2000),
+  /** Sat når noten er lukket i appen. */
+  dismissed_at: IsoTimestamp.nullable().default(null),
+});
+export type CoachNote = z.infer<typeof CoachNote>;
+
 /** Synkroniserede tabeller og deres skemaer. Fase 2–4 tilføjer, men ændrer ikke. */
 export const SyncTables = {
   workouts: Workout,
@@ -122,6 +136,7 @@ export const SyncTables = {
   mobility_measurements: MobilityMeasurement,
   mobility_checks: MobilityCheck,
   schedule_overrides: ScheduleOverride,
+  coach_notes: CoachNote,
 } as const;
 export type SyncTable = keyof typeof SyncTables;
 

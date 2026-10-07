@@ -9,6 +9,7 @@ import { useToken } from './lib/token';
 import { AnklePage } from './pages/AnklePage';
 import { ExerciseHistoryPage } from './pages/ExerciseHistoryPage';
 import { HistoryPage } from './pages/HistoryPage';
+import { ProposalPage, ProposalsPage } from './pages/ProposalPage';
 import { SessionRoute } from './pages/SessionLinkPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TodayPage } from './pages/TodayPage';
@@ -32,6 +33,8 @@ export function App() {
         <Route path="/uge" component={WeekPage} />
         <Route path="/historik/oevelse/:id" component={ExerciseHistoryPage} />
         <Route path="/historik" component={HistoryPage} />
+        <Route path="/forslag/:id" component={ProposalPage} />
+        <Route path="/forslag" component={ProposalsPage} />
         <Route path="/indstillinger" component={SettingsPage} />
         <Route component={TodayPage} />
       </Switch>

@@ -48,6 +48,7 @@ export async function getWeeklySummary(db: D1Database, weekNo: number, asOf = to
 /** Alt i databasen som ét JSON-dokument: planversioner og alle logtabeller. */
 export async function exportAll(db: D1Database) {
   const { results: versions } = await db.prepare('SELECT * FROM plan_versions ORDER BY version').all<Row>();
+  const { results: proposals } = await db.prepare('SELECT * FROM plan_proposals ORDER BY created_at').all<Row>();
   const tables: Partial<Record<SyncTable, unknown[]>> = {};
   for (const table of Object.keys(SyncTables) as SyncTable[]) tables[table] = await readTable(db, table);
   return {
@@ -56,5 +57,6 @@ export async function exportAll(db: D1Database) {
     exportedAt: new Date().toISOString(),
     planVersions: versions.map(({ plan_json, is_active, ...v }) => ({ ...v, is_active: is_active === 1, plan: JSON.parse(plan_json as string) })),
     ...tables,
+    planProposals: proposals.map(({ patch_json, ...p }) => ({ ...p, patch: JSON.parse(patch_json as string) })),
   };
 }

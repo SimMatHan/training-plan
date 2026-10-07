@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
 import { formatDose, formatIntensity, getSession, resolveStrengthSession } from '../../shared/resolve';
+import { CoachNotes } from '../components/CoachNotes';
 import { Collapsible } from '../components/Collapsible';
 import { ExerciseBlock } from '../components/ExerciseBlock';
 import { MobilityChecklist } from '../components/MobilityChecklist';
@@ -11,6 +12,7 @@ import { RunLog } from '../components/RunLog';
 import { ScoreScale } from '../components/ScoreScale';
 import { SessionMark } from '../components/SessionMark';
 import { SyncBadge } from '../components/SyncBadge';
+import { useCoachNotes } from '../data/notes';
 import { usePlan } from '../data/plan';
 import { deleteRecord } from '../data/records';
 import { skipTimer, useTimer } from '../data/timer';
@@ -38,6 +40,7 @@ export function SessionPage() {
   const workout = useWorkout(uuid);
   const logs = useWorkoutLogs(uuid);
   const timer = useTimer();
+  const weekNotes = useCoachNotes(workout?.week_no ?? undefined);
   const [missingGroin, setMissingGroin] = useState(false);
   // undefined = ikke valgt endnu; null = alt foldet sammen.
   const [open, setOpen] = useState<string | null | undefined>(undefined);
@@ -171,6 +174,8 @@ export function SessionPage() {
           </div>
         </div>
       </header>
+
+      <CoachNotes notes={weekNotes.filter((n) => n.session_id === workout.planned_session_id && n.session_id)} plan={plan} showSession={false} />
 
       <div className="divide-y divide-line border-t border-line">
         {showMobility && (
