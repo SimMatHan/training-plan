@@ -1,0 +1,58 @@
+import { useState } from 'react';
+import { useLocation } from 'wouter';
+import type { Session, Week } from '../../shared/plan.schema';
+import type { Workout } from '../../shared/records.schema';
+import { usePlan } from '../data/plan';
+import { startSession, statusOf } from '../data/workouts';
+
+/** Sessioner der kan logges i appen nu. Løb og cardio kommer i milepæl 4. */
+export const loggable = (s: Session) => s.kind === 'styrke' || s.kind === 'mobilitet';
+
+/** Status og ét-tryks start/fortsæt for en planlagt session. */
+export function SessionAction({ session, week, workouts, prominent = false }: { session: Session; week: Week; workouts: Workout[]; prominent?: boolean }) {
+  const { active } = usePlan();
+  const [, navigate] = useLocation();
+  const [busy, setBusy] = useState(false);
+  const { status, workout } = statusOf(workouts, session.id);
+
+  async function open() {
+    if (busy || !active) return;
+    setBusy(true);
+    try {
+      const uuid = workout?.uuid ?? (await startSession({ session, weekNo: week.weekNo, planVersion: active.meta.version }));
+      navigate(`/session/${uuid}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const statusText = status === 'lavet' ? 'Lavet' : status === 'i-gang' ? 'I gang' : null;
+  const canOpen = loggable(session) || !!workout;
+  const label = status === 'ikke-lavet' ? 'Start' : status === 'i-gang' ? 'Fortsæt' : 'Vis';
+
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      {statusText && (
+        <span className={`text-sm font-medium ${status === 'lavet' ? 'text-mob-ink' : 'text-yellow-ink'}`}>
+          {status === 'lavet' && <span aria-hidden="true">✓ </span>}
+          {statusText}
+        </span>
+      )}
+      {canOpen && (status !== 'lavet' || prominent) && (
+        <button
+          type="button"
+          onClick={() => void open()}
+          disabled={busy}
+          className={`min-h-12 rounded-lg px-4 font-semibold ${status === 'ikke-lavet' ? 'bg-fg text-bg' : 'border border-line'} ${prominent ? 'min-w-24 text-lg' : ''}`}
+        >
+          {label}
+        </button>
+      )}
+      {canOpen && status === 'lavet' && !prominent && (
+        <button type="button" onClick={() => void open()} aria-label={`Vis ${session.name}`} className="min-h-12 min-w-12 rounded-lg text-muted">
+          ›
+        </button>
+      )}
+    </div>
+  );
+}

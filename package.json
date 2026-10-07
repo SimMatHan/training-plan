@@ -4,21 +4,46 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "dev": "concurrently -k -n api,app -c yellow,cyan \"npm:dev:api\" \"npm:dev:app\"",
+    "dev:app": "vite",
+    "dev:api": "node -e \"require('fs').mkdirSync('dist',{recursive:true})\" && wrangler dev --port 8787",
+    "build": "vite build",
+    "preview": "npm run build && wrangler dev --port 8787",
+    "deploy": "npm run build && wrangler d1 migrations apply traeningsnav --remote && wrangler deploy",
+    "icons": "pwa-assets-generator",
     "plan:build": "tsx plan/seed.ts",
     "db:migrate:local": "wrangler d1 migrations apply traeningsnav --local",
     "db:seed:local": "wrangler d1 execute traeningsnav --local --file plan/seed.sql",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -b",
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "dexie": "^4.4.6",
+    "dexie-react-hooks": "^4.4.0",
+    "hono": "^4.13.13",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "wouter": "^3.13.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261007.1",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vite-pwa/assets-generator": "^2.0.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.5",
     "exceljs": "^4.4.0",
+    "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
+    "vite": "^8.3.3",
+    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.3",
+    "workbox-window": "^7.4.1",
     "wrangler": "^4.148.0"
   }
 }

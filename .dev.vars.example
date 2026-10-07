@@ -1,0 +1,2 @@
+# Kopiér til .dev.vars (gitignored) til lokal udvikling.
+API_TOKEN=lokal-udviklings-token

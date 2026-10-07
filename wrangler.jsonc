@@ -1,9 +1,17 @@
 // Cloudflare Worker: serverer PWA'en (static assets) og API'et (/api) fra ét projekt.
-// Milepæl 2 tilføjer main, assets og Hono. database_id udfyldes ved deploy (milepæl 6).
+// database_id udfyldes ved deploy (se README).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "traeningsnav",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
   "d1_databases": [
     {
       "binding": "DB",

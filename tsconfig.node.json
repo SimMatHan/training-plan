@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "lib": ["ES2023"],
+    "types": ["node", "@cloudflare/workers-types"]
+  },
+  "include": ["plan", "test", "shared", "worker", "vite.config.ts", "vitest.config.ts", "pwa-assets.config.ts"]
+}
