@@ -1,0 +1,4900 @@
+{
+  "schemaVersion": 1,
+  "title": "Træningsplan 28. sep 2026 – 31. dec 2026",
+  "summary": "Prioritet: skadesfri → Prag og maraton → sub 20 på 5 km d. 31/12. Version 4: rehab-blok i uge 1–4, ny ugerytme (man/ons/tor/lør), én session pr. dag.",
+  "startDate": "2026-09-28",
+  "raceDate": "2026-12-31",
+  "readingNotes": [
+    "ÉN SESSION PR. DAG: mandag styrke, onsdag løb, torsdag styrke, lørdag langt løb (crosstrainer i rehab), søndag valgfrit R-løb. Tirsdag og fredag er fri.",
+    "Koder: RH = rehab-løb, CT = crosstrainer, E og L = rolige løb, T = tærskel, I = intervaller, TT = testløb, R = restitutionsløb. Se fanen 'Løbeworkouts'.",
+    "Uge 1–4 bruger fanerne 'Rehab A' og 'Rehab B'. Uge 5–14 bruger 'Styrke A' og 'Styrke B'.",
+    "PORT EFTER UGE 4: gå kun videre til uge 5 hvis trafiklyset har været grønt i uge 3–4. Ellers gentag uge 4. Trafiklyset står på fanen 'Rehab A'.",
+    "ØVELSESROTATION: uge 5–8 grundøvelser, uge 9–12 rotationsøvelser, uge 13–14 tilbage til grundøvelserne. Tåhæv og Copenhagen plank roterer aldrig.",
+    "WEEKENDREGEL: lørdag og søndag må bytte plads frit. Det lange løb skal ligge dagen efter den bedste nats søvn.",
+    "Mobilitetsblokken (fanen 'Mobilitet') køres dagligt — som opvarmning på træningsdage og alene på de andre.",
+    "Kan du kun træne 3 dage i en uge: drop Styrke B. Onsdagens løb er ikke til forhandling."
+  ],
+  "exercises": [
+    {
+      "id": "rdl",
+      "name": "Rumænsk dødløft (RDL)",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "enbens-rdl",
+      "name": "Enbens RDL",
+      "kind": "weight_reps",
+      "perSide": true
+    },
+    {
+      "id": "bulgarian-split-squat",
+      "name": "Bulgarian split squat",
+      "kind": "weight_reps",
+      "perSide": true
+    },
+    {
+      "id": "step-down",
+      "name": "Step-down",
+      "kind": "weight_reps",
+      "perSide": true
+    },
+    {
+      "id": "hip-airplane",
+      "name": "Hip airplane",
+      "kind": "bodyweight_reps",
+      "perSide": true
+    },
+    {
+      "id": "pallof-press",
+      "name": "Pallof press",
+      "kind": "weight_reps",
+      "perSide": true
+    },
+    {
+      "id": "hofteflexor-march",
+      "name": "Hofteflexor-march, elastik",
+      "kind": "bodyweight_reps",
+      "perSide": true
+    },
+    {
+      "id": "adduktorklem",
+      "name": "Adduktorklem",
+      "kind": "time",
+      "perSide": false
+    },
+    {
+      "id": "copenhagen-plank",
+      "name": "Copenhagen plank, venstre side",
+      "kind": "time",
+      "perSide": false
+    },
+    {
+      "id": "nordic-hamstring-curl",
+      "name": "Nordic hamstring curl",
+      "kind": "bodyweight_reps",
+      "perSide": false
+    },
+    {
+      "id": "glideskinne-leg-curl",
+      "name": "Glideskinne leg curl",
+      "kind": "bodyweight_reps",
+      "perSide": false
+    },
+    {
+      "id": "hip-thrust",
+      "name": "Hip thrust",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "enbens-hip-thrust",
+      "name": "Enbens hip thrust",
+      "kind": "weight_reps",
+      "perSide": true
+    },
+    {
+      "id": "enbens-tahaev",
+      "name": "Enbens tåhæv, stående",
+      "kind": "weight_reps",
+      "perSide": true
+    },
+    {
+      "id": "siddende-tahaev",
+      "name": "Siddende tåhæv (bøjet knæ)",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "rows",
+      "name": "Kabelrows eller håndvægtsrows",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "t-bar-row",
+      "name": "T-bar row",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "lat-pulldown",
+      "name": "Lat pulldown",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "pull-up-elastik",
+      "name": "Pull-up med elastik",
+      "kind": "bodyweight_reps",
+      "perSide": false
+    },
+    {
+      "id": "skulderpres",
+      "name": "Skulderpres, håndvægt",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "baenkpres-eller-armstraekninger",
+      "name": "Bænkpres eller armstrækninger",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "face-pull",
+      "name": "Face pull",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "prone-y-t",
+      "name": "Prone Y-T på skråbænk",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "biceps-curl",
+      "name": "Biceps curl",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "triceps-pushdown",
+      "name": "Triceps pushdown",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "hammer-curl",
+      "name": "Hammer curl",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "overhead-triceps-extension",
+      "name": "Overhead triceps extension",
+      "kind": "weight_reps",
+      "perSide": false
+    },
+    {
+      "id": "sideplanke",
+      "name": "Sideplanke",
+      "kind": "time",
+      "perSide": true
+    }
+  ],
+  "sessions": [
+    {
+      "id": "rehab-a",
+      "name": "Rehab A",
+      "colorKey": "A",
+      "suggestedWeekday": 1,
+      "durationMin": {
+        "min": 30,
+        "max": 40
+      },
+      "notes": [
+        "Undgå i rehab-blokken: dyb hoftefleksion under belastning, hårde passive stræk ind i snurren, sidelæns bevægelser.",
+        "Blid, aktiv mobilitet er fint. Psoas-release med bold er tryk, ikke stræk — hold det blidt."
+      ],
+      "kind": "styrke",
+      "intro": "Hofte og lyske. Start med mobilitetsblokken. Alt holdes under 3/10 — se trafiklyset nederst.",
+      "mobility": "before",
+      "slots": [
+        {
+          "id": "rehab-a-1",
+          "order": 1,
+          "focus": "Baglår, hoftestabilitet",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-rdl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 5,
+                      "max": 6
+                    },
+                    "restSec": 75,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Kropsvægt eller let håndvægt i uge 1. Hoften vandret — lad ikke bækkenet rotere op på det løftede ben."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 2
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-rdl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 75,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Kropsvægt eller let håndvægt i uge 1. Hoften vandret — lad ikke bækkenet rotere op på det løftede ben."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 3,
+                  "to": 3
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-rdl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 7
+                    },
+                    "restSec": 75,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Kropsvægt eller let håndvægt i uge 1. Hoften vandret — lad ikke bækkenet rotere op på det løftede ben."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 4,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-rdl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 75,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Kropsvægt eller let håndvægt i uge 1. Hoften vandret — lad ikke bækkenet rotere op på det løftede ben."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-a-2",
+          "order": 2,
+          "focus": "Hofterotation, venstre side",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hip-airplane",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 5,
+                      "max": 5
+                    },
+                    "restSec": 60,
+                    "tempo": "3 sek hver vej",
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Hold i en stang eller væg. Det er rotationskontrollen i hoften der trænes, ikke balancen."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hip-airplane",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 5,
+                      "max": 5
+                    },
+                    "restSec": 60,
+                    "tempo": "3 sek hver vej",
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Hold i en stang eller væg. Det er rotationskontrollen i hoften der trænes, ikke balancen."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-a-3",
+          "order": 3,
+          "focus": "Ben, hofte",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "bulgarian-split-squat",
+                  "label": "Bulgarian split squat, begrænset dybde",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 5,
+                      "max": 6
+                    },
+                    "restSec": 90,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Pude eller step under bagerste knæ. Venstre ben bagerst strækker venstre hofteflexor under belastning — snurren: stop og brug step-up i stedet."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 2
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "bulgarian-split-squat",
+                  "label": "Bulgarian split squat, begrænset dybde",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Pude eller step under bagerste knæ. Venstre ben bagerst strækker venstre hofteflexor under belastning — snurren: stop og brug step-up i stedet."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 3,
+                  "to": 3
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "bulgarian-split-squat",
+                  "label": "Bulgarian split squat, begrænset dybde",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 7
+                    },
+                    "restSec": 90,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Pude eller step under bagerste knæ. Venstre ben bagerst strækker venstre hofteflexor under belastning — snurren: stop og brug step-up i stedet."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 4,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "bulgarian-split-squat",
+                  "label": "Bulgarian split squat, begrænset dybde",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Pude eller step under bagerste knæ. Venstre ben bagerst strækker venstre hofteflexor under belastning — snurren: stop og brug step-up i stedet."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-a-4",
+          "order": 4,
+          "focus": "Venstre lyske",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "adduktorklem",
+                  "label": "Adduktorklem",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 20,
+                      "max": 20
+                    },
+                    "restSec": 45,
+                    "note": "Halv kraft."
+                  },
+                  "cue": "Liggende, bold eller sammenrullet håndklæde mellem knæene. Copenhagen med knæet på bænken først når klemmet er helt smertefrit."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 2
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "adduktorklem",
+                  "label": "Adduktorklem",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 30,
+                      "max": 30
+                    },
+                    "restSec": 45,
+                    "note": "Fuld kraft hvis smertefrit."
+                  },
+                  "cue": "Liggende, bold eller sammenrullet håndklæde mellem knæene. Copenhagen med knæet på bænken først når klemmet er helt smertefrit."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 3,
+                  "to": 3
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "copenhagen-plank",
+                  "label": "Copenhagen kort vægtarm",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 10,
+                      "max": 15
+                    },
+                    "restSec": 45,
+                    "note": "Knæet på bænken."
+                  },
+                  "cue": "Liggende, bold eller sammenrullet håndklæde mellem knæene. Copenhagen med knæet på bænken først når klemmet er helt smertefrit.",
+                  "alternative": {
+                    "exerciseId": "adduktorklem",
+                    "label": "Adduktorklem",
+                    "condition": "Hvis klemmet ikke er helt smertefrit",
+                    "dose": {
+                      "sets": 3,
+                      "optionalSets": 0,
+                      "seconds": {
+                        "min": 30,
+                        "max": 30
+                      },
+                      "restSec": 45
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 4,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "copenhagen-plank",
+                  "label": "Copenhagen kort vægtarm",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 20,
+                      "max": 20
+                    },
+                    "restSec": 45,
+                    "note": "Knæet på bænken."
+                  },
+                  "cue": "Liggende, bold eller sammenrullet håndklæde mellem knæene. Copenhagen med knæet på bænken først når klemmet er helt smertefrit.",
+                  "alternative": {
+                    "exerciseId": "adduktorklem",
+                    "label": "Adduktorklem",
+                    "condition": "Hvis klemmet ikke er helt smertefrit",
+                    "dose": {
+                      "sets": 3,
+                      "optionalSets": 0,
+                      "seconds": {
+                        "min": 30,
+                        "max": 30
+                      },
+                      "restSec": 45
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-a-5",
+          "order": 5,
+          "focus": "Hofteflexor / psoas",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hofteflexor-march",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 5,
+                      "max": 6
+                    },
+                    "restSec": 45,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Stående, elastik om fødderne, knæ op til hoftehøjde, 2 sek hold. En stram psoas er ofte en svag psoas."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 2
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hofteflexor-march",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 45,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Stående, elastik om fødderne, knæ op til hoftehøjde, 2 sek hold. En stram psoas er ofte en svag psoas."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 3,
+                  "to": 3
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hofteflexor-march",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 7
+                    },
+                    "restSec": 45,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Stående, elastik om fødderne, knæ op til hoftehøjde, 2 sek hold. En stram psoas er ofte en svag psoas."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 4,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hofteflexor-march",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 45,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Stående, elastik om fødderne, knæ op til hoftehøjde, 2 sek hold. En stram psoas er ofte en svag psoas."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-a-6",
+          "order": 6,
+          "focus": "Højre achilles",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-tahaev",
+                  "label": "Enbens tåhæv, stående — HØJRE FØRST",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 5,
+                      "max": 6
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate",
+                    "sideOverrides": {
+                      "V": {
+                        "reps": {
+                          "min": 10,
+                          "max": 10
+                        }
+                      }
+                    }
+                  },
+                  "cue": "Fuld sænkning under trinnet, 3 sek ned. Fast element hele perioden."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 2
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-tahaev",
+                  "label": "Enbens tåhæv, stående — HØJRE FØRST",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate",
+                    "sideOverrides": {
+                      "V": {
+                        "reps": {
+                          "min": 10,
+                          "max": 10
+                        }
+                      }
+                    }
+                  },
+                  "cue": "Fuld sænkning under trinnet, 3 sek ned. Fast element hele perioden."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 3,
+                  "to": 3
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-tahaev",
+                  "label": "Enbens tåhæv, stående — HØJRE FØRST",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 7
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate",
+                    "sideOverrides": {
+                      "V": {
+                        "reps": {
+                          "min": 10,
+                          "max": 10
+                        }
+                      }
+                    }
+                  },
+                  "cue": "Fuld sænkning under trinnet, 3 sek ned. Fast element hele perioden."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 4,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-tahaev",
+                  "label": "Enbens tåhæv, stående — HØJRE FØRST",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate",
+                    "sideOverrides": {
+                      "V": {
+                        "reps": {
+                          "min": 10,
+                          "max": 10
+                        }
+                      }
+                    }
+                  },
+                  "cue": "Fuld sænkning under trinnet, 3 sek ned. Fast element hele perioden."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "progression": [
+        {
+          "weeks": {
+            "from": 1,
+            "to": 1
+          },
+          "sets": "2",
+          "rpe": "5–6",
+          "note": "Find niveauet. Adduktorklem 3 × 20 sek med halv kraft."
+        },
+        {
+          "weeks": {
+            "from": 2,
+            "to": 2
+          },
+          "sets": "3",
+          "rpe": "6",
+          "note": "Adduktorklem 3 × 30 sek, fuld kraft hvis smertefrit."
+        },
+        {
+          "weeks": {
+            "from": 3,
+            "to": 3
+          },
+          "sets": "3",
+          "rpe": "6–7",
+          "note": "Copenhagen kort vægtarm 3 × 10–15 sek — kun hvis klemmet er smertefrit."
+        },
+        {
+          "weeks": {
+            "from": 4,
+            "to": 4
+          },
+          "sets": "3",
+          "rpe": "7",
+          "note": "Copenhagen kort vægtarm 3 × 20 sek. Port til uge 5."
+        }
+      ]
+    },
+    {
+      "id": "rehab-b",
+      "name": "Rehab B",
+      "colorKey": "B",
+      "suggestedWeekday": 4,
+      "durationMin": {
+        "min": 30,
+        "max": 40
+      },
+      "notes": [
+        "Rehab B belaster ikke lysken nævneværdigt — her må du gerne presse lidt mere end i Rehab A."
+      ],
+      "kind": "styrke",
+      "intro": "Overkrop, baglår og core. Start med mobilitetsblokken.",
+      "mobility": "before",
+      "slots": [
+        {
+          "id": "rehab-b-1",
+          "order": 1,
+          "focus": "Øvre ryg",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "rows",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Træk albuerne bagud, klem skulderbladene."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "rows",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Træk albuerne bagud, klem skulderbladene."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-b-2",
+          "order": 2,
+          "focus": "Ryg og lats",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "lat-pulldown",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Fuld strækning i toppen."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "lat-pulldown",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Fuld strækning i toppen."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-b-3",
+          "order": 3,
+          "focus": "Skuldre",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "skulderpres",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Siddende med rygstøtte."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "skulderpres",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Siddende med rygstøtte."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-b-4",
+          "order": 4,
+          "focus": "Baglår",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "nordic-hamstring-curl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 4,
+                      "max": 5
+                    },
+                    "restSec": 90,
+                    "tempo": "Langsom sænkning 3–4 sek"
+                  },
+                  "cue": "Glideskinne-curl eller elastik hvis du ikke kan holde igen. Påvirker ikke lysken."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "nordic-hamstring-curl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 4,
+                      "max": 5
+                    },
+                    "restSec": 90,
+                    "tempo": "Langsom sænkning 3–4 sek"
+                  },
+                  "cue": "Glideskinne-curl eller elastik hvis du ikke kan holde igen. Påvirker ikke lysken."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-b-5",
+          "order": 5,
+          "focus": "Core, hofte",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "sideplanke",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 30,
+                      "max": 30
+                    },
+                    "restSec": 45,
+                    "tempo": "Kontrol",
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Begge sider. Venstre er den vigtige, men træn symmetrisk."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "sideplanke",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 30,
+                      "max": 30
+                    },
+                    "restSec": 45,
+                    "tempo": "Kontrol",
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Begge sider. Venstre er den vigtige, men træn symmetrisk."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-b-6",
+          "order": 6,
+          "focus": "Arme",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "biceps-curl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Ingen svingning."
+                },
+                {
+                  "exerciseId": "triceps-pushdown",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Ingen svingning."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "biceps-curl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Ingen svingning."
+                },
+                {
+                  "exerciseId": "triceps-pushdown",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Ingen svingning."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rehab-b-7",
+          "order": 7,
+          "focus": "Højre achilles (soleus)",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 1,
+                  "to": 1
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "siddende-tahaev",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 15,
+                      "max": 15
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Fast element hele perioden."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 2,
+                  "to": 4
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "siddende-tahaev",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 15,
+                      "max": 15
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Fast element hele perioden."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "progression": [
+        {
+          "weeks": {
+            "from": 1,
+            "to": 1
+          },
+          "sets": "2",
+          "rpe": "6",
+          "note": "Genopbygning efter to måneder uden styrke."
+        },
+        {
+          "weeks": {
+            "from": 2,
+            "to": 4
+          },
+          "sets": "3",
+          "rpe": "7",
+          "note": "Fuld volumen. Øg vægten når du rammer topreps."
+        }
+      ]
+    },
+    {
+      "id": "styrke-a",
+      "name": "Styrke A",
+      "colorKey": "A",
+      "suggestedWeekday": 1,
+      "durationMin": {
+        "min": 30,
+        "max": 45
+      },
+      "notes": [
+        "Rotation: uge 5–8 grundøvelser, uge 9–12 rotationsøvelser, uge 13–14 grundøvelser.",
+        "Tåhæv og Copenhagen plank roterer ALDRIG — de er skadesarbejde og skal kunne måles over tid.",
+        "Udfald med vægt er stadig holdt ude. Bulgarian split squat er den eneste dybe position, og den har bestået rehab først."
+      ],
+      "kind": "styrke",
+      "intro": "Posterior kæde, hofte og lyske. Start med mobilitetsblokken.",
+      "mobility": "before",
+      "slots": [
+        {
+          "id": "styrke-a-1",
+          "order": 1,
+          "focus": "Baglår, ryg",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "rdl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Hoften bagud, let bøjet knæ. Stop når du mærker stræk."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "rdl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Hoften bagud, let bøjet knæ. Stop når du mærker stræk."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-rdl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 90,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-rdl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-rdl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-a-2",
+          "order": 2,
+          "focus": "Ben, hofte",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "bulgarian-split-squat",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Videreført fra rehab. Tålte du den ikke dér: step-up på bænk i stedet."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "bulgarian-split-squat",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Videreført fra rehab. Tålte du den ikke dér: step-up på bænk i stedet."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "step-down",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 90,
+                    "tempo": "3 sek sænkning",
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "step-down",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90,
+                    "tempo": "3 sek sænkning",
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "step-down",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90,
+                    "tempo": "3 sek sænkning",
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-a-3",
+          "order": 3,
+          "focus": "Baglår",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "nordic-hamstring-curl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 5,
+                      "max": 5
+                    },
+                    "restSec": 90,
+                    "tempo": "Langsom sænkning 3–4 sek"
+                  },
+                  "cue": "Den bedst dokumenterede skadesforebyggende øvelse for løbere."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "nordic-hamstring-curl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 5,
+                      "max": 5
+                    },
+                    "restSec": 90,
+                    "tempo": "Langsom sænkning 3–4 sek"
+                  },
+                  "cue": "Den bedst dokumenterede skadesforebyggende øvelse for løbere."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "glideskinne-leg-curl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "glideskinne-leg-curl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "glideskinne-leg-curl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-a-4",
+          "order": 4,
+          "focus": "Højre achilles",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 11,
+                  "to": 11
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-tahaev",
+                  "label": "Enbens tåhæv, stående — HØJRE FØRST",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate",
+                    "sideOverrides": {
+                      "V": {
+                        "reps": {
+                          "min": 10,
+                          "max": 10
+                        }
+                      }
+                    }
+                  },
+                  "cue": "Fuld sænkning under trinnet, 3 sek ned."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-tahaev",
+                  "label": "Enbens tåhæv, stående — HØJRE FØRST",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate",
+                    "sideOverrides": {
+                      "V": {
+                        "reps": {
+                          "min": 10,
+                          "max": 10
+                        }
+                      }
+                    }
+                  },
+                  "cue": "Fuld sænkning under trinnet, 3 sek ned."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-tahaev",
+                  "label": "Enbens tåhæv, stående — HØJRE FØRST",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate",
+                    "sideOverrides": {
+                      "V": {
+                        "reps": {
+                          "min": 10,
+                          "max": 10
+                        }
+                      }
+                    }
+                  },
+                  "cue": "Fuld sænkning under trinnet, 3 sek ned."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-tahaev",
+                  "label": "Enbens tåhæv, stående — HØJRE FØRST",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate",
+                    "sideOverrides": {
+                      "V": {
+                        "reps": {
+                          "min": 10,
+                          "max": 10
+                        }
+                      }
+                    }
+                  },
+                  "cue": "Fuld sænkning under trinnet, 3 sek ned."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-a-5",
+          "order": 5,
+          "focus": "Venstre lyske",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "copenhagen-plank",
+                  "label": "Copenhagen plank — VENSTRE side",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 30,
+                      "max": 30
+                    },
+                    "restSec": 45,
+                    "tempo": "Knæstøttet (kort vægtarm)"
+                  },
+                  "cue": "Uge 5–8: knæstøttet 3 × 30 sek. Uge 9–14: fuldt strakt ben 3 × 15–20 sek."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "copenhagen-plank",
+                  "label": "Copenhagen plank — VENSTRE side",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 30,
+                      "max": 30
+                    },
+                    "restSec": 45,
+                    "tempo": "Knæstøttet (kort vægtarm)"
+                  },
+                  "cue": "Uge 5–8: knæstøttet 3 × 30 sek. Uge 9–14: fuldt strakt ben 3 × 15–20 sek."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "copenhagen-plank",
+                  "label": "Copenhagen plank — VENSTRE side",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 15,
+                      "max": 20
+                    },
+                    "restSec": 45,
+                    "tempo": "Fuldt strakt ben"
+                  },
+                  "cue": "Uge 5–8: knæstøttet 3 × 30 sek. Uge 9–14: fuldt strakt ben 3 × 15–20 sek."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "copenhagen-plank",
+                  "label": "Copenhagen plank — VENSTRE side",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 15,
+                      "max": 20
+                    },
+                    "restSec": 45,
+                    "tempo": "Fuldt strakt ben"
+                  },
+                  "cue": "Uge 5–8: knæstøttet 3 × 30 sek. Uge 9–14: fuldt strakt ben 3 × 15–20 sek."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "copenhagen-plank",
+                  "label": "Copenhagen plank — VENSTRE side",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "seconds": {
+                      "min": 15,
+                      "max": 20
+                    },
+                    "restSec": 45,
+                    "tempo": "Fuldt strakt ben"
+                  },
+                  "cue": "Uge 5–8: knæstøttet 3 × 30 sek. Uge 9–14: fuldt strakt ben 3 × 15–20 sek."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-a-6",
+          "order": 6,
+          "focus": "Hofterotation",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hip-airplane",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 5,
+                      "max": 5
+                    },
+                    "restSec": 60,
+                    "tempo": "3 sek hver vej",
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  },
+                  "cue": "Videreført fra rehab. Holder rotationskontrollen ved lige."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "pallof-press",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "pallof-press",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "pallof-press",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "restSec": 60,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "progression": [
+        {
+          "weeks": {
+            "from": 5,
+            "to": 5
+          },
+          "sets": "2",
+          "rpe": "6",
+          "note": "Overgang fra rehab."
+        },
+        {
+          "weeks": {
+            "from": 6,
+            "to": 7
+          },
+          "sets": "3",
+          "rpe": "7",
+          "note": "Fuld volumen. Øg vægten når du rammer topreps."
+        },
+        {
+          "weeks": {
+            "from": 8,
+            "to": 8
+          },
+          "sets": "2",
+          "rpe": "6",
+          "note": "Testuge — let."
+        },
+        {
+          "weeks": {
+            "from": 9,
+            "to": 10
+          },
+          "sets": "3",
+          "rpe": "7–8",
+          "note": "Rotationsøvelser. Tungeste blok."
+        },
+        {
+          "weeks": {
+            "from": 11,
+            "to": 11
+          },
+          "sets": "2",
+          "rpe": "6",
+          "note": "Aflastning."
+        },
+        {
+          "weeks": {
+            "from": 12,
+            "to": 12
+          },
+          "sets": "2–3",
+          "rpe": "7",
+          "note": "Løbet tager over — styrken vedligeholdes."
+        },
+        {
+          "weeks": {
+            "from": 13,
+            "to": 13
+          },
+          "sets": "2",
+          "rpe": "6",
+          "note": "Taper. Tilbage til grundøvelserne."
+        },
+        {
+          "weeks": {
+            "from": 14,
+            "to": 14
+          },
+          "sets": "—",
+          "rpe": "—",
+          "note": "Ingen styrke i løbsugen."
+        }
+      ]
+    },
+    {
+      "id": "styrke-b",
+      "name": "Styrke B",
+      "colorKey": "B",
+      "suggestedWeekday": 4,
+      "durationMin": {
+        "min": 30,
+        "max": 45
+      },
+      "notes": [
+        "Rotation: uge 5–8 grundøvelser, uge 9–12 rotationsøvelser, uge 13–14 grundøvelser."
+      ],
+      "kind": "styrke",
+      "intro": "Overkrop, arme og core. Let benarbejde med vilje.",
+      "mobility": "before",
+      "slots": [
+        {
+          "id": "styrke-b-1",
+          "order": 1,
+          "focus": "Øvre ryg",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "rows",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Klem skulderbladene."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "rows",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Klem skulderbladene."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "t-bar-row",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "t-bar-row",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "t-bar-row",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-b-2",
+          "order": 2,
+          "focus": "Ryg og lats",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "lat-pulldown",
+                  "label": "Lat pulldown eller pull-up",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Fuld strækning i toppen."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "lat-pulldown",
+                  "label": "Lat pulldown eller pull-up",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Fuld strækning i toppen."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "pull-up-elastik",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "pull-up-elastik",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "pull-up-elastik",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-b-3",
+          "order": 3,
+          "focus": "Balder, baglår",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hip-thrust",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 75
+                  },
+                  "cue": "Ugens anden baglårsdosis."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hip-thrust",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 75
+                  },
+                  "cue": "Ugens anden baglårsdosis."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-hip-thrust",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 75,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-hip-thrust",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 75,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "enbens-hip-thrust",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 75,
+                    "sideOrder": [
+                      "H",
+                      "V"
+                    ],
+                    "sidePattern": "alternate"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-b-4",
+          "order": 4,
+          "focus": "Skuldre",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "skulderpres",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Siddende med rygstøtte."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "skulderpres",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  },
+                  "cue": "Siddende med rygstøtte."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "baenkpres-eller-armstraekninger",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "baenkpres-eller-armstraekninger",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "baenkpres-eller-armstraekninger",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 8,
+                      "max": 8
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 90
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-b-5",
+          "order": 5,
+          "focus": "Venstre lyske",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 8
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "copenhagen-plank",
+                  "label": "Copenhagen plank — VENSTRE side",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 30,
+                      "max": 30
+                    },
+                    "restSec": 45,
+                    "tempo": "Knæstøttet (kort vægtarm)"
+                  },
+                  "cue": "Sener responderer på frekvens — derfor to gange om ugen."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "copenhagen-plank",
+                  "label": "Copenhagen plank — VENSTRE side",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "seconds": {
+                      "min": 15,
+                      "max": 20
+                    },
+                    "restSec": 45,
+                    "tempo": "Fuldt strakt ben"
+                  },
+                  "cue": "Sener responderer på frekvens — derfor to gange om ugen."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-b-6",
+          "order": 6,
+          "focus": "Postur",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "face-pull",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 15,
+                      "max": 15
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 45
+                  },
+                  "cue": "Albuer højt."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "face-pull",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 15,
+                      "max": 15
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 45
+                  },
+                  "cue": "Albuer højt."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "prone-y-t",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 45
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "prone-y-t",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 45
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "prone-y-t",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 45
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-b-7",
+          "order": 7,
+          "focus": "Arme",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "biceps-curl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Ingen svingning."
+                },
+                {
+                  "exerciseId": "triceps-pushdown",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Ingen svingning."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "biceps-curl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Ingen svingning."
+                },
+                {
+                  "exerciseId": "triceps-pushdown",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Ingen svingning."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hammer-curl",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 60
+                  }
+                },
+                {
+                  "exerciseId": "overhead-triceps-extension",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 60
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 11,
+                  "to": 11
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hammer-curl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60
+                  }
+                },
+                {
+                  "exerciseId": "overhead-triceps-extension",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60
+                  }
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "hammer-curl",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 10,
+                      "max": 10
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60
+                  }
+                },
+                {
+                  "exerciseId": "overhead-triceps-extension",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 12,
+                      "max": 12
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "styrke-b-8",
+          "order": 8,
+          "focus": "Højre achilles (soleus)",
+          "variants": [
+            {
+              "weeks": [
+                {
+                  "from": 5,
+                  "to": 5
+                },
+                {
+                  "from": 8,
+                  "to": 8
+                },
+                {
+                  "from": 11,
+                  "to": 11
+                },
+                {
+                  "from": 13,
+                  "to": 13
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "siddende-tahaev",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 15,
+                      "max": 15
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 6,
+                      "max": 6
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Rammer soleus — en anden muskel end mandagens stående tåhæv."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 6,
+                  "to": 7
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "siddende-tahaev",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 15,
+                      "max": 15
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Rammer soleus — en anden muskel end mandagens stående tåhæv."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 9,
+                  "to": 10
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "siddende-tahaev",
+                  "dose": {
+                    "sets": 3,
+                    "optionalSets": 0,
+                    "reps": {
+                      "min": 15,
+                      "max": 15
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 8
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Rammer soleus — en anden muskel end mandagens stående tåhæv."
+                }
+              ]
+            },
+            {
+              "weeks": [
+                {
+                  "from": 12,
+                  "to": 12
+                }
+              ],
+              "exercises": [
+                {
+                  "exerciseId": "siddende-tahaev",
+                  "dose": {
+                    "sets": 2,
+                    "optionalSets": 1,
+                    "reps": {
+                      "min": 15,
+                      "max": 15
+                    },
+                    "intensity": {
+                      "kind": "rpe",
+                      "min": 7,
+                      "max": 7
+                    },
+                    "restSec": 60
+                  },
+                  "cue": "Rammer soleus — en anden muskel end mandagens stående tåhæv."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "progression": [
+        {
+          "weeks": {
+            "from": 5,
+            "to": 5
+          },
+          "sets": "2",
+          "rpe": "6",
+          "note": "Overgang fra rehab."
+        },
+        {
+          "weeks": {
+            "from": 6,
+            "to": 7
+          },
+          "sets": "3",
+          "rpe": "7",
+          "note": "Fuld volumen. Øg vægten når du rammer topreps."
+        },
+        {
+          "weeks": {
+            "from": 8,
+            "to": 8
+          },
+          "sets": "2",
+          "rpe": "6",
+          "note": "Testuge — let."
+        },
+        {
+          "weeks": {
+            "from": 9,
+            "to": 10
+          },
+          "sets": "3",
+          "rpe": "7–8",
+          "note": "Rotationsøvelser. Tungeste blok."
+        },
+        {
+          "weeks": {
+            "from": 11,
+            "to": 11
+          },
+          "sets": "2",
+          "rpe": "6",
+          "note": "Aflastning."
+        },
+        {
+          "weeks": {
+            "from": 12,
+            "to": 12
+          },
+          "sets": "2–3",
+          "rpe": "7",
+          "note": "Løbet tager over — styrken vedligeholdes."
+        },
+        {
+          "weeks": {
+            "from": 13,
+            "to": 13
+          },
+          "sets": "2",
+          "rpe": "6",
+          "note": "Taper. Tilbage til grundøvelserne."
+        },
+        {
+          "weeks": {
+            "from": 14,
+            "to": 14
+          },
+          "sets": "—",
+          "rpe": "—",
+          "note": "Ingen styrke i løbsugen."
+        }
+      ]
+    },
+    {
+      "id": "rh",
+      "name": "RH",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "RH",
+      "workoutType": "Rehab-løb (uge 1–4)",
+      "mainSet": "5–7 km roligt, flad rute, blødt underlag",
+      "targetPace": "5:30/km eller langsommere",
+      "totalApprox": "5–7 km",
+      "purpose": "Ugens test af lysken. Snurren under løbet: gå hjem. Strides i uge 4 kun ved grønt trafiklys."
+    },
+    {
+      "id": "ct",
+      "name": "CT",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "cardio",
+      "code": "CT",
+      "workoutType": "Crosstrainer (uge 1–4)",
+      "mainSet": "40–50 min jævnt",
+      "targetPace": "Zone 2 — kunne tale i hele sætninger",
+      "purpose": "Holder konditionen uden løbestød. Bedre end cykel: kortere hofteudslag, ingen dyb hoftefleksion. Mærker du lysken: stop."
+    },
+    {
+      "id": "r",
+      "name": "R",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "R",
+      "workoutType": "Restitutionsløb (valgfri, søndag)",
+      "mainSet": "4–7 km, se Ugeplan",
+      "targetPace": "5:50/km eller langsommere",
+      "totalApprox": "4–7 km",
+      "purpose": "Meget roligt, blødt underlag. Første pas der ryger hvis lyske eller achilles melder sig."
+    },
+    {
+      "id": "e2",
+      "name": "E2",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "E2",
+      "workoutType": "Roligt",
+      "mainSet": "8 km roligt + 4×20 sek strides",
+      "targetPace": "5:20–5:50/km",
+      "totalApprox": "8 km",
+      "purpose": "Aerob base. Kadence 170–175 spm."
+    },
+    {
+      "id": "l1",
+      "name": "L1",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "L1",
+      "workoutType": "Langt roligt",
+      "mainSet": "10 km roligt",
+      "targetPace": "5:20–5:50/km",
+      "totalApprox": "10 km",
+      "purpose": "Første lange tur efter rehab."
+    },
+    {
+      "id": "l1-plus",
+      "name": "L1+",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "L1+",
+      "workoutType": "Langt roligt",
+      "mainSet": "11 km roligt",
+      "targetPace": "5:20–5:50/km",
+      "totalApprox": "11 km",
+      "purpose": "Aerob udholdenhed."
+    },
+    {
+      "id": "l2",
+      "name": "L2",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "L2",
+      "workoutType": "Langt roligt",
+      "mainSet": "12 km roligt",
+      "targetPace": "5:20–5:50/km",
+      "totalApprox": "12 km",
+      "purpose": "Aerob udholdenhed."
+    },
+    {
+      "id": "l2-plus",
+      "name": "L2+",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "L2+",
+      "workoutType": "Langt roligt",
+      "mainSet": "13 km roligt",
+      "targetPace": "5:20–5:50/km",
+      "totalApprox": "13 km",
+      "purpose": "Aerob udholdenhed."
+    },
+    {
+      "id": "l3",
+      "name": "L3",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "L3",
+      "workoutType": "Langt roligt",
+      "mainSet": "14 km roligt",
+      "targetPace": "5:20–5:50/km",
+      "totalApprox": "14 km",
+      "purpose": "Længste tur i perioden. Loftet står fast — ekstra volumen går til R-løbet."
+    },
+    {
+      "id": "l4",
+      "name": "L4",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "L4",
+      "workoutType": "Langt + strides",
+      "mainSet": "12 km roligt + 6×20 sek strides til sidst",
+      "rest": "60 sek gang",
+      "targetPace": "Roligt; strides hurtigt men afslappet",
+      "totalApprox": "12,5 km",
+      "purpose": "Volumen plus neuromuskulær skarphed."
+    },
+    {
+      "id": "t1",
+      "name": "T1",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "T1",
+      "workoutType": "Tærskel",
+      "mainSet": "3 × 8 min",
+      "rest": "2 min jog",
+      "targetPace": "4:25/km",
+      "totalApprox": "~11 km",
+      "purpose": "Første fartpas efter rehab. Hæver tærskelfarten.",
+      "warmup": "Alle kvalitetspas (T og I): 15 min rolig opvarmning + 4×20 sek strides før, 10 min roligt nedløb efter."
+    },
+    {
+      "id": "t2",
+      "name": "T2",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "T2",
+      "workoutType": "Tærskel",
+      "mainSet": "3 × 10 min",
+      "rest": "2 min jog",
+      "targetPace": "4:25/km",
+      "totalApprox": "~12 km",
+      "purpose": "Mere tid på farten.",
+      "warmup": "Alle kvalitetspas (T og I): 15 min rolig opvarmning + 4×20 sek strides før, 10 min roligt nedløb efter."
+    },
+    {
+      "id": "t3",
+      "name": "T3",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "T3",
+      "workoutType": "Tærskel",
+      "mainSet": "4 × 8 min",
+      "rest": "90 sek jog",
+      "targetPace": "4:20/km",
+      "totalApprox": "~12,5 km",
+      "purpose": "Hårdeste tærskelpas.",
+      "warmup": "Alle kvalitetspas (T og I): 15 min rolig opvarmning + 4×20 sek strides før, 10 min roligt nedløb efter."
+    },
+    {
+      "id": "i-a",
+      "name": "I-A",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "I-A",
+      "workoutType": "VO2max",
+      "mainSet": "6 × 800 m",
+      "rest": "2 min jog",
+      "targetPace": "3:50–3:55/km",
+      "totalApprox": "~11 km",
+      "purpose": "Hovedpasset i den specifikke fase.",
+      "warmup": "Alle kvalitetspas (T og I): 15 min rolig opvarmning + 4×20 sek strides før, 10 min roligt nedløb efter."
+    },
+    {
+      "id": "i-a-plus",
+      "name": "I-A+",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "I-A+",
+      "workoutType": "VO2max",
+      "mainSet": "7 × 800 m",
+      "rest": "2 min jog",
+      "targetPace": "3:50–3:55/km",
+      "totalApprox": "~12 km",
+      "purpose": "Som I-A med én repetition mere. Sidste hårde pas.",
+      "warmup": "Alle kvalitetspas (T og I): 15 min rolig opvarmning + 4×20 sek strides før, 10 min roligt nedløb efter."
+    },
+    {
+      "id": "i-b",
+      "name": "I-B",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "I-B",
+      "workoutType": "VO2max",
+      "mainSet": "5 × 1000 m",
+      "rest": "90 sek jog",
+      "targetPace": "3:55/km",
+      "totalApprox": "~11,5 km",
+      "purpose": "Længere reps — tættere på løbets rytme.",
+      "warmup": "Alle kvalitetspas (T og I): 15 min rolig opvarmning + 4×20 sek strides før, 10 min roligt nedløb efter."
+    },
+    {
+      "id": "i-c",
+      "name": "I-C",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "I-C",
+      "workoutType": "Fart",
+      "mainSet": "8 × 400 m",
+      "rest": "90 sek jog",
+      "targetPace": "3:40–3:45/km",
+      "totalApprox": "~9,5 km",
+      "purpose": "Over løbsfart. Gør 3:59/km til noget der føles kontrolleret.",
+      "warmup": "Alle kvalitetspas (T og I): 15 min rolig opvarmning + 4×20 sek strides før, 10 min roligt nedløb efter."
+    },
+    {
+      "id": "i-d",
+      "name": "I-D",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "I-D",
+      "workoutType": "Skarphed",
+      "mainSet": "4 × 1000 m",
+      "rest": "2 min jog",
+      "targetPace": "3:55/km",
+      "totalApprox": "~10 km",
+      "purpose": "Taper-pas. Holder skarpheden, koster ingenting.",
+      "warmup": "Alle kvalitetspas (T og I): 15 min rolig opvarmning + 4×20 sek strides før, 10 min roligt nedløb efter."
+    },
+    {
+      "id": "tt",
+      "name": "TT",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "TT",
+      "workoutType": "Testløb",
+      "mainSet": "5 km alt ud",
+      "targetPace": "Alt ud",
+      "totalApprox": "~11 km",
+      "purpose": "Under 20:40 = sub 20 er i spil. 20:40–21:10 = tæt på, tempoet justeres. Over 21:10 = vi sigter efter PR i stedet."
+    },
+    {
+      "id": "lob",
+      "name": "Løb: 5 km",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "code": "LØB",
+      "workoutType": "Konkurrence",
+      "mainSet": "5 km",
+      "targetPace": "3:59/km = 19:55",
+      "totalApprox": "~9 km",
+      "purpose": "Første km må IKKE være hurtigere end 3:55."
+    },
+    {
+      "id": "rolig-5km-strides",
+      "name": "5 km roligt + strides",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "workoutType": "Roligt",
+      "mainSet": "5 km roligt + 4×20 sek strides"
+    },
+    {
+      "id": "rolig-3km-strides",
+      "name": "3 km meget roligt + strides",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "workoutType": "Meget roligt",
+      "mainSet": "3 km meget roligt + 3×20 sek strides"
+    },
+    {
+      "id": "rolig-5-6km",
+      "name": "5–6 km meget roligt",
+      "colorKey": "run",
+      "notes": [],
+      "kind": "løb",
+      "workoutType": "Meget roligt",
+      "mainSet": "5–6 km meget roligt"
+    },
+    {
+      "id": "mobilitet",
+      "name": "Mobilitetsblok",
+      "colorKey": "mobility",
+      "durationMin": {
+        "min": 8,
+        "max": 10
+      },
+      "notes": [],
+      "kind": "mobilitet"
+    }
+  ],
+  "mobility": {
+    "name": "Mobilitetsblok",
+    "durationMin": {
+      "min": 8,
+      "max": 10
+    },
+    "intro": "Opvarmning på træningsdage, alene på de andre. Ankeldelen kører indtil højre matcher venstre.",
+    "items": [
+      {
+        "id": "knae-til-vaeg-hojre",
+        "name": "Knæ-til-væg dorsalfleksion, HØJRE",
+        "dose": "3 × 30 sek",
+        "target": "Højre ankel",
+        "cue": "Knæet skubbes frem mod væggen med hælen i gulvet. Flyt foden længere væk indtil hælen lige akkurat kan blive nede."
+      },
+      {
+        "id": "knae-til-vaeg-venstre",
+        "name": "Knæ-til-væg, VENSTRE",
+        "dose": "1 × 30 sek",
+        "target": "Reference",
+        "cue": "Venstre side er facitlisten."
+      },
+      {
+        "id": "tahaev-trin-strakt",
+        "name": "Tåhæv på trin, strakt knæ, langsom sænkning",
+        "dose": "2 × 15",
+        "target": "Højre achilles",
+        "cue": "3 sek ned under trinnet, 1 sek op."
+      },
+      {
+        "id": "soleus-straek",
+        "name": "Soleus-stræk, bøjet knæ mod væg",
+        "dose": "2 × 30 sek højre",
+        "target": "Højre soleus",
+        "cue": "Dybere knæbøjning end knæ-til-væg."
+      },
+      {
+        "id": "psoas-release",
+        "name": "Psoas-release, bold",
+        "dose": "60–90 sek venstre",
+        "target": "Venstre psoas",
+        "cue": "Liggende på maven, bold lidt til siden for navlen. Blidt tryk og vejrtrækning — ikke ind i snurren."
+      },
+      {
+        "id": "hip-cars",
+        "name": "Hip CARs",
+        "dose": "3 langsomme cirkler hver vej/ben",
+        "target": "Hofteled, rotation",
+        "cue": "Stående, fuld kontrol gennem hele udslaget. Stop før lysken melder sig."
+      },
+      {
+        "id": "hofteskift-90-90",
+        "name": "90/90 hofteskift",
+        "dose": "10 skift",
+        "target": "Hofte, venstre side",
+        "cue": "Langsomt og kontrolleret."
+      },
+      {
+        "id": "glute-bridge",
+        "name": "Glute bridge",
+        "dose": "15 reps",
+        "target": "Balder, hofteåbning",
+        "cue": "Klem balderne i toppen, 2 sek hold."
+      }
+    ],
+    "measurement": {
+      "instructions": "Mål afstanden i cm fra storetå til væg, hvor knæet lige akkurat når væggen MED hælen i gulvet.",
+      "weeks": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13
+      ],
+      "reminderDays": 14
+    },
+    "notes": [
+      "Måleuger: 1, 3, 5, 7, 9, 11 og 13. De står også i kolonnen 'Ugens fokus' på fanen Ugeplan.",
+      "Mål altid på samme tidspunkt af dagen og FØR træning.",
+      "Ankeldelen bliver først valgfri når Forskel er 0. Hoftedelen kører hele perioden."
+    ]
+  },
+  "weeks": [
+    {
+      "weekNo": 1,
+      "startDate": "2026-09-28",
+      "phase": "Rehab",
+      "focus": "2 sæt, RPE 5–6. Adduktorklem 3×20 sek, halv kraft. Mål ankel-baseline.",
+      "kmLabel": "5 + CT",
+      "sessions": [
+        {
+          "sessionId": "rehab-a",
+          "day": 1,
+          "label": "Rehab A",
+          "optional": false
+        },
+        {
+          "sessionId": "rh",
+          "day": 3,
+          "label": "RH (5 km) — kun hvis snurren er væk",
+          "optional": false,
+          "targetKm": {
+            "min": 5,
+            "max": 5
+          },
+          "condition": "Kun hvis snurren er væk"
+        },
+        {
+          "sessionId": "rehab-b",
+          "day": 4,
+          "label": "Rehab B",
+          "optional": false
+        },
+        {
+          "sessionId": "ct",
+          "day": 6,
+          "label": "CT (40 min)",
+          "optional": false,
+          "targetMin": {
+            "min": 40,
+            "max": 40
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 2,
+      "startDate": "2026-10-05",
+      "phase": "Rehab",
+      "focus": "3 sæt, RPE 6. Adduktorklem 3×30 sek.",
+      "kmLabel": "5 + CT",
+      "sessions": [
+        {
+          "sessionId": "rehab-a",
+          "day": 1,
+          "label": "Rehab A",
+          "optional": false
+        },
+        {
+          "sessionId": "rh",
+          "day": 3,
+          "label": "RH (5 km)",
+          "optional": false,
+          "targetKm": {
+            "min": 5,
+            "max": 5
+          }
+        },
+        {
+          "sessionId": "rehab-b",
+          "day": 4,
+          "label": "Rehab B",
+          "optional": false
+        },
+        {
+          "sessionId": "ct",
+          "day": 6,
+          "label": "CT (45 min)",
+          "optional": false,
+          "targetMin": {
+            "min": 45,
+            "max": 45
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 3,
+      "startDate": "2026-10-12",
+      "phase": "Rehab",
+      "focus": "3 sæt, RPE 6–7. Copenhagen kort vægtarm hvis klemmet er smertefrit. Mål ankel.",
+      "kmLabel": "6 + CT",
+      "sessions": [
+        {
+          "sessionId": "rehab-a",
+          "day": 1,
+          "label": "Rehab A",
+          "optional": false
+        },
+        {
+          "sessionId": "rh",
+          "day": 3,
+          "label": "RH (6 km)",
+          "optional": false,
+          "targetKm": {
+            "min": 6,
+            "max": 6
+          }
+        },
+        {
+          "sessionId": "rehab-b",
+          "day": 4,
+          "label": "Rehab B",
+          "optional": false
+        },
+        {
+          "sessionId": "ct",
+          "day": 6,
+          "label": "CT (50 min)",
+          "optional": false,
+          "targetMin": {
+            "min": 50,
+            "max": 50
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 4,
+      "startDate": "2026-10-19",
+      "phase": "Rehab",
+      "focus": "3 sæt, RPE 7. PORT: grønt trafiklys i uge 3–4 → videre til uge 5. Ellers gentag uge 4.",
+      "kmLabel": "7 + CT",
+      "sessions": [
+        {
+          "sessionId": "rehab-a",
+          "day": 1,
+          "label": "Rehab A",
+          "optional": false
+        },
+        {
+          "sessionId": "rh",
+          "day": 3,
+          "label": "RH (7 km + strides)",
+          "optional": false,
+          "targetKm": {
+            "min": 7,
+            "max": 7
+          }
+        },
+        {
+          "sessionId": "rehab-b",
+          "day": 4,
+          "label": "Rehab B",
+          "optional": false
+        },
+        {
+          "sessionId": "ct",
+          "day": 6,
+          "label": "CT (50 min)",
+          "optional": false,
+          "targetMin": {
+            "min": 50,
+            "max": 50
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 5,
+      "startDate": "2026-10-26",
+      "phase": "Tærskel",
+      "focus": "Tilbage til to løb. Styrke 2 sæt, RPE 6. Mål ankel.",
+      "kmLabel": "21",
+      "sessions": [
+        {
+          "sessionId": "styrke-a",
+          "day": 1,
+          "label": "Styrke A",
+          "optional": false
+        },
+        {
+          "sessionId": "t1",
+          "day": 3,
+          "label": "T1",
+          "optional": false
+        },
+        {
+          "sessionId": "styrke-b",
+          "day": 4,
+          "label": "Styrke B",
+          "optional": false
+        },
+        {
+          "sessionId": "l1",
+          "day": 6,
+          "label": "L1 (10 km)",
+          "optional": false,
+          "targetKm": {
+            "min": 10,
+            "max": 10
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 6,
+      "startDate": "2026-11-02",
+      "phase": "Tærskel",
+      "focus": "Styrke 3 sæt, RPE 7. R-løbet starter.",
+      "kmLabel": "27",
+      "sessions": [
+        {
+          "sessionId": "styrke-a",
+          "day": 1,
+          "label": "Styrke A",
+          "optional": false
+        },
+        {
+          "sessionId": "t2",
+          "day": 3,
+          "label": "T2",
+          "optional": false
+        },
+        {
+          "sessionId": "styrke-b",
+          "day": 4,
+          "label": "Styrke B",
+          "optional": false
+        },
+        {
+          "sessionId": "l1-plus",
+          "day": 6,
+          "label": "L1+ (11 km)",
+          "optional": false,
+          "targetKm": {
+            "min": 11,
+            "max": 11
+          }
+        },
+        {
+          "sessionId": "r",
+          "day": 7,
+          "label": "R (4 km)",
+          "optional": true,
+          "targetKm": {
+            "min": 4,
+            "max": 4
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 7,
+      "startDate": "2026-11-09",
+      "phase": "Tærskel",
+      "focus": "Tungeste tærskeluge. Styrke 3 sæt, RPE 7. Mål ankel.",
+      "kmLabel": "30",
+      "sessions": [
+        {
+          "sessionId": "styrke-a",
+          "day": 1,
+          "label": "Styrke A",
+          "optional": false
+        },
+        {
+          "sessionId": "t3",
+          "day": 3,
+          "label": "T3",
+          "optional": false
+        },
+        {
+          "sessionId": "styrke-b",
+          "day": 4,
+          "label": "Styrke B",
+          "optional": false
+        },
+        {
+          "sessionId": "l2-plus",
+          "day": 6,
+          "label": "L2+ (13 km)",
+          "optional": false,
+          "targetKm": {
+            "min": 13,
+            "max": 13
+          }
+        },
+        {
+          "sessionId": "r",
+          "day": 7,
+          "label": "R (5 km)",
+          "optional": true,
+          "targetKm": {
+            "min": 5,
+            "max": 5
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 8,
+      "startDate": "2026-11-16",
+      "phase": "Testuge",
+      "focus": "Testen kalibrerer intervalfarterne og afgør om sub 20 er i spil.",
+      "kmLabel": "24",
+      "sessions": [
+        {
+          "sessionId": "styrke-a",
+          "day": 1,
+          "label": "Styrke A (let)",
+          "optional": false
+        },
+        {
+          "sessionId": "e2",
+          "day": 3,
+          "label": "E2",
+          "optional": false
+        },
+        {
+          "sessionId": "styrke-b",
+          "day": 4,
+          "label": "Styrke B (let)",
+          "optional": false
+        },
+        {
+          "sessionId": "tt",
+          "day": 6,
+          "label": "TT – 5 km test (lør 21. nov)",
+          "optional": false
+        },
+        {
+          "sessionId": "r",
+          "day": 7,
+          "label": "R (5 km)",
+          "optional": true,
+          "targetKm": {
+            "min": 5,
+            "max": 5
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 9,
+      "startDate": "2026-11-23",
+      "phase": "5 km-specifik",
+      "focus": "SKIFT til rotationsøvelser. Fuld Copenhagen plank. Styrke 3 sæt, RPE 7–8. Mål ankel.",
+      "kmLabel": "31",
+      "sessions": [
+        {
+          "sessionId": "styrke-a",
+          "day": 1,
+          "label": "Styrke A",
+          "optional": false
+        },
+        {
+          "sessionId": "i-a",
+          "day": 3,
+          "label": "I-A",
+          "optional": false
+        },
+        {
+          "sessionId": "styrke-b",
+          "day": 4,
+          "label": "Styrke B",
+          "optional": false
+        },
+        {
+          "sessionId": "l3",
+          "day": 6,
+          "label": "L3 (14 km)",
+          "optional": false,
+          "targetKm": {
+            "min": 14,
+            "max": 14
+          }
+        },
+        {
+          "sessionId": "r",
+          "day": 7,
+          "label": "R (6 km)",
+          "optional": true,
+          "targetKm": {
+            "min": 6,
+            "max": 6
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 10,
+      "startDate": "2026-11-30",
+      "phase": "5 km-specifik",
+      "focus": "Styrke 3 sæt, RPE 7–8.",
+      "kmLabel": "31",
+      "sessions": [
+        {
+          "sessionId": "styrke-a",
+          "day": 1,
+          "label": "Styrke A",
+          "optional": false
+        },
+        {
+          "sessionId": "i-b",
+          "day": 3,
+          "label": "I-B",
+          "optional": false
+        },
+        {
+          "sessionId": "styrke-b",
+          "day": 4,
+          "label": "Styrke B",
+          "optional": false
+        },
+        {
+          "sessionId": "l4",
+          "day": 6,
+          "label": "L4 (12 km + strides)",
+          "optional": false,
+          "targetKm": {
+            "min": 12,
+            "max": 12
+          }
+        },
+        {
+          "sessionId": "r",
+          "day": 7,
+          "label": "R (7 km)",
+          "optional": true,
+          "targetKm": {
+            "min": 7,
+            "max": 7
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 11,
+      "startDate": "2026-12-07",
+      "phase": "5 km-specifik (aflastning)",
+      "focus": "AFLASTNING. Styrke 2 sæt, RPE 6. Mål ankel.",
+      "kmLabel": "24",
+      "sessions": [
+        {
+          "sessionId": "styrke-a",
+          "day": 1,
+          "label": "Styrke A",
+          "optional": false
+        },
+        {
+          "sessionId": "i-c",
+          "day": 3,
+          "label": "I-C",
+          "optional": false
+        },
+        {
+          "sessionId": "styrke-b",
+          "day": 4,
+          "label": "Styrke B",
+          "optional": false
+        },
+        {
+          "sessionId": "l1-plus",
+          "day": 6,
+          "label": "L1+ (11 km)",
+          "optional": false,
+          "targetKm": {
+            "min": 11,
+            "max": 11
+          }
+        },
+        {
+          "sessionId": "r",
+          "day": 7,
+          "label": "R (4 km)",
+          "optional": true,
+          "targetKm": {
+            "min": 4,
+            "max": 4
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 12,
+      "startDate": "2026-12-14",
+      "phase": "5 km-specifik",
+      "focus": "Sidste hårde uge. Herfra falder alting.",
+      "kmLabel": "33",
+      "sessions": [
+        {
+          "sessionId": "styrke-a",
+          "day": 1,
+          "label": "Styrke A",
+          "optional": false
+        },
+        {
+          "sessionId": "i-a-plus",
+          "day": 3,
+          "label": "I-A+",
+          "optional": false
+        },
+        {
+          "sessionId": "styrke-b",
+          "day": 4,
+          "label": "Styrke B",
+          "optional": false
+        },
+        {
+          "sessionId": "l3",
+          "day": 6,
+          "label": "L3 (14 km)",
+          "optional": false,
+          "targetKm": {
+            "min": 14,
+            "max": 14
+          }
+        },
+        {
+          "sessionId": "r",
+          "day": 7,
+          "label": "R (7 km)",
+          "optional": true,
+          "targetKm": {
+            "min": 7,
+            "max": 7
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 13,
+      "startDate": "2026-12-21",
+      "phase": "Taper",
+      "focus": "TAPER. SKIFT tilbage til grundøvelserne. 2 sæt, RPE 6. Juleaften er torsdag — Styrke B må flyttes eller droppes. Mål ankel.",
+      "kmLabel": "22",
+      "sessions": [
+        {
+          "sessionId": "styrke-a",
+          "day": 1,
+          "label": "Styrke A (let)",
+          "optional": false
+        },
+        {
+          "sessionId": "i-d",
+          "day": 3,
+          "label": "I-D",
+          "optional": false
+        },
+        {
+          "sessionId": "styrke-b",
+          "day": 4,
+          "label": "Styrke B (let)",
+          "optional": false
+        },
+        {
+          "sessionId": "l2",
+          "day": 6,
+          "label": "L2 (12 km)",
+          "optional": false,
+          "targetKm": {
+            "min": 12,
+            "max": 12
+          }
+        }
+      ]
+    },
+    {
+      "weekNo": 14,
+      "startDate": "2026-12-28",
+      "phase": "LØBSUGE",
+      "focus": "Ingen styrke. Ingen nye tiltag 48 timer før løbet.",
+      "kmLabel": "~14",
+      "sessions": [
+        {
+          "sessionId": "rolig-5km-strides",
+          "day": 1,
+          "label": "5 km roligt + 4×20 sek strides",
+          "optional": false,
+          "targetKm": {
+            "min": 5,
+            "max": 5
+          }
+        },
+        {
+          "sessionId": "rolig-3km-strides",
+          "day": 3,
+          "label": "3 km meget roligt + 3×20 sek strides",
+          "optional": false,
+          "targetKm": {
+            "min": 3,
+            "max": 3
+          }
+        },
+        {
+          "sessionId": "lob",
+          "day": 4,
+          "label": "LØB: 5 km – sub 20",
+          "optional": false
+        },
+        {
+          "sessionId": "rolig-5-6km",
+          "day": 6,
+          "label": "5–6 km meget roligt",
+          "optional": false,
+          "targetKm": {
+            "min": 5,
+            "max": 6
+          }
+        }
+      ]
+    }
+  ],
+  "groin": {
+    "side": "V",
+    "rules": [
+      {
+        "color": "grøn",
+        "signal": "Højst 3/10 under træning, væk næste morgen",
+        "action": "Fortsæt og progressér"
+      },
+      {
+        "color": "gul",
+        "signal": "Over 3/10, eller værre næste morgen",
+        "action": "Ét trin tilbage i den øvelse eller det løb"
+      },
+      {
+        "color": "rød",
+        "signal": "Snurren to sessioner i træk, eller i hvile/om natten",
+        "action": "Selvbehandlingen rammer ikke det der er galt — så skal nogen se på det"
+      }
+    ],
+    "gate": "Port til uge 5: grønt i uge 3 og 4. Er det gult, gentages uge 4. Er det rødt, stopper planen indtil nogen har set på det."
+  },
+  "runNotes": [
+    "Farterne er udledt af din COROS-data fra 20. september: threshold 4:20–4:46/km, speed 3:57–4:19/km.",
+    "Rammer du ikke målfarten på sidste repetition, er passet for hårdt: skær en repetition væk, ikke farten.",
+    "Snurren i lysken under et fartpas: stop passet og løb roligt hjem. Det gælder hele perioden, ikke kun rehab."
+  ]
+}
