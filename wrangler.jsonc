@@ -1,11 +1,12 @@
 // Cloudflare Worker: serverer PWA'en (static assets) og API'et (/api) fra ét projekt.
-// database_id udfyldes ved deploy (se README).
+// database_id udfyldes efter "wrangler d1 create traeningsnav" (se README, deploy trin 2).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "traeningsnav",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "observability": { "enabled": true },
+  "minify": true,
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
