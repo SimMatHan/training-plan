@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import { ZodError } from 'zod';
 import { bearerToken, requireAuth } from './auth';
 import type { AppEnv, Env } from './env';
+import { exportRoutes, historyRoutes } from './routes/history';
 import { planRoutes } from './routes/plan';
 import { syncRoutes } from './routes/sync';
 import { trendRoutes } from './routes/trends';
@@ -17,6 +18,8 @@ app.use('*', requireAuth(bearerToken()));
 app.route('/plan', planRoutes);
 app.route('/sync', syncRoutes);
 app.route('/trends', trendRoutes);
+app.route('/history', historyRoutes);
+app.route('/export', exportRoutes);
 
 app.notFound((c) => c.json({ error: 'Ikke fundet' }, 404));
 

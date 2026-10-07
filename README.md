@@ -49,6 +49,26 @@ Alle kald undtagen `/api/health` kræver `Authorization: Bearer <API_TOKEN>`.
 | GET | `/api/sync/pull?since=` | Hent poster ændret siden cursor |
 | GET | `/api/trends/groin?from=YYYY-MM-DD` | Lyske-trafiklys pr. træning |
 | GET | `/api/trends/mobility` | Knæ-til-væg-målinger med forskel mellem siderne |
+| GET | `/api/history/exercises/:exerciseId?limit=` | Alle gange en øvelse er logget, nyeste først |
+| GET | `/api/history/weeks/:weekNo` | Ugens sessioner, volumen pr. øvelse, løbe-km og trafiklys |
+| GET | `/api/export` | Alle data som én JSON-fil (planversioner og alle logtabeller) |
+
+## Service-funktioner (til MCP i fase 3)
+
+Forretningslogikken ligger i `worker/services/` og tager `db: D1Database` som første parameter, uden HTTP:
+
+| Funktion | Fil |
+|---|---|
+| `getActivePlan(db)`, `getWeek(db, weekNo)`, `listPlanVersions(db)`, `activatePlanVersion(db, version)` | `plan.ts` |
+| `getExerciseHistory(db, exerciseId, limit)`, `getWeeklySummary(db, weekNo)`, `exportAll(db)` | `history.ts` |
+| `getGroinTrend(db, fromDate)`, `getMobilityTrend(db)` | `trends.ts` |
+| `pushChanges(db, changes)`, `pullChanges(db, since)` | `sync.ts` |
+
+## Progression
+
+"Klar til mere vægt" vises på en øvelse, når alle planlagte sæt sidste gang ramte toppen af
+rep-intervallet, og øvelsens RPE var logget og ≤ planens mål (`shared/progression.ts`).
+Tallene ændres aldrig automatisk.
 
 ## Lyske-trafiklys
 
