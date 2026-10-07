@@ -4,7 +4,18 @@ import type { MobilityCheck } from '../../shared/records.schema';
 import { setMobilityCheck } from '../data/workouts';
 
 /** Mobilitetsblokken som tjekliste. Gemmes pr. punkt. */
-export function MobilityChecklist({ plan, workoutUuid, checks }: { plan: Plan; workoutUuid: string; checks: MobilityCheck[] }) {
+export function MobilityChecklist({
+  plan,
+  workoutUuid,
+  checks,
+  hideHeading = false,
+}: {
+  plan: Plan;
+  workoutUuid: string;
+  checks: MobilityCheck[];
+  /** Skjul overskriften, når sektionens overskrift allerede viser den. */
+  hideHeading?: boolean;
+}) {
   const block = plan.mobility;
   // Optimistisk: vis trykket med det samme, også før IndexedDB har svaret.
   const [pending, setPending] = useState<Record<string, boolean>>({});
@@ -13,8 +24,8 @@ export function MobilityChecklist({ plan, workoutUuid, checks }: { plan: Plan; w
   const count = block.items.filter((i) => isDone(i.id)).length;
 
   return (
-    <section aria-labelledby="mobility-heading" className="py-5">
-      <div className="mb-2 flex items-baseline justify-between gap-3">
+    <section aria-labelledby={hideHeading ? undefined : 'mobility-heading'} aria-label={hideHeading ? block.name : undefined} className={hideHeading ? 'pb-5' : 'py-5'}>
+      <div className={`mb-2 flex items-baseline justify-between gap-3 ${hideHeading ? 'hidden' : ''}`}>
         <h2 id="mobility-heading" className="flex items-center gap-2 text-2xl">
           <span aria-hidden="true" className="inline-block h-6 w-1.5 rounded-full bg-mob" />
           {block.name}

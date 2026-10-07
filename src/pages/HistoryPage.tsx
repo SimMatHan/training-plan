@@ -8,10 +8,13 @@ import { useExerciseOverview, useWeeklySummaries } from '../data/history';
 import { usePlan } from '../data/plan';
 import { formatShort, todayIso, WEEKDAYS_SHORT } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
+import { dayState } from '../logic/progress';
 import { formatDecimal } from '../logic/numbers';
 import { PlanStatus } from './PlanStatus';
 
 type Tab = 'oevelser' | 'uger';
+
+const addDays = (iso: string, n: number) => new Date(Date.parse(iso + 'T00:00:00Z') + n * 86_400_000).toISOString().slice(0, 10);
 const TAB_KEY = 'traeningsnav.historyTab';
 
 function readTab(): Tab {
@@ -164,7 +167,13 @@ function WeekCard({ week, isCurrent }: { week: WeeklySummary; isCurrent: boolean
                 </span>
                 {s.light && <TrafficLight light={s.light} />}
                 <span className={s.status === 'lavet' ? 'font-medium text-mob-ink' : 'text-muted'}>
-                  {s.status === 'lavet' ? '✓ Lavet' : s.status === 'i-gang' ? 'I gang' : '–'}
+                  {s.status === 'lavet'
+                    ? '✓ Lavet'
+                    : s.status === 'i-gang'
+                      ? 'I gang'
+                      : !s.optional && dayState(addDays(week.startDate, s.day - 1), todayIso()) === 'past'
+                        ? 'Misset'
+                        : '–'}
                 </span>
               </li>
             ))}

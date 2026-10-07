@@ -20,6 +20,7 @@ export function ExerciseBlock({
   sets,
   notes,
   supersetFirst,
+  hideTitle = false,
 }: {
   plan: Plan;
   workoutUuid: string;
@@ -27,6 +28,8 @@ export function ExerciseBlock({
   sets: SetLog[];
   notes: ExerciseNote[];
   supersetFirst: boolean;
+  /** Skjul navnet, når sektionens overskrift allerede viser det. */
+  hideTitle?: boolean;
 }) {
   const alt = resolved.planned.alternative;
   const altExercise = alt && getExercise(plan, alt.exerciseId);
@@ -51,9 +54,9 @@ export function ExerciseBlock({
   const intensity = dose.intensity?.kind === 'rpe' ? formatRange(dose.intensity) : undefined;
 
   return (
-    <article className="py-5">
+    <article className={hideTitle ? 'pb-5' : 'py-5'}>
       <header className="mb-3">
-        <h3 className="text-2xl">{label}</h3>
+        {(!hideTitle || useAlt) && <h3 className="text-2xl">{label}</h3>}
         <p className="num mt-1 text-base font-medium">{meta}</p>
         {(dose.tempo || dose.note) && <p className="mt-0.5 text-sm">{[dose.tempo, dose.note].filter(Boolean).join(' · ')}</p>}
         {!useAlt && resolved.planned.cue && <p className="mt-1 text-sm text-muted">{resolved.planned.cue}</p>}
