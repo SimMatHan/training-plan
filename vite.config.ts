@@ -3,12 +3,20 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Version vist i Indstillinger. Workers Builds sætter WORKERS_CI_COMMIT_SHA.
+const buildId = (process.env.WORKERS_CI_COMMIT_SHA ?? 'lokal').slice(0, 7);
+
 export default defineConfig({
+  define: {
+    __BUILD_ID__: JSON.stringify(buildId),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // Ny version hentes i baggrunden, men aktiveres først når brugeren trykker "Opdater".
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'icon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
         id: '/',
@@ -36,6 +44,9 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
+        // Første installation overtager siden med det samme (offline fra første besøg).
+        // Senere versioner venter stadig på "Opdater" (skipWaiting er slået fra).
+        clientsClaim: true,
       },
     }),
   ],
