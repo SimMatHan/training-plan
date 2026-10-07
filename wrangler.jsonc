@@ -35,7 +35,8 @@
 	// vil du styre det, så opret det og indsæt id'et (README, Claude-connector trin 1).
 	"kv_namespaces": [
 		{
-			"binding": "OAUTH_KV"
+			"binding": "OAUTH_KV",
+			"id": "5e1267030eed4bc598a5a662b6d3165c"
 		}
 	]
 }
