@@ -14,6 +14,7 @@ export function SessionAction({
   workouts,
   groin,
   prominent = false,
+  primary = prominent,
 }: {
   session: Session;
   week: Week;
@@ -21,6 +22,8 @@ export function SessionAction({
   workouts: Workout[] | undefined;
   groin?: Map<string, GroinAssessment>;
   prominent?: boolean;
+  /** Fyldt "Start"-knap (dagens session). Andre dage får en rolig kantknap. */
+  primary?: boolean;
 }) {
   const { active } = usePlan();
   const [, navigate] = useLocation();
@@ -59,7 +62,7 @@ export function SessionAction({
           type="button"
           onClick={() => void open()}
           disabled={busy}
-          className={`min-h-12 rounded-lg px-4 font-semibold ${status === 'ikke-lavet' ? 'bg-fg text-bg' : 'border border-line'} ${prominent ? 'min-w-24 text-lg' : ''}`}
+          className={`min-h-12 rounded-lg px-4 font-semibold ${status === 'ikke-lavet' && primary ? 'bg-fg text-bg' : 'border border-line'} ${prominent ? 'min-w-24 text-lg' : ''}`}
         >
           {label}
         </button>

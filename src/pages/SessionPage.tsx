@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
-import { getSession, resolveStrengthSession } from '../../shared/resolve';
+import { formatDose, formatIntensity, getSession, resolveStrengthSession } from '../../shared/resolve';
+import { Collapsible } from '../components/Collapsible';
 import { ExerciseBlock } from '../components/ExerciseBlock';
 import { MobilityChecklist } from '../components/MobilityChecklist';
 import { NoteField } from '../components/NoteField';
@@ -17,6 +18,17 @@ import { finishWorkout, patchWorkout, useWorkout, useWorkoutLogs } from '../data
 import { formatLong } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
 import { useWakeLock } from '../lib/wakeLock';
+import { isComplete, mobilityProgress, nextIncomplete, slotProgress, type Progress } from '../logic/progress';
+
+const MOBILITY = 'mobilitet';
+
+const scrollToSection = (id: string) =>
+  requestAnimationFrame(() =>
+    document.getElementById(`sektion-${id}`)?.scrollIntoView({
+      block: 'start',
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    }),
+  );
 
 export function SessionPage() {
   const [, params] = useRoute('/session/:uuid');
@@ -27,9 +39,52 @@ export function SessionPage() {
   const logs = useWorkoutLogs(uuid);
   const timer = useTimer();
   const [missingGroin, setMissingGroin] = useState(false);
+  // undefined = ikke valgt endnu; null = alt foldet sammen.
+  const [open, setOpen] = useState<string | null | undefined>(undefined);
+  const prevComplete = useRef<Record<string, boolean> | null>(null);
   useWakeLock(true);
 
-  if (workout === undefined || logs === undefined || !active) return <main className="p-4 text-muted">Henter …</main>;
+  const plan = active?.plan;
+  const session = plan && workout?.planned_session_id ? getSession(plan, workout.planned_session_id) : undefined;
+  const strength = plan && session?.kind === 'styrke' && workout?.week_no ? resolveStrengthSession(plan, session.id, workout.week_no) : undefined;
+  const showMobility = session?.kind === 'mobilitet' || (session?.kind === 'styrke' && session.mobility === 'before');
+
+  // Fremskridt pr. sektion, i rækkefølge: mobilitet først, derefter øvelserne.
+  const order: string[] = [];
+  const progress: Record<string, Progress> = {};
+  if (plan && logs) {
+    if (showMobility) {
+      order.push(MOBILITY);
+      progress[MOBILITY] = mobilityProgress(plan, logs.mobility);
+    }
+    for (const slot of strength?.slots ?? []) {
+      order.push(slot.slotId);
+      progress[slot.slotId] = slotProgress(plan, slot, logs.sets);
+    }
+  }
+  const completeKey = order.map((id) => (isComplete(progress[id]) ? 1 : 0)).join('');
+
+  // Åbn første ufærdige sektion, når data er indlæst.
+  useEffect(() => {
+    if (open !== undefined || !logs || !plan) return;
+    setOpen(nextIncomplete(order, progress));
+    prevComplete.current = Object.fromEntries(order.map((id) => [id, isComplete(progress[id])]));
+  }, [logs, plan, open]);
+
+  // Når den åbne sektion bliver færdig, hoppes der videre til den næste.
+  useEffect(() => {
+    const prev = prevComplete.current;
+    if (!prev || open === undefined) return;
+    const now = Object.fromEntries(order.map((id) => [id, isComplete(progress[id])]));
+    prevComplete.current = now;
+    if (open && !prev[open] && now[open]) {
+      const next = nextIncomplete(order, progress, open);
+      setOpen(next);
+      if (next) scrollToSection(next);
+    }
+  }, [completeKey]);
+
+  if (workout === undefined || logs === undefined || !active || !plan) return <main className="p-4 text-muted">Henter …</main>;
   if (workout === null || workout.deleted_at)
     return (
       <main className="pt-safe p-4">
@@ -40,15 +95,17 @@ export function SessionPage() {
       </main>
     );
 
-  const { plan } = active;
-  const session = workout.planned_session_id ? getSession(plan, workout.planned_session_id) : undefined;
-  const strength = session?.kind === 'styrke' && workout.week_no ? resolveStrengthSession(plan, session.id, workout.week_no) : undefined;
-  const showMobility = session?.kind === 'mobilitet' || (session?.kind === 'styrke' && session.mobility === 'before');
   const timerFor = timer.state?.workoutUuid === workout.uuid;
   const isRun = session?.kind === 'løb' || session?.kind === 'cardio';
   const scheduled = plan.weeks.find((w) => w.weekNo === workout.week_no)?.sessions.find((s) => s.sessionId === session?.id);
   // Lysken vurderes efter alle styrke-, løbe- og cardiosessioner.
   const asksGroin = workout.type !== 'mobilitet';
+
+  const toggle = (id: string) => {
+    const next = open === id ? null : id;
+    setOpen(next);
+    if (next) scrollToSection(next);
+  };
 
   async function finish() {
     if (asksGroin && workout!.groin_during == null) {
@@ -61,21 +118,45 @@ export function SessionPage() {
     navigate('/');
   }
 
-  async function remove() {
-    if (!confirm('Slette denne træning? Alt logget i den forsvinder fra historikken.')) return;
-    await deleteRecord('workouts', workout!.uuid);
+  /** Annuller (forkert session startet) og slet: begge er en tombstone på træningen. */
+  async function remove(kind: 'annuller' | 'slet') {
+    const w = workout!;
+    const hasData =
+      logs!.sets.some((s) => s.done || s.reps != null || s.weight_kg != null || s.seconds != null) ||
+      logs!.mobility.some((m) => m.done) ||
+      logs!.notes.some((n) => n.note || n.rpe != null) ||
+      [w.distance_km, w.duration_sec, w.avg_hr, w.groin_during, w.rpe, w.note].some((v) => v != null && v !== '');
+    const question =
+      kind === 'annuller' ? 'Annullere sessionen? Det du har logget i den slettes.' : 'Slette denne træning? Alt logget i den forsvinder fra historikken.';
+    // En tom session (startet ved en fejl) annulleres uden spørgsmål.
+    if ((hasData || kind === 'slet') && !confirm(question)) return;
+    await deleteRecord('workouts', w.uuid);
     if (timerFor) skipTimer();
     navigate('/');
   }
 
+  const exerciseSubtitle = (slotIndex: number) => {
+    const slot = strength!.slots[slotIndex];
+    return slot.exercises
+      .map((e) => [formatDose(e.exercise, e.planned.dose), formatIntensity(e.planned.dose)].filter(Boolean).join(' · '))
+      .join(' + ');
+  };
+
   return (
     <main className={`pt-safe mx-auto max-w-xl px-4 ${timerFor ? 'pb-36' : 'pb-12'}`}>
       <header className="pt-2 pb-3">
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <Link href="/" className="-ml-2 inline-flex min-h-12 items-center px-2 text-base">
             ← I dag
           </Link>
-          <SyncBadge />
+          <div className="flex items-center gap-3">
+            <SyncBadge />
+            {!workout.finished_at && (
+              <button type="button" onClick={() => void remove('annuller')} className="min-h-12 rounded-lg border border-line px-3 text-sm font-medium">
+                Annuller
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex gap-3">
           {session && <SessionMark colorKey={session.colorKey} />}
@@ -90,31 +171,43 @@ export function SessionPage() {
         </div>
       </header>
 
-      <div className="divide-y divide-line">
-        {showMobility && <MobilityChecklist plan={plan} workoutUuid={workout.uuid} checks={logs.mobility} />}
+      <div className="divide-y divide-line border-t border-line">
+        {showMobility && (
+          <Collapsible
+            id={MOBILITY}
+            title={plan.mobility.name}
+            subtitle={plan.mobility.durationMin ? `${plan.mobility.durationMin.min}–${plan.mobility.durationMin.max} min` : undefined}
+            progress={progress[MOBILITY]}
+            open={open === MOBILITY}
+            onToggle={() => toggle(MOBILITY)}
+            accent="bg-mob"
+          >
+            <MobilityChecklist plan={plan} workoutUuid={workout.uuid} checks={logs.mobility} hideHeading />
+          </Collapsible>
+        )}
 
-        {strength?.slots.map((slot) =>
-          slot.superset ? (
-            <section key={slot.slotId} aria-label="Superset" className="py-1">
-              <p className="pt-4 text-sm font-semibold text-muted">Superset — tag dem lige efter hinanden, pause efter anden øvelse</p>
-              <div className="ml-1 divide-y divide-line border-l-2 border-line pl-3">
+        {strength?.slots.map((slot, si) => (
+          <Collapsible
+            key={slot.slotId}
+            id={slot.slotId}
+            title={slot.exercises.map((e) => e.label).join(' + ')}
+            subtitle={(slot.superset ? 'Superset · ' : '') + exerciseSubtitle(si)}
+            progress={progress[slot.slotId]}
+            open={open === slot.slotId}
+            onToggle={() => toggle(slot.slotId)}
+          >
+            {slot.superset ? (
+              <div className="divide-y divide-line">
+                <p className="pb-1 text-sm text-muted">Tag dem lige efter hinanden; pause efter anden øvelse.</p>
                 {slot.exercises.map((ex, i) => (
                   <ExerciseBlock key={ex.exercise.id} plan={plan} workoutUuid={workout.uuid} resolved={ex} sets={logs.sets} notes={logs.notes} supersetFirst={i === 0} />
                 ))}
               </div>
-            </section>
-          ) : (
-            <ExerciseBlock
-              key={slot.slotId}
-              plan={plan}
-              workoutUuid={workout.uuid}
-              resolved={slot.exercises[0]}
-              sets={logs.sets}
-              notes={logs.notes}
-              supersetFirst={false}
-            />
-          ),
-        )}
+            ) : (
+              <ExerciseBlock plan={plan} workoutUuid={workout.uuid} resolved={slot.exercises[0]} sets={logs.sets} notes={logs.notes} supersetFirst={false} hideTitle />
+            )}
+          </Collapsible>
+        ))}
 
         {isRun && session && (session.kind === 'løb' || session.kind === 'cardio') && <RunLog workout={workout} session={session} scheduled={scheduled} />}
 
@@ -146,9 +239,11 @@ export function SessionPage() {
               Genåbn session
             </button>
           )}
-          <button type="button" onClick={() => void remove()} className="min-h-12 self-start px-1 text-sm text-a-ink underline">
-            Slet træningen
-          </button>
+          {workout.finished_at && (
+            <button type="button" onClick={() => void remove('slet')} className="min-h-12 self-start px-1 text-sm text-a-ink underline">
+              Slet træningen
+            </button>
+          )}
         </section>
       </div>
 

@@ -7,6 +7,7 @@ import { ghostFor, pickLastTime, summarizeSets } from '../src/logic/lastTime';
 import { formatDecimal, parseDecimal, sanitizeDecimal } from '../src/logic/numbers';
 import { restAfter } from '../src/logic/rest';
 import { deterministicUuid } from '../src/logic/uuid';
+import { dayState, nextIncomplete, slotProgress } from '../src/logic/progress';
 import { Workout as WorkoutSchema } from '../shared/records.schema';
 
 const plan = PlanSchema.parse(planJson);
@@ -120,5 +121,30 @@ describe('deterministisk uuid', () => {
     expect(a).toBe(await deterministicUuid('set', A, 'enbens-rdl', 'H', 1));
     expect(a).not.toBe(await deterministicUuid('set', A, 'enbens-rdl', 'V', 1));
     expect(a).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  });
+});
+
+describe('fremskridt og sammenfoldning', () => {
+  const s = (exercise_id: string, set_no: number, side: 'H' | 'V' | null, done = true) => ({ ...set(A, set_no, side, 10, 8, done), exercise_id });
+
+  it('tæller færdige rækker pr. plads, også superset', () => {
+    const slot = resolveStrengthSession(plan, 'styrke-b', 6).slots.find((x) => x.superset)!;
+    expect(slotProgress(plan, slot, [])).toEqual({ done: 0, total: 6 });
+    expect(slotProgress(plan, slot, [s('biceps-curl', 1, null), s('triceps-pushdown', 1, null), s('triceps-pushdown', 2, null, false)])).toEqual({ done: 2, total: 6 });
+  });
+
+  it('tæller alternativ-øvelsens rækker, når den er logget', () => {
+    const slot = resolveStrengthSession(plan, 'rehab-a', 3).slots.find((x) => x.slotId === 'rehab-a-4')!;
+    expect(slotProgress(plan, slot, [s('adduktorklem', 1, null)])).toEqual({ done: 1, total: 3 });
+  });
+
+  it('finder næste ufærdige sektion', () => {
+    const p = { a: { done: 2, total: 2 }, b: { done: 0, total: 3 }, c: { done: 3, total: 3 } };
+    expect(nextIncomplete(['a', 'b', 'c'], p)).toBe('b');
+    expect(nextIncomplete(['a', 'b', 'c'], p, 'b')).toBeNull();
+  });
+
+  it('placerer en dag i forhold til i dag', () => {
+    expect([dayState('2026-10-05', '2026-10-08'), dayState('2026-10-08', '2026-10-08'), dayState('2026-10-10', '2026-10-08')]).toEqual(['past', 'today', 'future']);
   });
 });
