@@ -7,7 +7,7 @@
 import ExcelJS from 'exceljs';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   PlanSchema,
   type Dose,
@@ -40,7 +40,6 @@ import {
 } from './seed-config';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const xlsxPath = process.argv[2] ?? path.join(here, 'traeningsplan.xlsx');
 
 // ─── Celler ─────────────────────────────────────────────────────────────────
 
@@ -558,7 +557,8 @@ function readMobility(ws: ExcelJS.Worksheet) {
 
 // ─── Byg planen ─────────────────────────────────────────────────────────────
 
-async function build() {
+/** Læser arket og returnerer en valideret plan. Bruges også af new-version.ts. */
+export async function build(xlsxPath: string) {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(xlsxPath);
   const sheet = (name: string) => wb.getWorksheet(name) ?? fail(`Mangler fanen ${name}`);
@@ -630,7 +630,7 @@ async function build() {
 
 // ─── Output ─────────────────────────────────────────────────────────────────
 
-const sql = (s: string | number | null) => (s === null ? 'NULL' : typeof s === 'number' ? String(s) : `'${s.replace(/'/g, "''")}'`);
+export const sql = (s: string | number | null) => (s === null ? 'NULL' : typeof s === 'number' ? String(s) : `'${s.replace(/'/g, "''")}'`);
 
 /** Fast uuid til baseline-målingen, så seed kan køres flere gange. */
 const BASELINE_UUID = '00000000-0000-4000-8000-000000000001';
@@ -658,7 +658,16 @@ function seedSql(plan: Plan, measurements: { date: string; right: number; left: 
 
 const DAYS = ['', 'man', 'tir', 'ons', 'tor', 'fre', 'lør', 'søn'];
 
-function overview(plan: Plan, skipped: string[]) {
+/** D1 tillader højst 100 KB pr. SQL-sætning; planen indsættes som én sætning. */
+export const MAX_STATEMENT_BYTES = 95_000;
+
+export function assertStatementSize(statement: string) {
+  const bytes = Buffer.byteLength(statement, 'utf8');
+  if (bytes > MAX_STATEMENT_BYTES)
+    throw new Error(`SQL-sætningen er ${bytes} bytes; D1 tillader højst 100 KB. Planen skal gøres mindre eller indsættes via API'et.`);
+}
+
+export function overview(plan: Plan, skipped: string[]) {
   const out: string[] = [];
   const p = (s = '') => out.push(s);
   const fmtDate = (d: string) => `${Number(d.slice(8, 10))}/${Number(d.slice(5, 7))}`;
@@ -738,15 +747,21 @@ function overview(plan: Plan, skipped: string[]) {
   return out.join('\n') + '\n';
 }
 
-const { plan, measurements, skipped } = await build();
-const json = JSON.stringify(plan, null, 2) + '\n';
-writeFileSync(path.join(here, 'plan.v1.json'), json);
-writeFileSync(path.join(here, 'seed.sql'), seedSql(plan, measurements));
-writeFileSync(path.join(here, 'plan.v1.oversigt.md'), overview(plan, skipped));
+// Kør kun når scriptet startes direkte (ikke når new-version.ts importerer build).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const xlsxPath = process.argv[2] ?? path.join(here, 'traeningsplan.xlsx');
+  const { plan, measurements, skipped } = await build(xlsxPath);
+  const json = JSON.stringify(plan, null, 2) + '\n';
+  const seed = seedSql(plan, measurements);
+  assertStatementSize(seed.split(';\n')[0]);
+  writeFileSync(path.join(here, 'plan.v1.json'), json);
+  writeFileSync(path.join(here, 'seed.sql'), seed);
+  writeFileSync(path.join(here, 'plan.v1.oversigt.md'), overview(plan, skipped));
 
-const strengthSessions = plan.sessions.filter((s) => s.kind === 'styrke');
-console.log(
-  `Plan: ${plan.weeks.length} uger (${plan.startDate} → ${plan.raceDate}), ${plan.exercises.length} øvelser, ` +
-    `${strengthSessions.length} styrkesessioner, ${plan.sessions.length - strengthSessions.length - 1} løb/cardio, ` +
-    `${plan.mobility.items.length} mobilitetspunkter. JSON: ${(JSON.stringify(plan).length / 1024).toFixed(1)} KB minificeret.`,
-);
+  const strengthSessions = plan.sessions.filter((s) => s.kind === 'styrke');
+  console.log(
+    `Plan: ${plan.weeks.length} uger (${plan.startDate} → ${plan.raceDate}), ${plan.exercises.length} øvelser, ` +
+      `${strengthSessions.length} styrkesessioner, ${plan.sessions.length - strengthSessions.length - 1} løb/cardio, ` +
+      `${plan.mobility.items.length} mobilitetspunkter. JSON: ${(Buffer.byteLength(JSON.stringify(plan)) / 1024).toFixed(1)} KB minificeret.`,
+  );
+}
