@@ -2,8 +2,9 @@
 // IndexedDB, services (og MCP i fase 3) med data fra D1.
 import type { GroinAssessment, GroinLight } from './groin';
 import type { Plan } from './plan.schema';
-import type { ExerciseNote, SetLog, Workout } from './records.schema';
+import type { ExerciseNote, ScheduleOverride, SetLog, Workout } from './records.schema';
 import { dateOfDay, getExercise, getSession } from './resolve';
+import { effectiveSessions } from './schedule';
 
 const alive = <T extends { deleted_at: string | null }>(r: T) => !r.deleted_at;
 const hasValue = (s: SetLog) => s.done || s.reps != null || s.seconds != null || s.weight_kg != null;
@@ -77,7 +78,9 @@ export interface WeeklySummary {
   sessions: {
     sessionId: string;
     name: string;
+    /** Faktisk dag (efter evt. flytning). */
     day: number;
+    plannedDay: number;
     optional: boolean;
     status: SessionStatus;
     workoutUuid?: string;
@@ -88,32 +91,40 @@ export interface WeeklySummary {
   planned: number;
   /** Dage med mobilitetsblokken taget alene. */
   mobilityDays: number;
+  /** Aktiviteter uden for planen, fx padel. */
+  extras: { workoutUuid: string; date: string; name: string; durationSec: number | null; light?: GroinLight }[];
   runKm: number;
   volume: { exerciseId: string; name: string; sets: number; reps: number; volumeKg: number }[];
   lights: GroinLight[];
 }
 
 /** Ugens status: sessioner, løbe-km, trafiklys og volumen pr. øvelse. */
-export function weeklySummary(plan: Plan, weekNo: number, workouts: Workout[], sets: SetLog[], groin: GroinAssessment[]): WeeklySummary {
+export function weeklySummary(
+  plan: Plan,
+  weekNo: number,
+  workouts: Workout[],
+  sets: SetLog[],
+  groin: GroinAssessment[],
+  overrides: ScheduleOverride[] = [],
+): WeeklySummary {
   const week = plan.weeks.find((w) => w.weekNo === weekNo);
   if (!week) throw new Error(`Uge ${weekNo} findes ikke i planen`);
   const inWeek = workouts.filter((w) => alive(w) && w.week_no === weekNo);
   const lightOf = new Map(groin.map((g) => [g.workoutUuid, g.light]));
 
-  const sessions = [...week.sessions]
-    .sort((a, b) => a.day - b.day)
-    .map((s) => {
-      const w = inWeek.find((x) => x.planned_session_id === s.sessionId);
-      return {
-        sessionId: s.sessionId,
-        name: getSession(plan, s.sessionId)?.name ?? s.label,
-        day: s.day,
-        optional: s.optional,
-        status: (w ? (w.finished_at ? 'lavet' : 'i-gang') : 'ikke-lavet') as SessionStatus,
-        ...(w && { workoutUuid: w.uuid }),
-        ...(w && lightOf.has(w.uuid) && { light: lightOf.get(w.uuid) }),
-      };
-    });
+  const sessions = effectiveSessions(week, overrides).map((s) => {
+    const w = inWeek.find((x) => x.planned_session_id === s.sessionId);
+    return {
+      sessionId: s.sessionId,
+      name: getSession(plan, s.sessionId)?.name ?? s.label,
+      day: s.day,
+      plannedDay: s.plannedDay,
+      optional: s.optional,
+      status: (w ? (w.finished_at ? 'lavet' : 'i-gang') : 'ikke-lavet') as SessionStatus,
+      ...(w && { workoutUuid: w.uuid }),
+      ...(w && lightOf.has(w.uuid) && { light: lightOf.get(w.uuid) }),
+    };
+  });
 
   const ids = new Set(inWeek.map((w) => w.uuid));
   const volumeMap = new Map<string, { sets: number; reps: number; volumeKg: number }>();
@@ -143,6 +154,16 @@ export function weeklySummary(plan: Plan, weekNo: number, workouts: Workout[], s
     done: sessions.filter((s) => !s.optional && s.status === 'lavet').length,
     planned: sessions.filter((s) => !s.optional).length,
     mobilityDays: new Set(inWeek.filter((w) => w.type === 'mobilitet').map((w) => w.date)).size,
+    extras: inWeek
+      .filter((w) => !w.planned_session_id)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((w) => ({
+        workoutUuid: w.uuid,
+        date: w.date,
+        name: w.activity ?? 'Anden aktivitet',
+        durationSec: w.duration_sec,
+        ...(lightOf.has(w.uuid) && { light: lightOf.get(w.uuid) }),
+      })),
     runKm: Math.round(inWeek.filter((w) => w.type === 'løb').reduce((sum, w) => sum + (w.distance_km ?? 0), 0) * 100) / 100,
     volume: [...volumeMap]
       .map(([exerciseId, v]) => ({ exerciseId, name: getExercise(plan, exerciseId)?.name ?? exerciseId, ...v, volumeKg: Math.round(v.volumeKg * 10) / 10 }))

@@ -1,6 +1,8 @@
 import { getSession, weekForDate } from '../../shared/resolve';
+import { effectiveSessions } from '../../shared/schedule';
 import { AnkleCard } from '../components/AnkleCard';
 import { GateBox } from '../components/GateBox';
+import { AddActivityButton } from '../components/AddActivitySheet';
 import { MorningGroinCard } from '../components/MorningGroinCard';
 import { Screen, Section } from '../components/Screen';
 import { SessionAction } from '../components/SessionAction';
@@ -8,6 +10,7 @@ import { SessionMark } from '../components/SessionMark';
 import { WeekSessions } from '../components/WeekSessions';
 import { usePlan } from '../data/plan';
 import { useGroinAssessments } from '../data/health';
+import { useWeekOverrides } from '../data/schedule';
 import { useWeekWorkouts } from '../data/workouts';
 import { formatLong, todayIso, weekday } from '../lib/dates';
 import { sessionDetail, sessionTitle } from '../lib/sessions';
@@ -19,10 +22,12 @@ export function TodayPage() {
   const week = active ? weekForDate(active.plan, today) : undefined;
   const workouts = useWeekWorkouts(week?.weekNo);
   const groin = useGroinAssessments();
+  const overrides = useWeekOverrides(week?.weekNo);
   if (!active) return <PlanStatus title="I dag" />;
 
   const { plan } = active;
-  const todays = week?.sessions.filter((s) => s.day === weekday(today)) ?? [];
+  // Dagens sessioner efter evt. flytninger.
+  const todays = week ? effectiveSessions(week, overrides ?? []).filter((s) => s.day === weekday(today)) : [];
   const mobility = getSession(plan, 'mobilitet');
 
   return (
@@ -60,6 +65,7 @@ export function TodayPage() {
           <Section title={`Ugens sessioner · ${week.phase}`}>
             {week.focus && <p className="mb-3 text-sm text-muted">{week.focus}</p>}
             <WeekSessions plan={plan} week={week} today={today} />
+            <AddActivityButton />
           </Section>
         </>
       ) : (

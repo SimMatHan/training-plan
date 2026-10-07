@@ -68,6 +68,7 @@ export function emptyWorkout(fields: Pick<Workout, 'date' | 'type'> & Partial<Wo
     distance_km: null,
     duration_sec: null,
     avg_hr: null,
+    activity: null,
     ...fields,
   };
 }

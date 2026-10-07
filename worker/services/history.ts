@@ -1,7 +1,7 @@
 // Historik og eksport. Kaldes af API'et og af MCP i fase 3.
 import { assessGroin } from '../../shared/groin';
 import { exerciseHistory, weeklySummary, type ExerciseHistoryEntry, type WeeklySummary } from '../../shared/history';
-import { ExerciseNote, GroinCheck, SetLog, SyncTables, Workout, type SyncTable } from '../../shared/records.schema';
+import { ExerciseNote, GroinCheck, ScheduleOverride, SetLog, SyncTables, Workout, type SyncTable } from '../../shared/records.schema';
 import { NotFoundError } from './errors';
 import { getActivePlan } from './plan';
 
@@ -37,11 +37,12 @@ export async function getWeeklySummary(db: D1Database, weekNo: number, asOf = to
   const { plan } = await getActivePlan(db);
   if (!plan.weeks.some((w) => w.weekNo === weekNo)) throw new NotFoundError(`Uge ${weekNo} findes ikke i planen`);
   const workouts = (await readTable(db, 'workouts', 'WHERE deleted_at IS NULL')) as Workout[];
-  const [sets, checks] = await Promise.all([
+  const [sets, checks, overrides] = await Promise.all([
     readTable(db, 'set_logs', 'WHERE deleted_at IS NULL AND workout_uuid IN (SELECT uuid FROM workouts WHERE week_no = ?)', weekNo) as Promise<SetLog[]>,
     readTable(db, 'groin_checks', 'WHERE deleted_at IS NULL') as Promise<GroinCheck[]>,
+    readTable(db, 'schedule_overrides', 'WHERE deleted_at IS NULL AND week_no = ?', weekNo) as Promise<ScheduleOverride[]>,
   ]);
-  return weeklySummary(plan, weekNo, workouts, sets, assessGroin(workouts, checks, asOf));
+  return weeklySummary(plan, weekNo, workouts, sets, assessGroin(workouts, checks, asOf), overrides);
 }
 
 /** Alt i databasen som ét JSON-dokument: planversioner og alle logtabeller. */

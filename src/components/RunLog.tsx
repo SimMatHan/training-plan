@@ -5,33 +5,43 @@ import { patchWorkout } from '../data/workouts';
 import { formatPace, joinDuration, splitDuration } from '../logic/pace';
 import { NumberField } from './NumberField';
 
-/** Manuel log af løb og cardio. Fase 4 udfylder de samme felter fra Strava. */
-export function RunLog({ workout, session, scheduled }: { workout: Workout; session: RunSession; scheduled?: ScheduledSession }) {
+/**
+ * Manuel log af løb, cardio og aktiviteter uden for planen (padel o.l.).
+ * Fase 4 udfylder de samme felter fra Strava.
+ */
+export function RunLog({ workout, session, scheduled }: { workout: Workout; session?: RunSession; scheduled?: ScheduledSession }) {
   const { min, sec } = splitDuration(workout.duration_sec);
   const pace = formatPace(workout.duration_sec, workout.distance_km);
-  const cardio = session.kind === 'cardio';
+  // Distance er kun påkrævet for løb.
+  const cardio = workout.type !== 'løb';
   const save = (patch: Partial<Workout>) => void patchWorkout(workout.uuid, patch);
 
-  const plan = [
-    ['Hovedsæt', session.mainSet],
-    ['Pause', session.rest],
-    ['Målfart', session.targetPace],
-    ['Mål', scheduled?.targetKm ? formatRange(scheduled.targetKm, ' km') : scheduled?.targetMin ? formatRange(scheduled.targetMin, ' min') : undefined],
-    ['Opvarmning', session.warmup],
-    ['Formål', session.purpose],
-  ].filter((r): r is [string, string] => !!r[1]);
+  const plan = (
+    session
+      ? [
+          ['Hovedsæt', session.mainSet],
+          ['Pause', session.rest],
+          ['Målfart', session.targetPace],
+          ['Mål', scheduled?.targetKm ? formatRange(scheduled.targetKm, ' km') : scheduled?.targetMin ? formatRange(scheduled.targetMin, ' min') : undefined],
+          ['Opvarmning', session.warmup],
+          ['Formål', session.purpose],
+        ]
+      : []
+  ).filter((r): r is [string, string] => !!r[1]);
 
   return (
     <section className="py-5">
       {scheduled?.condition && <p className="mb-3 rounded-lg bg-surface px-3 py-2 font-medium">{scheduled.condition}</p>}
-      <dl className="mb-5 grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-1.5 text-sm">
-        {plan.map(([k, v]) => (
-          <div key={k} className="contents">
-            <dt className="text-muted">{k}</dt>
-            <dd className="num">{v}</dd>
-          </div>
-        ))}
-      </dl>
+      {plan.length > 0 && (
+        <dl className="mb-5 grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-1.5 text-sm">
+          {plan.map(([k, v]) => (
+            <div key={k} className="contents">
+              <dt className="text-muted">{k}</dt>
+              <dd className="num">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <label className="col-span-2 flex flex-col gap-1 text-sm text-muted">

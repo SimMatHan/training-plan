@@ -4,11 +4,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useSyncExternalStore } from 'react';
 import type { SyncTable } from '../../shared/records.schema';
+import { SYNC_TABLES } from '../../shared/tables';
 import { api, ApiError, OfflineError } from '../lib/api';
 import { getToken } from '../lib/token';
 import { db, kvGet, kvSet, recordTable, type OutboxRow } from './db';
 
-const TABLES: SyncTable[] = ['workouts', 'set_logs', 'exercise_notes', 'groin_checks', 'mobility_measurements', 'mobility_checks'];
+const TABLES: readonly SyncTable[] = SYNC_TABLES;
 const CURSOR_KEY = 'syncCursor';
 const PUSH_BATCH = 500;
 

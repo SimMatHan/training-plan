@@ -41,11 +41,16 @@ export function useWeeklySummaries(plan: Plan | undefined, untilWeek: number): W
   const today = todayIso();
   return useLiveQuery(async () => {
     if (!plan) return undefined;
-    const [workouts, sets, checks] = await Promise.all([db.workouts.toArray(), db.set_logs.toArray(), db.groin_checks.toArray()]);
+    const [workouts, sets, checks, overrides] = await Promise.all([
+      db.workouts.toArray(),
+      db.set_logs.toArray(),
+      db.groin_checks.toArray(),
+      db.schedule_overrides.toArray(),
+    ]);
     const groin = assessGroin(workouts, checks, today);
     return plan.weeks
       .filter((w) => w.weekNo <= untilWeek)
-      .map((w) => weeklySummary(plan, w.weekNo, workouts, sets, groin))
+      .map((w) => weeklySummary(plan, w.weekNo, workouts, sets, groin, overrides))
       .reverse();
   }, [plan, untilWeek, today]);
 }

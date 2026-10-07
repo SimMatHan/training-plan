@@ -1,11 +1,12 @@
 // Eksport af alle data som JSON. Hentes fra D1 (eneste sandhed); uden net
 // bruges den lokale kopi i IndexedDB, tydeligt markeret.
 import type { SyncTable } from '../../shared/records.schema';
+import { SYNC_TABLES } from '../../shared/tables';
 import { db, kvGet, recordTable } from '../data/db';
 import { api, OfflineError } from './api';
 import { todayIso } from './dates';
 
-const TABLES: SyncTable[] = ['workouts', 'set_logs', 'exercise_notes', 'groin_checks', 'mobility_measurements', 'mobility_checks'];
+const TABLES: readonly SyncTable[] = SYNC_TABLES;
 
 async function localExport() {
   const out: Record<string, unknown> = {

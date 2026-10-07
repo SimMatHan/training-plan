@@ -6,6 +6,7 @@ import type {
   GroinCheck,
   MobilityCheck,
   MobilityMeasurement,
+  ScheduleOverride,
   SetLog,
   SyncTable,
   Workout,
@@ -31,6 +32,7 @@ export interface RecordTypes {
   groin_checks: GroinCheck;
   mobility_measurements: MobilityMeasurement;
   mobility_checks: MobilityCheck;
+  schedule_overrides: ScheduleOverride;
 }
 
 class LocalDb extends Dexie {
@@ -42,6 +44,7 @@ class LocalDb extends Dexie {
   groin_checks!: Table<GroinCheck, string>;
   mobility_measurements!: Table<MobilityMeasurement, string>;
   mobility_checks!: Table<MobilityCheck, string>;
+  schedule_overrides!: Table<ScheduleOverride, string>;
 
   constructor() {
     super('traeningsnav');
@@ -55,8 +58,9 @@ class LocalDb extends Dexie {
       mobility_measurements: 'uuid, date',
       mobility_checks: 'uuid, workout_uuid',
     });
+    // Flytninger af planlagte sessioner; aktivitetsnavn ligger på workouts (intet indeks nødvendigt).
+    this.version(3).stores({ schedule_overrides: 'uuid, week_no' });
   }
-
 }
 
 export const db = new LocalDb();

@@ -255,6 +255,16 @@ Logs: **Workers & Pages → traeningsnav → Logs** (observability er slået til
 - En ny installation henter alt fra D1 ved første sync.
 - Pausetimeren gemmer kun sluttidspunktet, så den er korrekt efter slukket skærm og genstart.
 
+### Flytning og andre aktiviteter
+
+- **Flyt en session:** kalender-ikonet ud for en session, der ikke er lavet, flytter den til en anden dag i
+  samme uge. Flytningen gemmes i `schedule_overrides`, og planen ændres ikke.
+  `shared/schedule.ts` lægger flytningerne ovenpå planen for appen, `getWeek` og ugeopsummeringen
+  (og kalenderfeedet i fase 2).
+- **Anden aktivitet** (padel, fodbold …): en træning uden for planen med `type = 'cardio'` og sportens
+  navn i `workouts.activity`. Du logger tid, puls, evt. distance, RPE, note og lysken. Den tæller med i
+  trafiklyset men ikke som en planlagt session.
+
 ### Progression
 
 "Klar til mere vægt" vises på en øvelse, når alle planlagte sæt sidste gang ramte toppen af
