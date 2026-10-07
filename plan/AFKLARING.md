@@ -1,8 +1,8 @@
 # Afklaring: tvetydigheder i traeningsplan.xlsx
 
-Seed-scriptet bruger i dag forslaget under hvert punkt. Valgene står i
-`plan/seed-config.ts` og skal godkendes, før planversion 1 er endelig.
-Se resultatet uge for uge i `plan/plan.v1.oversigt.md`.
+**Status: alle forslag godkendt af Simon 7. okt 2026.** Planversion 1 er bygget
+efter forslagene herunder. Valgene står i `plan/seed-config.ts`. Se resultatet uge
+for uge i `plan/plan.v1.oversigt.md`.
 
 ## 1. RPE: øvelsens eller progressionstabellens?
 

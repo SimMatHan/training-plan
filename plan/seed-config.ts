@@ -1,6 +1,6 @@
 // Kuraterede valg til seed-scriptet: stabile id'er, øvelsestyper og hvordan
 // tvetydige celler i arket fortolkes. Alt der står med AFKLARING er et
-// forslag, der skal godkendes — se plan/AFKLARING.md.
+// godkendt forslag — se plan/AFKLARING.md.
 import type { Dose, ExerciseKind } from '../shared/plan.schema';
 
 export interface ExerciseDef {

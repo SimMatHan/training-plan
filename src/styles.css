@@ -1,0 +1,141 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/archivo/wdth.css';
+
+/* Farver fra vægtskiver. Brugt funktionelt: A = rød, B = blå, løb = gul, mobilitet/grøn = grøn. */
+@theme {
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-kridt: #eef0ef;
+  --color-gummigulv: #23262a;
+  --color-skive-roed: #c8322b;
+  --color-skive-blaa: #1f5aa6;
+  --color-skive-gul: #e2b007;
+  --color-skive-groen: #2e8b57;
+}
+
+/* Semantiske tokens. Komponenter bruger kun disse, så lys/mørk er ét sted. */
+:root {
+  --bg: var(--color-kridt);
+  --fg: var(--color-gummigulv);
+  --surface: #f8f9f8;
+  --raised: #ffffff;
+  --line: rgb(35 38 42 / 0.14);
+  --muted: #5b6066;
+  --ghost: rgb(35 38 42 / 0.32);
+
+  --a: var(--color-skive-roed);
+  --b: var(--color-skive-blaa);
+  --run: var(--color-skive-gul);
+  --mob: var(--color-skive-groen);
+  /* Tekstfarver med nok kontrast på baggrunden. Gul bruges aldrig som tekst. */
+  --a-ink: #b02a24;
+  --b-ink: #1f5aa6;
+  --mob-ink: #23764a;
+  --yellow-ink: #8a6a00;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: var(--color-gummigulv);
+    --fg: var(--color-kridt);
+    --surface: #2b2f34;
+    --raised: #33383e;
+    --line: rgb(238 240 239 / 0.14);
+    --muted: #a7adb2;
+    --ghost: rgb(238 240 239 / 0.34);
+
+    --a-ink: #f07a72;
+    --b-ink: #86aeea;
+    --mob-ink: #6cc496;
+    --yellow-ink: #e2b007;
+
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-ghost: var(--ghost);
+  --color-a: var(--a);
+  --color-b: var(--b);
+  --color-run: var(--run);
+  --color-mob: var(--mob);
+  --color-a-ink: var(--a-ink);
+  --color-b-ink: var(--b-ink);
+  --color-mob-ink: var(--mob-ink);
+  --color-yellow-ink: var(--yellow-ink);
+}
+
+/* Smal bredde til tal og overskrifter. */
+@utility narrow {
+  font-stretch: 75%;
+}
+
+/* Tal er hovedpersonen: smalle, tabulære cifre. */
+@utility num {
+  font-stretch: 75%;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+@utility pt-safe {
+  padding-top: max(env(safe-area-inset-top), 0.75rem);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-stretch: 75%;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--fg);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  input::placeholder {
+    color: var(--ghost);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
