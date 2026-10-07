@@ -1,8 +1,10 @@
 import { getSession, weekForDate } from '../../shared/resolve';
 import { Screen, Section } from '../components/Screen';
+import { SessionAction } from '../components/SessionAction';
 import { SessionMark } from '../components/SessionMark';
 import { WeekSessions } from '../components/WeekSessions';
 import { usePlan } from '../data/plan';
+import { useWeekWorkouts } from '../data/workouts';
 import { formatLong, todayIso, weekday } from '../lib/dates';
 import { sessionDetail, sessionTitle } from '../lib/sessions';
 import { PlanStatus } from './PlanStatus';
@@ -10,11 +12,13 @@ import { PlanStatus } from './PlanStatus';
 export function TodayPage() {
   const { active } = usePlan();
   const today = todayIso();
+  const week = active ? weekForDate(active.plan, today) : undefined;
+  const workouts = useWeekWorkouts(week?.weekNo);
   if (!active) return <PlanStatus title="I dag" />;
 
   const { plan } = active;
-  const week = weekForDate(plan, today);
   const todays = week?.sessions.filter((s) => s.day === weekday(today)) ?? [];
+  const mobility = getSession(plan, 'mobilitet');
 
   return (
     <Screen title={week ? `Uge ${week.weekNo}` : 'Uden for planen'} eyebrow={formatLong(today)}>
@@ -22,17 +26,24 @@ export function TodayPage() {
         <>
           <Section title="I dag">
             {todays.length === 0 ? (
-              <p className="text-muted">Ingen planlagt session. Mobilitetsblokken kan tages alene.</p>
+              <div className="flex items-center gap-3 rounded-lg bg-surface p-4">
+                <div className="min-w-0 flex-1">
+                  <div className="narrow text-2xl font-bold">Hviledag</div>
+                  <div className="text-muted">Mobilitetsblokken kan tages alene.</div>
+                </div>
+                {mobility && <SessionAction session={mobility} week={week} workouts={workouts} prominent />}
+              </div>
             ) : (
               todays.map((s) => {
                 const session = getSession(plan, s.sessionId)!;
                 return (
-                  <div key={s.sessionId} className="flex gap-3 rounded-lg bg-surface p-4">
-                    <SessionMark colorKey={session.colorKey} />
-                    <div>
+                  <div key={s.sessionId} className="flex items-center gap-3 rounded-lg bg-surface p-4">
+                    <SessionMark colorKey={session.colorKey} className="self-stretch" />
+                    <div className="min-w-0 flex-1">
                       <div className="narrow text-2xl font-bold">{sessionTitle(session)}</div>
                       <div className="text-muted">{sessionDetail(s, session)}</div>
                     </div>
+                    <SessionAction session={session} week={week} workouts={workouts} prominent />
                   </div>
                 );
               })

@@ -5,6 +5,7 @@ import { ZodError } from 'zod';
 import { bearerToken, requireAuth } from './auth';
 import type { AppEnv, Env } from './env';
 import { planRoutes } from './routes/plan';
+import { syncRoutes } from './routes/sync';
 
 export const app = new Hono<AppEnv>().basePath('/api');
 
@@ -13,6 +14,7 @@ app.get('/health', (c) => c.json({ ok: true }));
 // Fase 3: requireAuth(bearerToken(), oauth()) — samme routes, flere strategier.
 app.use('*', requireAuth(bearerToken()));
 app.route('/plan', planRoutes);
+app.route('/sync', syncRoutes);
 
 app.notFound((c) => c.json({ error: 'Ikke fundet' }, 404));
 
