@@ -1,24 +1,34 @@
 // Cloudflare Worker: serverer PWA'en (static assets) og API'et (/api) fra ét projekt.
 // database_id udfyldes efter "wrangler d1 create traeningsnav" (se README, deploy trin 2).
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "traeningsnav",
-  "main": "worker/index.ts",
-  "compatibility_date": "2026-10-01",
-  "observability": { "enabled": true },
-  "minify": true,
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS",
-    "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "traeningsnav",
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "migrations"
-    }
-  ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "traeningsnav",
+	"main": "worker/index.ts",
+	"compatibility_date": "2026-10-01",
+	"observability": {
+		"enabled": true
+	},
+	"minify": true,
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS",
+		"not_found_handling": "single-page-application",
+		"run_worker_first": [
+			"/api/*"
+		]
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "traeningsnav",
+			"database_id": "00000000-0000-0000-0000-000000000000",
+			"migrations_dir": "migrations"
+		},
+		{
+			"binding": "traeningsnav",
+			"database_name": "traeningsnav",
+			"database_id": "841c96a2-9e95-4858-be05-d23fdfefbc28",
+			"remote": true
+		}
+	]
 }
