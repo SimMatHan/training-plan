@@ -1,19 +1,31 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
+import type { GroinAssessment } from '../../shared/groin';
 import type { Session, Week } from '../../shared/plan.schema';
 import type { Workout } from '../../shared/records.schema';
 import { usePlan } from '../data/plan';
 import { startSession, statusOf } from '../data/workouts';
-
-/** Sessioner der kan logges i appen nu. Løb og cardio kommer i milepæl 4. */
-export const loggable = (s: Session) => s.kind === 'styrke' || s.kind === 'mobilitet';
+import { TrafficLight } from './TrafficLight';
 
 /** Status og ét-tryks start/fortsæt for en planlagt session. */
-export function SessionAction({ session, week, workouts, prominent = false }: { session: Session; week: Week; workouts: Workout[]; prominent?: boolean }) {
+export function SessionAction({
+  session,
+  week,
+  workouts,
+  groin,
+  prominent = false,
+}: {
+  session: Session;
+  week: Week;
+  /** undefined mens ugens træninger indlæses — så vises ingen knap, så en lavet session ikke ligner "Start". */
+  workouts: Workout[] | undefined;
+  groin?: Map<string, GroinAssessment>;
+  prominent?: boolean;
+}) {
   const { active } = usePlan();
   const [, navigate] = useLocation();
   const [busy, setBusy] = useState(false);
-  const { status, workout } = statusOf(workouts, session.id);
+  const { status, workout } = statusOf(workouts ?? [], session.id);
 
   async function open() {
     if (busy || !active) return;
@@ -27,18 +39,22 @@ export function SessionAction({ session, week, workouts, prominent = false }: { 
   }
 
   const statusText = status === 'lavet' ? 'Lavet' : status === 'i-gang' ? 'I gang' : null;
-  const canOpen = loggable(session) || !!workout;
+  const light = workout && groin?.get(workout.uuid)?.light;
   const label = status === 'ikke-lavet' ? 'Start' : status === 'i-gang' ? 'Fortsæt' : 'Vis';
+  if (!workouts) return <div className={`shrink-0 ${prominent ? 'min-h-12 min-w-24' : 'min-h-12 min-w-12'}`} />;
 
   return (
     <div className="flex shrink-0 items-center gap-2">
       {statusText && (
-        <span className={`text-sm font-medium ${status === 'lavet' ? 'text-mob-ink' : 'text-yellow-ink'}`}>
-          {status === 'lavet' && <span aria-hidden="true">✓ </span>}
-          {statusText}
+        <span className="flex flex-col items-end gap-0.5">
+          <span className={`text-sm font-medium ${status === 'lavet' ? 'text-mob-ink' : 'text-yellow-ink'}`}>
+            {status === 'lavet' && <span aria-hidden="true">✓ </span>}
+            {statusText}
+          </span>
+          {light && <TrafficLight light={light} />}
         </span>
       )}
-      {canOpen && (status !== 'lavet' || prominent) && (
+      {(status !== 'lavet' || prominent) && (
         <button
           type="button"
           onClick={() => void open()}
@@ -48,7 +64,7 @@ export function SessionAction({ session, week, workouts, prominent = false }: { 
           {label}
         </button>
       )}
-      {canOpen && status === 'lavet' && !prominent && (
+      {status === 'lavet' && !prominent && (
         <button type="button" onClick={() => void open()} aria-label={`Vis ${session.name}`} className="min-h-12 min-w-12 rounded-lg text-muted">
           ›
         </button>

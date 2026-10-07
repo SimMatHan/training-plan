@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { dateOfDay, weekForDate } from '../../shared/resolve';
+import { GateBox } from '../components/GateBox';
 import { Screen } from '../components/Screen';
 import { WeekSessions } from '../components/WeekSessions';
 import { usePlan } from '../data/plan';
@@ -32,6 +33,9 @@ export function WeekPage() {
       {week.focus && <p className="mb-3 text-sm text-muted">{week.focus}</p>}
       {week.kmLabel && <p className="mb-3 text-sm text-muted">Km i ugen: <span className="num">{week.kmLabel}</span></p>}
       <WeekSessions plan={plan} week={week} today={today} />
+      <div className="mt-6">
+        <GateBox plan={plan} week={week} />
+      </div>
     </Screen>
   );
 }

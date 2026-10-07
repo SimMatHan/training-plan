@@ -32,6 +32,8 @@
   --b-ink: #1f5aa6;
   --mob-ink: #23764a;
   --yellow-ink: #8a6a00;
+  /* Diagramlinje; valideret mod baggrunden i hver tilstand. */
+  --chart-line: #2e8b57;
 
   color-scheme: light;
 }
@@ -50,6 +52,7 @@
     --b-ink: #86aeea;
     --mob-ink: #6cc496;
     --yellow-ink: #e2b007;
+    --chart-line: #3fa56c;
 
     color-scheme: dark;
   }
@@ -71,6 +74,7 @@
   --color-b-ink: var(--b-ink);
   --color-mob-ink: var(--mob-ink);
   --color-yellow-ink: var(--yellow-ink);
+  --color-chart-line: var(--chart-line);
 }
 
 /* Smal bredde til tal og overskrifter. */

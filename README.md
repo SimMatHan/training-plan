@@ -47,6 +47,17 @@ Alle kald undtagen `/api/health` kræver `Authorization: Bearer <API_TOKEN>`.
 | GET | `/api/plan/weeks/:weekNo` | Ugens sessioner med konkret dosering |
 | POST | `/api/sync/push` | Gem poster fra klienten |
 | GET | `/api/sync/pull?since=` | Hent poster ændret siden cursor |
+| GET | `/api/trends/groin?from=YYYY-MM-DD` | Lyske-trafiklys pr. træning |
+| GET | `/api/trends/mobility` | Knæ-til-væg-målinger med forskel mellem siderne |
+
+## Lyske-trafiklys
+
+Reglerne ligger i `shared/groin.ts` og bruges både af appen og af services:
+
+- **Grøn:** højst 3/10 under træning og 0/10 næste morgen.
+- **Gul:** over 3/10 under træning, eller ikke væk næste morgen.
+- **Rød:** gul to sessioner i træk.
+- **Afventer:** morgenscoren mangler endnu (spørges dagen efter, første gang appen åbnes).
 
 ## Struktur
 

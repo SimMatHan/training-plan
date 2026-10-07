@@ -1,5 +1,6 @@
 import type { Plan, Week } from '../../shared/plan.schema';
 import { dateOfDay, getSession } from '../../shared/resolve';
+import { useGroinAssessments } from '../data/health';
 import { useWeekWorkouts } from '../data/workouts';
 import { formatShort, WEEKDAYS_SHORT } from '../lib/dates';
 import { sessionDetail, sessionTitle } from '../lib/sessions';
@@ -9,6 +10,7 @@ import { SessionMark } from './SessionMark';
 /** Ugens sessioner med status. Ugen er fleksibel: alle kan startes alle dage. */
 export function WeekSessions({ plan, week, today }: { plan: Plan; week: Week; today?: string }) {
   const workouts = useWeekWorkouts(week.weekNo);
+  const groin = useGroinAssessments();
   const sessions = [...week.sessions].sort((a, b) => a.day - b.day);
   return (
     <ul className="divide-y divide-line border-y border-line">
@@ -27,7 +29,7 @@ export function WeekSessions({ plan, week, today }: { plan: Plan; week: Week; to
               <div className="font-medium">{sessionTitle(session)}</div>
               <div className="text-sm text-muted">{sessionDetail(s, session)}</div>
             </div>
-            <SessionAction session={session} week={week} workouts={workouts} />
+            <SessionAction session={session} week={week} workouts={workouts} groin={groin} />
           </li>
         );
       })}

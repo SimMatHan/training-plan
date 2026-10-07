@@ -49,7 +49,7 @@ export function NumberField({
         const parsed = decimal ? parseDecimal(s) : parseWhole(s);
         if (parsed !== value) onValue(parsed);
       }}
-      className="num h-14 w-full min-w-0 rounded-lg border border-line bg-raised text-center text-3xl font-semibold"
+      className="num h-14 w-full min-w-0 rounded-lg border border-line bg-raised text-center text-3xl font-semibold text-fg"
     />
   );
 }
