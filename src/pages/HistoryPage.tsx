@@ -135,7 +135,8 @@ function WeekCard({ week, isCurrent }: { week: WeeklySummary; isCurrent: boolean
             </span>
           </span>
           <span className="num block text-sm">
-            {week.done}/{week.planned} sessioner{week.runKm > 0 && ` · ${formatDecimal(week.runKm)} km løb`}
+            {week.done}/{week.planned} sessioner{week.skipped > 0 && ` · ${week.skipped} sprunget over`}
+            {week.runKm > 0 && ` · ${formatDecimal(week.runKm)} km løb`}
             {week.mobilityDays > 0 && ` · mobilitet ${week.mobilityDays} ${week.mobilityDays === 1 ? 'dag' : 'dage'}`}
           </span>
         </span>
@@ -171,11 +172,13 @@ function WeekCard({ week, isCurrent }: { week: WeeklySummary; isCurrent: boolean
                 <span className={s.status === 'lavet' ? 'font-medium text-mob-ink' : 'text-muted'}>
                   {s.status === 'lavet'
                     ? '✓ Lavet'
-                    : s.status === 'i-gang'
-                      ? 'I gang'
-                      : !s.optional && dayState(addDays(week.startDate, s.day - 1), todayIso()) === 'past'
-                        ? 'Misset'
-                        : '–'}
+                    : s.status === 'sprunget-over'
+                      ? `Sprunget over${s.skipReason ? ` · ${s.skipReason}` : ''}`
+                      : s.status === 'i-gang'
+                        ? 'I gang'
+                        : !s.optional && dayState(addDays(week.startDate, s.day - 1), todayIso()) === 'past'
+                          ? 'Misset'
+                          : '–'}
                 </span>
               </li>
             ))}

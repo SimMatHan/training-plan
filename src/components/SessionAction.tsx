@@ -41,6 +41,8 @@ export function SessionAction({
     }
   }
 
+  // Sprunget over: ugelisten viser det i undertitlen; I dag-kortet viser en rolig status.
+  if (status === 'sprunget-over') return prominent ? <span className="shrink-0 text-sm font-medium text-muted">Sprunget over</span> : null;
   const statusText = status === 'lavet' ? 'Lavet' : status === 'i-gang' ? 'I gang' : null;
   const light = workout && groin?.get(workout.uuid)?.light;
   const label = status === 'ikke-lavet' ? 'Start' : status === 'i-gang' ? 'Fortsæt' : 'Vis';

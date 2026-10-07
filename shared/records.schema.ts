@@ -44,6 +44,10 @@ export const Workout = z.object({
   avg_hr: z.int().min(30).max(250).nullable(),
   /** Sport for en træning uden for planen, fx "Padel". Null for planens sessioner. */
   activity: z.string().trim().min(1).max(40).nullable().default(null),
+  /** Sat når en planlagt session er markeret som sprunget over. */
+  skipped_at: IsoTimestamp.nullable().default(null),
+  /** Kort årsag til at sessionen blev sprunget over, fx "Lyske/smerte". */
+  skip_reason: z.string().trim().min(1).max(60).nullable().default(null),
 });
 export type Workout = z.infer<typeof Workout>;
 

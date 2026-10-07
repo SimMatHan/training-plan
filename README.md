@@ -257,10 +257,13 @@ Logs: **Workers & Pages → traeningsnav → Logs** (observability er slået til
 
 ### Flytning og andre aktiviteter
 
-- **Flyt en session:** kalender-ikonet ud for en session, der ikke er lavet, flytter den til en anden dag i
+- **Flyt en session:** ⋯ ud for en session, der ikke er lavet, flytter den til en anden dag i
   samme uge. Flytningen gemmes i `schedule_overrides`, og planen ændres ikke.
   `shared/schedule.ts` lægger flytningerne ovenpå planen for appen, `getWeek` og ugeopsummeringen
   (og kalenderfeedet i fase 2).
+- **Spring over:** samme ark (⋯ ud for en session) kan markere en session som sprunget over med en årsag
+  (fx "Lyske/smerte") og en note. Den gemmes som en træning med `skipped_at` og `skip_reason` og vises i
+  ugen og historikken i stedet for "Misset". Den kan fortrydes.
 - **Anden aktivitet** (padel, fodbold …): en træning uden for planen med `type = 'cardio'` og sportens
   navn i `workouts.activity`. Du logger tid, puls, evt. distance, RPE, note og lysken. Den tæller med i
   trafiklyset men ikke som en planlagt session.

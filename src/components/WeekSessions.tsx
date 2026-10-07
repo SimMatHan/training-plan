@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
 import type { Plan, Session, Week } from '../../shared/plan.schema';
+import type { Workout } from '../../shared/records.schema';
 import { dateOfDay, getSession } from '../../shared/resolve';
 import { effectiveSessions, type EffectiveSession } from '../../shared/schedule';
 import { useGroinAssessments } from '../data/health';
@@ -10,7 +11,7 @@ import { formatShort, todayIso, weekday, WEEKDAYS_SHORT } from '../lib/dates';
 import { sessionDetail, sessionTitle } from '../lib/sessions';
 import { formatDuration } from '../logic/pace';
 import { dayState } from '../logic/progress';
-import { MoveSheet } from './MoveSheet';
+import { SessionOptionsSheet } from './SessionOptionsSheet';
 import { SessionAction } from './SessionAction';
 import { SessionMark } from './SessionMark';
 import { TrafficLight } from './TrafficLight';
@@ -24,7 +25,7 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
   const workouts = useWeekWorkouts(week.weekNo);
   const overrides = useWeekOverrides(week.weekNo);
   const groin = useGroinAssessments();
-  const [moving, setMoving] = useState<{ scheduled: EffectiveSession; session: Session } | null>(null);
+  const [options, setOptions] = useState<{ scheduled: EffectiveSession; session: Session; skipped?: Workout } | null>(null);
   const sessions = effectiveSessions(week, overrides ?? []);
   const extras = (workouts ?? []).filter((w) => !w.planned_session_id).sort((a, b) => a.date.localeCompare(b.date));
 
@@ -35,8 +36,9 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
           const session = getSession(plan, s.sessionId)!;
           const date = dateOfDay(week, s.day);
           const state = dayState(date, today);
-          const status = workouts ? statusOf(workouts, s.sessionId, today).status : undefined;
+          const { status, workout } = workouts ? statusOf(workouts, s.sessionId, today) : { status: undefined, workout: undefined };
           const missed = state === 'past' && !s.optional && status === 'ikke-lavet';
+          const skipped = status === 'sprunget-over';
           const detail = sessionDetail(s, session);
           return (
             <li
@@ -44,14 +46,23 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
               aria-current={state === 'today' ? 'date' : undefined}
               className={`flex min-h-16 items-center gap-2.5 py-2.5 ${state === 'today' ? '-mx-3 rounded-lg bg-surface px-3' : ''}`}
             >
-              <SessionMark colorKey={session.colorKey} muted={missed} className="self-stretch" />
+              <SessionMark colorKey={session.colorKey} muted={missed || skipped} className="self-stretch" />
               <div className="w-11 shrink-0">
                 <div className={`text-sm ${state === 'today' ? 'font-semibold' : 'text-muted'}`}>{state === 'today' ? 'I dag' : WEEKDAYS_SHORT[s.day]}</div>
                 <div className="num text-xs text-muted">{formatShort(date)}</div>
               </div>
               <div className="min-w-0 flex-1">
-                <div className={`font-medium ${missed ? 'text-muted' : ''}`}>{sessionTitle(session)}</div>
+                <div className={`font-medium ${missed || skipped ? 'text-muted' : ''}`}>{sessionTitle(session)}</div>
                 <div className="text-sm text-muted">
+                  {skipped && (
+                    <span className="mr-1.5 inline-flex items-center gap-1">
+                      <svg viewBox="0 0 16 16" className="size-3" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                        <circle cx="8" cy="8" r="6" />
+                        <path d="M4 12l8-8" />
+                      </svg>
+                      Sprunget over{workout?.skip_reason && ` · ${workout.skip_reason}`}
+                    </span>
+                  )}
                   {missed && (
                     <span className="mr-1.5 inline-flex items-center gap-1">
                       <span aria-hidden="true" className="inline-block size-2 rounded-full border border-dashed border-muted" />
@@ -59,20 +70,21 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
                     </span>
                   )}
                   {s.moved && <span className="mr-1.5">Flyttet fra {WEEKDAYS_SHORT[s.plannedDay]}</span>}
-                  {(missed || s.moved) && detail && <span aria-hidden="true">· </span>}
-                  {detail}
+                  {!skipped && (missed || s.moved) && detail && <span aria-hidden="true">· </span>}
+                  {!skipped && detail}
                 </div>
               </div>
-              {status === 'ikke-lavet' && (
+              {(status === 'ikke-lavet' || skipped) && (
                 <button
                   type="button"
-                  onClick={() => setMoving({ scheduled: s, session })}
-                  aria-label={`Flyt ${sessionTitle(session)}`}
+                  onClick={() => setOptions({ scheduled: s, session, skipped: skipped ? workout : undefined })}
+                  aria-label={`Muligheder for ${sessionTitle(session)}`}
                   className="flex min-h-12 min-w-11 items-center justify-center rounded-lg text-muted"
                 >
-                  <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="3.5" y="5" width="17" height="15" rx="2" />
-                    <path d="M3.5 10h17M8 3v4M16 3v4M10 15h5m-2-2 2 2-2 2" />
+                  <svg viewBox="0 0 24 24" className="size-6" fill="currentColor" aria-hidden="true">
+                    <circle cx="5" cy="12" r="1.8" />
+                    <circle cx="12" cy="12" r="1.8" />
+                    <circle cx="19" cy="12" r="1.8" />
                   </svg>
                 </button>
               )}
@@ -114,7 +126,9 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
         </>
       )}
 
-      {moving && <MoveSheet open onClose={() => setMoving(null)} week={week} scheduled={moving.scheduled} session={moving.session} />}
+      {options && (
+        <SessionOptionsSheet open onClose={() => setOptions(null)} week={week} scheduled={options.scheduled} session={options.session} skipped={options.skipped} />
+      )}
     </>
   );
 }
