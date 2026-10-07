@@ -6,10 +6,11 @@ import { Screen } from '../components/Screen';
 import { TrafficLight } from '../components/TrafficLight';
 import { useExerciseOverview, useWeeklySummaries } from '../data/history';
 import { usePlan } from '../data/plan';
-import { formatShort, todayIso, WEEKDAYS_SHORT } from '../lib/dates';
+import { formatShort, todayIso, weekday, WEEKDAYS_SHORT } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
 import { dayState } from '../logic/progress';
 import { formatDecimal } from '../logic/numbers';
+import { formatDuration } from '../logic/pace';
 import { PlanStatus } from './PlanStatus';
 
 type Tab = 'oevelser' | 'uger';
@@ -164,6 +165,7 @@ function WeekCard({ week, isCurrent }: { week: WeeklySummary; isCurrent: boolean
                     title(s.sessionId, s.name)
                   )}
                   {s.optional && <span className="text-muted"> · valgfri</span>}
+                  {s.day !== s.plannedDay && <span className="text-muted"> · flyttet fra {WEEKDAYS_SHORT[s.plannedDay]}</span>}
                 </span>
                 {s.light && <TrafficLight light={s.light} />}
                 <span className={s.status === 'lavet' ? 'font-medium text-mob-ink' : 'text-muted'}>
@@ -178,6 +180,25 @@ function WeekCard({ week, isCurrent }: { week: WeeklySummary; isCurrent: boolean
               </li>
             ))}
           </ul>
+          {week.extras.length > 0 && (
+            <>
+              <h3 className="mt-3 mb-1 text-sm font-semibold">Andre aktiviteter</h3>
+              <ul className="divide-y divide-line">
+                {week.extras.map((x) => (
+                  <li key={x.workoutUuid} className="flex min-h-12 items-center gap-3 text-sm">
+                    <span className="w-9 text-muted">{WEEKDAYS_SHORT[weekday(x.date)]}</span>
+                    <span className="min-w-0 flex-1">
+                      <Link href={`/session/${x.workoutUuid}`} className="underline decoration-line underline-offset-4">
+                        {x.name}
+                      </Link>
+                      {x.durationSec != null && <span className="num text-muted"> · {formatDuration(x.durationSec)}</span>}
+                    </span>
+                    {x.light && <TrafficLight light={x.light} />}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           {week.volume.length > 0 && (
             <>
               <h3 className="mt-3 mb-1 text-sm font-semibold">Volumen pr. øvelse</h3>

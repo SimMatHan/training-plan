@@ -161,10 +161,11 @@ export function SessionPage() {
         <div className="flex gap-3">
           {session && <SessionMark colorKey={session.colorKey} />}
           <div>
-            <h1 className="text-3xl">{session ? sessionTitle(session) : 'Træning'}</h1>
+            <h1 className="text-3xl">{session ? sessionTitle(session) : (workout.activity ?? 'Træning')}</h1>
             <p className="text-sm text-muted">
               {workout.week_no && `Uge ${workout.week_no} · `}
               {formatLong(workout.date)}
+              {!session && workout.activity && ' · uden for planen'}
               {workout.finished_at && ' · afsluttet'}
             </p>
           </div>
@@ -210,6 +211,7 @@ export function SessionPage() {
         ))}
 
         {isRun && session && (session.kind === 'løb' || session.kind === 'cardio') && <RunLog workout={workout} session={session} scheduled={scheduled} />}
+        {!session && workout.activity && <RunLog workout={workout} />}
 
         <section className="flex flex-col gap-4 py-6">
           <h2 className="text-2xl">Sessionen</h2>

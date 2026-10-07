@@ -1,7 +1,8 @@
 // Plan-services. Ren forretningslogik uden HTTP: kaldes af API-routes nu og af
 // MCP-værktøjer i fase 3 (getActivePlan, getWeek …).
-import { PlanSchema, type Plan, type ScheduledSession, type Session, type Week } from '../../shared/plan.schema';
-import type { PlanVersionMeta } from '../../shared/records.schema';
+import { PlanSchema, type Plan, type Session, type Week } from '../../shared/plan.schema';
+import { ScheduleOverride, type PlanVersionMeta } from '../../shared/records.schema';
+import { effectiveSessions, type EffectiveSession } from '../../shared/schedule';
 import { dateOfDay, getSession, resolveStrengthSession, weekForDate, type ResolvedStrengthSession } from '../../shared/resolve';
 import { NotFoundError } from './errors';
 
@@ -65,7 +66,8 @@ export async function activatePlanVersion(db: D1Database, version: number): Prom
 }
 
 export interface WeekSession {
-  scheduled: ScheduledSession;
+  /** Planens session med faktisk dag (efter evt. flytning) og planens dag. */
+  scheduled: EffectiveSession;
   date: string;
   session: Session;
   /** Konkrete øvelser og sæt for styrkesessioner. */
@@ -79,27 +81,34 @@ export interface WeekView {
   sessions: WeekSession[];
 }
 
-export function buildWeekView(plan: Plan, planVersion: number, weekNo: number): WeekView {
+export function buildWeekView(plan: Plan, planVersion: number, weekNo: number, overrides: ScheduleOverride[] = []): WeekView {
   const week = plan.weeks.find((w) => w.weekNo === weekNo);
   if (!week) throw new NotFoundError(`Uge ${weekNo} findes ikke i planen`);
-  const sessions = [...week.sessions]
-    .sort((a, b) => a.day - b.day)
-    .map((scheduled): WeekSession => {
-      const session = getSession(plan, scheduled.sessionId)!;
-      return {
-        scheduled,
-        date: dateOfDay(week, scheduled.day),
-        session,
-        ...(session.kind === 'styrke' && { strength: resolveStrengthSession(plan, session.id, weekNo) }),
-      };
-    });
+  const sessions = effectiveSessions(week, overrides).map((scheduled): WeekSession => {
+    const session = getSession(plan, scheduled.sessionId)!;
+    return {
+      scheduled,
+      date: dateOfDay(week, scheduled.day),
+      session,
+      ...(session.kind === 'styrke' && { strength: resolveStrengthSession(plan, session.id, weekNo) }),
+    };
+  });
   return { planVersion, week, endDate: dateOfDay(week, 7), sessions };
 }
 
-/** Én uge i den aktive plan med sessioner og konkret dosering. */
+/** Flytninger af planlagte sessioner i en uge. */
+export async function getScheduleOverrides(db: D1Database, weekNo: number): Promise<ScheduleOverride[]> {
+  const { results } = await db
+    .prepare('SELECT * FROM schedule_overrides WHERE week_no = ? AND deleted_at IS NULL')
+    .bind(weekNo)
+    .all<Record<string, unknown>>();
+  return results.map((r) => ScheduleOverride.parse(r));
+}
+
+/** Én uge i den aktive plan med sessioner (inkl. flytninger) og konkret dosering. */
 export async function getWeek(db: D1Database, weekNo: number): Promise<WeekView> {
   const { meta, plan } = await getActivePlan(db);
-  return buildWeekView(plan, meta.version, weekNo);
+  return buildWeekView(plan, meta.version, weekNo, await getScheduleOverrides(db, weekNo));
 }
 
 /** Ugenummer for en dato (YYYY-MM-DD) i den aktive plan, eller null uden for planen. */

@@ -20,7 +20,7 @@ export function MorningGroinCard() {
         Hvordan er lysken i morges?
       </h2>
       <p className="mb-3 text-sm text-muted">
-        Venstre lyske, dagen efter {session ? sessionTitle(session) : 'træningen'} (under: <span className="num">{workout.groin_during}</span>/10).
+        Venstre lyske, dagen efter {session ? sessionTitle(session) : (workout.activity ?? 'træningen')} (under: <span className="num">{workout.groin_during}</span>/10).
       </p>
       <ScoreScale
         label="Lysken nu"

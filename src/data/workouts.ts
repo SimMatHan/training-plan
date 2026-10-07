@@ -133,3 +133,31 @@ export function useLastTime(exerciseId: string, currentWorkoutUuid: string): Las
     return pickLastTime(exerciseId, current, workouts.filter(alive), sets, notes);
   }, [exerciseId, currentWorkoutUuid]);
 }
+
+// ─── Aktiviteter uden for planen (padel o.l.) ───────────────────────────────
+
+/** Starter en aktivitet uden for planen. Logges som cardio (tid, puls, evt. distance) med sportens navn. */
+export async function startActivity(opts: { name: string; date: string; weekNo: number | null; planVersion: number | null }): Promise<string> {
+  const draft = emptyWorkout({
+    date: opts.date,
+    type: 'cardio',
+    activity: opts.name.trim(),
+    week_no: opts.weekNo,
+    plan_version: opts.planVersion,
+  });
+  await saveRecord('workouts', draft);
+  return draft.uuid;
+}
+
+/** Tidligere brugte aktivitetsnavne, mest brugte først (til forslag). */
+export function useRecentActivities(): string[] {
+  return useLiveQuery(
+    async () => {
+      const counts = new Map<string, number>();
+      for (const w of await db.workouts.toArray()) if (w.activity && !w.deleted_at) counts.set(w.activity, (counts.get(w.activity) ?? 0) + 1);
+      return [...counts].sort((a, b) => b[1] - a[1]).map(([name]) => name);
+    },
+    [],
+    [],
+  );
+}

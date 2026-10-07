@@ -3,6 +3,7 @@
 // (deleted_at), så sletninger også synker.
 import { z } from 'zod';
 import { IsoDate, Side, Slug } from './plan.schema';
+import type { SYNC_TABLES } from './tables';
 
 /** ISO 8601 i UTC med millisekunder, fx 2026-10-05T17:03:12.345Z. Sammenlignes som tekst. */
 export const IsoTimestamp = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/, 'Tidsstempel skal være ISO UTC med ms');
@@ -41,6 +42,8 @@ export const Workout = z.object({
   distance_km: z.number().nonnegative().nullable(),
   duration_sec: z.int().nonnegative().nullable(),
   avg_hr: z.int().min(30).max(250).nullable(),
+  /** Sport for en træning uden for planen, fx "Padel". Null for planens sessioner. */
+  activity: z.string().trim().min(1).max(40).nullable().default(null),
 });
 export type Workout = z.infer<typeof Workout>;
 
@@ -96,6 +99,16 @@ export const MobilityCheck = z.object({
 });
 export type MobilityCheck = z.infer<typeof MobilityCheck>;
 
+/** En planlagt session flyttet til en anden dag i samme uge. Tombstone = tilbage til planens dag. */
+export const ScheduleOverride = z.object({
+  ...SyncFields,
+  week_no: z.int().min(1),
+  session_id: Slug,
+  /** 1 = mandag … 7 = søndag. */
+  day: z.int().min(1).max(7),
+});
+export type ScheduleOverride = z.infer<typeof ScheduleOverride>;
+
 /** Synkroniserede tabeller og deres skemaer. Fase 2–4 tilføjer, men ændrer ikke. */
 export const SyncTables = {
   workouts: Workout,
@@ -104,8 +117,17 @@ export const SyncTables = {
   groin_checks: GroinCheck,
   mobility_measurements: MobilityMeasurement,
   mobility_checks: MobilityCheck,
+  schedule_overrides: ScheduleOverride,
 } as const;
 export type SyncTable = keyof typeof SyncTables;
+
+// SYNC_TABLES (uden zod, til frontenden) skal indeholde præcis de samme tabeller.
+type _SameTables = [SyncTable] extends [(typeof SYNC_TABLES)[number]]
+  ? [(typeof SYNC_TABLES)[number]] extends [SyncTable]
+    ? true
+    : never
+  : never;
+export const _syncTablesMatch: _SameTables = true;
 
 export const PlanVersionSource = z.enum(['seed', 'manual', 'claude']);
 
