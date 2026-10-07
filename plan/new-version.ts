@@ -51,7 +51,7 @@ const lines = [`-- Genereret af plan/new-version.ts fra ${path.basename(file)}.`
 if (activate)
   lines.push(
     `UPDATE plan_versions SET is_active = 0 WHERE is_active = 1;`,
-    `UPDATE plan_versions SET is_active = 1 WHERE version = (SELECT MAX(version) FROM plan_versions);`,
+    `UPDATE plan_versions SET is_active = 1, activated_at = ${now} WHERE version = (SELECT MAX(version) FROM plan_versions);`,
   );
 const out = path.join(here, 'ny-version.sql');
 writeFileSync(out, lines.join('\n') + '\n');

@@ -10,7 +10,7 @@ type Row = Record<string, unknown>;
 const BOOL_COLUMNS: Partial<Record<SyncTable, string[]>> = { set_logs: ['done'], mobility_checks: ['done'] };
 
 /** Læser en tabel som validerede poster (booleans konverteret, server_updated_at fjernet). */
-async function readTable<T extends SyncTable>(db: D1Database, table: T, where = '', ...params: unknown[]) {
+export async function readTable<T extends SyncTable>(db: D1Database, table: T, where = '', ...params: unknown[]) {
   const { results } = await db.prepare(`SELECT * FROM ${table} ${where}`).bind(...params).all<Row>();
   const bools = BOOL_COLUMNS[table] ?? [];
   return results.map((r) => {

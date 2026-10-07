@@ -9,7 +9,7 @@ import { useToken } from './lib/token';
 import { AnklePage } from './pages/AnklePage';
 import { ExerciseHistoryPage } from './pages/ExerciseHistoryPage';
 import { HistoryPage } from './pages/HistoryPage';
-import { SessionPage } from './pages/SessionPage';
+import { SessionRoute } from './pages/SessionLinkPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TodayPage } from './pages/TodayPage';
 import { WeekPage } from './pages/WeekPage';
@@ -27,7 +27,7 @@ export function App() {
   return (
     <PlanProvider>
       <Switch>
-        <Route path="/session/:uuid" component={SessionPage} />
+        <Route path="/session/:id" component={SessionRoute} />
         <Route path="/ankel" component={AnklePage} />
         <Route path="/uge" component={WeekPage} />
         <Route path="/historik/oevelse/:id" component={ExerciseHistoryPage} />

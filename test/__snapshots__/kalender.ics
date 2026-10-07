@@ -1,0 +1,1282 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Traeningsnav//Kalenderfeed//DA
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Træningsplan
+X-WR-CALDESC:Træningsplan 28. sep 2026 – 31. dec 2026 · planversion 1
+X-WR-TIMEZONE:Europe/Copenhagen
+REFRESH-INTERVAL;VALUE=DURATION:PT6H
+X-PUBLISHED-TTL:PT6H
+BEGIN:VTIMEZONE
+TZID:Europe/Copenhagen
+X-LIC-LOCATION:Europe/Copenhagen
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:rehab-a-uge1@traeningsnav
+DTSTAMP:20261004T220000Z
+LAST-MODIFIED:20261004T220000Z
+SEQUENCE:23925600
+DTSTART;VALUE=DATE:20260928
+DTEND;VALUE=DATE:20260929
+SUMMARY:– Rehab A
+DESCRIPTION:Uge 1 af 14 — Rehab\nIkke lavet\n\nMobilitetsblok først\nEnb
+ ens RDL — 2 × 8/side\, RPE 5–6\, 75 s\nHip airplane — 2 × 5/side\,
+  60 s\nBulgarian split squat\, begrænset dybde — 2 × 8/side\, RPE 5–
+ 6\, 90 s\nAdduktorklem — 3 × 20 sek\, 45 s\nHofteflexor-march\, elastik
+  — 2 × 10/side\, RPE 5–6\, 45 s\nEnbens tåhæv\, stående — HØJRE
+  FØRST — 2 × 12 H / 2 × 10 V\, RPE 5–6\, 60 s\n\nÅbn i appen: http
+ s://traeningsnav.example.workers.dev/session/rehab-a?uge=1
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-a?uge=
+ 1
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rh-uge1@traeningsnav
+DTSTAMP:20261004T220000Z
+LAST-MODIFIED:20261004T220000Z
+SEQUENCE:23925600
+DTSTART;TZID=Europe/Copenhagen:20260930T070000
+DURATION:PT60M
+SUMMARY:– Løb — 5 km roligt
+DESCRIPTION:Uge 1 af 14 — Rehab\nKun hvis snurren er væk\nIkke lavet\n\n
+ RH · Rehab-løb\nUgeplan: RH (5 km) — kun hvis snurren er væk\nHoveds
+ æt: 5–7 km roligt\, flad rute\, blødt underlag\nFart: 5:30/km eller la
+ ngsommere\nI alt: 5–7 km\nFormål: Ugens test af lysken. Snurren under l
+ øbet: gå hjem. Strides i uge 4 kun ved grønt trafiklys.\n\nÅbn i appen
+ : https://traeningsnav.example.workers.dev/session/rh?uge=1
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rh?uge=1
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rehab-b-uge1@traeningsnav
+DTSTAMP:20261004T220000Z
+LAST-MODIFIED:20261004T220000Z
+SEQUENCE:23925600
+DTSTART;VALUE=DATE:20261001
+DTEND;VALUE=DATE:20261002
+SUMMARY:– Rehab B
+DESCRIPTION:Uge 1 af 14 — Rehab\nIkke lavet\n\nMobilitetsblok først\nKab
+ elrows eller håndvægtsrows — 2 × 10\, RPE 6\, 90 s\nLat pulldown — 
+ 2 × 8\, RPE 6\, 90 s\nSkulderpres\, håndvægt — 2 × 8\, RPE 6\, 90 s\
+ nNordic hamstring curl — 2 × 4–5\, 90 s\nSideplanke — 2 × 30 sek/s
+ ide\, 45 s\nBiceps curl — 2 × 10\, RPE 6\, 60 s\nTriceps pushdown — 2
+  × 12\, RPE 6\, 60 s\nSiddende tåhæv (bøjet knæ) — 2 × 15\, RPE 6\
+ , 60 s\n\nÅbn i appen: https://traeningsnav.example.workers.dev/session/r
+ ehab-b?uge=1
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-b?uge=
+ 1
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:ct-uge1@traeningsnav
+DTSTAMP:20261004T220000Z
+LAST-MODIFIED:20261004T220000Z
+SEQUENCE:23925600
+DTSTART;VALUE=DATE:20261003
+DTEND;VALUE=DATE:20261004
+SUMMARY:– Crosstrainer — 40 min
+DESCRIPTION:Uge 1 af 14 — Rehab\nIkke lavet\n\nCT · Crosstrainer\nUgepla
+ n: CT (40 min)\nHovedsæt: 40–50 min jævnt\nFart: Zone 2 — kunne tale
+  i hele sætninger\nFormål: Holder konditionen uden løbestød. Bedre end
+  cykel: kortere hofteudslag\, ingen dyb hoftefleksion. Mærker du lysken: 
+ stop.\n\nÅbn i appen: https://traeningsnav.example.workers.dev/session/ct
+ ?uge=1
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/ct?uge=1
+CATEGORIES:Cardio
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rehab-a-uge2@traeningsnav
+DTSTAMP:20261006T070000Z
+LAST-MODIFIED:20261006T070000Z
+SEQUENCE:24044400
+DTSTART;VALUE=DATE:20261005
+DTEND;VALUE=DATE:20261006
+SUMMARY:✓ Rehab A
+DESCRIPTION:Uge 2 af 14 — Rehab\n✓ Lavet mandag 5/10\n\nMobilitetsblok 
+ først\nEnbens RDL — 3 × 8/side\, RPE 6\, 75 s\nHip airplane — 3 × 5
+ /side\, 60 s\nBulgarian split squat\, begrænset dybde — 3 × 8/side\, R
+ PE 6\, 90 s\nAdduktorklem — 3 × 30 sek\, 45 s\nHofteflexor-march\, elas
+ tik — 3 × 10/side\, RPE 6\, 45 s\nEnbens tåhæv\, stående — HØJRE 
+ FØRST — 3 × 12 H / 3 × 10 V\, RPE 6\, 60 s\n\nResultat:\nEnbens RDL: 
+ 24 kg × 8\nRPE 6\nLyske: 2/10 under\, 0/10 næste morgen\n\nÅbn i appen:
+  https://traeningsnav.example.workers.dev/session/rehab-a?uge=2
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-a?uge=
+ 2
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rh-uge2@traeningsnav
+DTSTAMP:20261007T150000Z
+LAST-MODIFIED:20261007T150000Z
+SEQUENCE:24159600
+DTSTART;TZID=Europe/Copenhagen:20261007T070000
+DURATION:PT60M
+SUMMARY:– Løb — 5 km roligt
+DESCRIPTION:Uge 2 af 14 — Rehab\nSprunget over: Lyske/smerte\n\nRH · Reh
+ ab-løb\nUgeplan: RH (5 km)\nHovedsæt: 5–7 km roligt\, flad rute\, blø
+ dt underlag\nFart: 5:30/km eller langsommere\nI alt: 5–7 km\nFormål: Ug
+ ens test af lysken. Snurren under løbet: gå hjem. Strides i uge 4 kun ve
+ d grønt trafiklys.\n\nNote: Stram efter mandag\n\nÅbn i appen: https://t
+ raeningsnav.example.workers.dev/session/rh?uge=2
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rh?uge=2
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rehab-b-uge2@traeningsnav
+DTSTAMP:20261009T170000Z
+LAST-MODIFIED:20261009T170000Z
+SEQUENCE:24339600
+DTSTART;VALUE=DATE:20261009
+DTEND;VALUE=DATE:20261010
+SUMMARY:✓ Rehab B
+DESCRIPTION:Uge 2 af 14 — Rehab\n✓ Lavet fredag 9/10 (planlagt torsdag)
+ \n\nMobilitetsblok først\nKabelrows eller håndvægtsrows — 3 × 10\, R
+ PE 7\, 90 s\nLat pulldown — 3 × 8\, RPE 7\, 90 s\nSkulderpres\, håndv
+ ægt — 3 × 8\, RPE 7\, 90 s\nNordic hamstring curl — 3 × 4–5\, 90 
+ s\nSideplanke — 3 × 30 sek/side\, 45 s\nBiceps curl — 3 × 10\, RPE 7
+ \, 60 s\nTriceps pushdown — 3 × 12\, RPE 7\, 60 s\nSiddende tåhæv (b
+ øjet knæ) — 3 × 15\, RPE 7\, 60 s\n\nResultat:\nKabelrows eller hånd
+ vægtsrows: 30 kg × 10\nNordic hamstring curl: 5 reps\nLyske: 1/10 under\
+ n\nÅbn i appen: https://traeningsnav.example.workers.dev/session/rehab-b?
+ uge=2
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-b?uge=
+ 2
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:ct-uge2@traeningsnav
+DTSTAMP:20261011T220000Z
+LAST-MODIFIED:20261011T220000Z
+SEQUENCE:24530400
+DTSTART;VALUE=DATE:20261010
+DTEND;VALUE=DATE:20261011
+SUMMARY:– Crosstrainer — 45 min
+DESCRIPTION:Uge 2 af 14 — Rehab\nIkke lavet\n\nCT · Crosstrainer\nUgepla
+ n: CT (45 min)\nHovedsæt: 40–50 min jævnt\nFart: Zone 2 — kunne tale
+  i hele sætninger\nFormål: Holder konditionen uden løbestød. Bedre end
+  cykel: kortere hofteudslag\, ingen dyb hoftefleksion. Mærker du lysken: 
+ stop.\n\nÅbn i appen: https://traeningsnav.example.workers.dev/session/ct
+ ?uge=2
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/ct?uge=2
+CATEGORIES:Cardio
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rehab-a-uge3@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261012
+DTEND;VALUE=DATE:20261013
+SUMMARY:Rehab A
+DESCRIPTION:Uge 3 af 14 — Rehab\n\nMobilitetsblok først\nEnbens RDL — 
+ 3 × 8/side\, RPE 6–7\, 75 s\nHip airplane — 3 × 5/side\, 60 s\nBulga
+ rian split squat\, begrænset dybde — 3 × 8/side\, RPE 6–7\, 90 s\nCo
+ penhagen kort vægtarm — 3 × 10–15 sek\, 45 s\nHofteflexor-march\, el
+ astik — 3 × 10/side\, RPE 6–7\, 45 s\nEnbens tåhæv\, stående — H
+ ØJRE FØRST — 3 × 12 H / 3 × 10 V\, RPE 6–7\, 60 s\n\nÅbn i appen:
+  https://traeningsnav.example.workers.dev/session/rehab-a?uge=3
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-a?uge=
+ 3
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rh-uge3@traeningsnav
+DTSTAMP:20261013T054500Z
+LAST-MODIFIED:20261013T054500Z
+SEQUENCE:24644700
+DTSTART;TZID=Europe/Copenhagen:20261013T070000
+DURATION:PT60M
+SUMMARY:✓ Løb — 6 km roligt
+DESCRIPTION:Uge 3 af 14 — Rehab\n✓ Lavet tirsdag 13/10\n\nRH · Rehab-l
+ øb\nUgeplan: RH (6 km)\nHovedsæt: 5–7 km roligt\, flad rute\, blødt u
+ nderlag\nFart: 5:30/km eller langsommere\nI alt: 5–7 km\nFormål: Ugens 
+ test af lysken. Snurren under løbet: gå hjem. Strides i uge 4 kun ved gr
+ ønt trafiklys.\n\nResultat:\n6\,2 km · 34:06 · 5:30/km · puls 141\nLys
+ ke: 0/10 under\n\nÅbn i appen: https://traeningsnav.example.workers.dev/s
+ ession/rh?uge=3
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rh?uge=3
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rehab-b-uge3@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261015
+DTEND;VALUE=DATE:20261016
+SUMMARY:Rehab B
+DESCRIPTION:Uge 3 af 14 — Rehab\n\nMobilitetsblok først\nKabelrows eller
+  håndvægtsrows — 3 × 10\, RPE 7\, 90 s\nLat pulldown — 3 × 8\, RPE
+  7\, 90 s\nSkulderpres\, håndvægt — 3 × 8\, RPE 7\, 90 s\nNordic hams
+ tring curl — 3 × 4–5\, 90 s\nSideplanke — 3 × 30 sek/side\, 45 s\n
+ Biceps curl — 3 × 10\, RPE 7\, 60 s\nTriceps pushdown — 3 × 12\, RPE
+  7\, 60 s\nSiddende tåhæv (bøjet knæ) — 3 × 15\, RPE 7\, 60 s\n\nÅ
+ bn i appen: https://traeningsnav.example.workers.dev/session/rehab-b?uge=3
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-b?uge=
+ 3
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:ct-uge3@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261017
+DTEND;VALUE=DATE:20261018
+SUMMARY:Crosstrainer — 50 min
+DESCRIPTION:Uge 3 af 14 — Rehab\n\nCT · Crosstrainer\nUgeplan: CT (50 mi
+ n)\nHovedsæt: 40–50 min jævnt\nFart: Zone 2 — kunne tale i hele sæt
+ ninger\nFormål: Holder konditionen uden løbestød. Bedre end cykel: kort
+ ere hofteudslag\, ingen dyb hoftefleksion. Mærker du lysken: stop.\n\nÅb
+ n i appen: https://traeningsnav.example.workers.dev/session/ct?uge=3
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/ct?uge=3
+CATEGORIES:Cardio
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rehab-a-uge4@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261019
+DTEND;VALUE=DATE:20261020
+SUMMARY:Rehab A
+DESCRIPTION:Uge 4 af 14 — Rehab\n\nMobilitetsblok først\nEnbens RDL — 
+ 3 × 8/side\, RPE 7\, 75 s\nHip airplane — 3 × 5/side\, 60 s\nBulgarian
+  split squat\, begrænset dybde — 3 × 8/side\, RPE 7\, 90 s\nCopenhagen
+  kort vægtarm — 3 × 20 sek\, 45 s\nHofteflexor-march\, elastik — 3 
+ × 10/side\, RPE 7\, 45 s\nEnbens tåhæv\, stående — HØJRE FØRST —
+  3 × 12 H / 3 × 10 V\, RPE 7\, 60 s\n\nÅbn i appen: https://traeningsna
+ v.example.workers.dev/session/rehab-a?uge=4
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-a?uge=
+ 4
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rh-uge4@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261021T070000
+DURATION:PT60M
+SUMMARY:Løb — 7 km roligt + strides
+DESCRIPTION:Uge 4 af 14 — Rehab\n\nRH · Rehab-løb\nUgeplan: RH (7 km + 
+ strides)\nHovedsæt: 5–7 km roligt\, flad rute\, blødt underlag\nFart: 
+ 5:30/km eller langsommere\nI alt: 5–7 km\nFormål: Ugens test af lysken.
+  Snurren under løbet: gå hjem. Strides i uge 4 kun ved grønt trafiklys.
+ \n\nÅbn i appen: https://traeningsnav.example.workers.dev/session/rh?uge=
+ 4
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rh?uge=4
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rehab-b-uge4@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261022
+DTEND;VALUE=DATE:20261023
+SUMMARY:Rehab B
+DESCRIPTION:Uge 4 af 14 — Rehab\n\nMobilitetsblok først\nKabelrows eller
+  håndvægtsrows — 3 × 10\, RPE 7\, 90 s\nLat pulldown — 3 × 8\, RPE
+  7\, 90 s\nSkulderpres\, håndvægt — 3 × 8\, RPE 7\, 90 s\nNordic hams
+ tring curl — 3 × 4–5\, 90 s\nSideplanke — 3 × 30 sek/side\, 45 s\n
+ Biceps curl — 3 × 10\, RPE 7\, 60 s\nTriceps pushdown — 3 × 12\, RPE
+  7\, 60 s\nSiddende tåhæv (bøjet knæ) — 3 × 15\, RPE 7\, 60 s\n\nÅ
+ bn i appen: https://traeningsnav.example.workers.dev/session/rehab-b?uge=4
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-b?uge=
+ 4
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:ct-uge4@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261024
+DTEND;VALUE=DATE:20261025
+SUMMARY:Crosstrainer — 50 min
+DESCRIPTION:Uge 4 af 14 — Rehab\n\nCT · Crosstrainer\nUgeplan: CT (50 mi
+ n)\nHovedsæt: 40–50 min jævnt\nFart: Zone 2 — kunne tale i hele sæt
+ ninger\nFormål: Holder konditionen uden løbestød. Bedre end cykel: kort
+ ere hofteudslag\, ingen dyb hoftefleksion. Mærker du lysken: stop.\n\nÅb
+ n i appen: https://traeningsnav.example.workers.dev/session/ct?uge=4
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/ct?uge=4
+CATEGORIES:Cardio
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-a-uge5@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261026
+DTEND;VALUE=DATE:20261027
+SUMMARY:Styrke A
+DESCRIPTION:Uge 5 af 14 — Tærskel\n\nMobilitetsblok først\nRumænsk dø
+ dløft (RDL) — 2 × 8\, RPE 6\, 90 s\nBulgarian split squat — 2 × 8/s
+ ide\, RPE 6\, 90 s\nNordic hamstring curl — 2 × 5\, 90 s\nEnbens tåhæ
+ v\, stående — HØJRE FØRST — 2 × 12 H / 2 × 10 V\, RPE 6\, 60 s\nC
+ openhagen plank — VENSTRE side — 2 × 30 sek\, 45 s\nHip airplane — 
+ 2 × 5/side\, 60 s\n\nÅbn i appen: https://traeningsnav.example.workers.d
+ ev/session/styrke-a?uge=5
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-a?uge
+ =5
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:t1-uge5@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261028T070000
+DURATION:PT60M
+SUMMARY:Løb — 3×8 min tærskel
+DESCRIPTION:Uge 5 af 14 — Tærskel\n\nT1 · Tærskel\nHovedsæt: 3 × 8 m
+ in\nPause: 2 min jog\nFart: 4:25/km\nOpvarmning: Alle kvalitetspas (T og I
+ ): 15 min rolig opvarmning + 4×20 sek strides før\, 10 min roligt nedlø
+ b efter.\nI alt: ~11 km\nFormål: Første fartpas efter rehab. Hæver tær
+ skelfarten.\n\nÅbn i appen: https://traeningsnav.example.workers.dev/sess
+ ion/t1?uge=5
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/t1?uge=5
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-b-uge5@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261029
+DTEND;VALUE=DATE:20261030
+SUMMARY:Styrke B
+DESCRIPTION:Uge 5 af 14 — Tærskel\n\nMobilitetsblok først\nKabelrows el
+ ler håndvægtsrows — 2 × 10\, RPE 6\, 90 s\nLat pulldown eller pull-up
+  — 2 × 8\, RPE 6\, 90 s\nHip thrust — 2 × 10\, RPE 6\, 75 s\nSkulder
+ pres\, håndvægt — 2 × 8\, RPE 6\, 90 s\nCopenhagen plank — VENSTRE 
+ side — 2 × 30 sek\, 45 s\nFace pull — 2 × 15\, RPE 6\, 45 s\nBiceps 
+ curl — 2 × 10\, RPE 6\, 60 s\nTriceps pushdown — 2 × 12\, RPE 6\, 60
+  s\nSiddende tåhæv (bøjet knæ) — 2 × 15\, RPE 6\, 60 s\n\nÅbn i ap
+ pen: https://traeningsnav.example.workers.dev/session/styrke-b?uge=5
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-b?uge
+ =5
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:l1-uge5@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261031T070000
+DURATION:PT60M
+SUMMARY:Løb — 10 km roligt
+DESCRIPTION:Uge 5 af 14 — Tærskel\n\nL1 · Langt roligt\nUgeplan: L1 (10
+  km)\nHovedsæt: 10 km roligt\nFart: 5:20–5:50/km\nI alt: 10 km\nFormål
+ : Første lange tur efter rehab.\n\nÅbn i appen: https://traeningsnav.exa
+ mple.workers.dev/session/l1?uge=5
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/l1?uge=5
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-a-uge6@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261102
+DTEND;VALUE=DATE:20261103
+SUMMARY:Styrke A
+DESCRIPTION:Uge 6 af 14 — Tærskel\n\nMobilitetsblok først\nRumænsk dø
+ dløft (RDL) — 3 × 8\, RPE 7\, 90 s\nBulgarian split squat — 3 × 8/s
+ ide\, RPE 7\, 90 s\nNordic hamstring curl — 3 × 5\, 90 s\nEnbens tåhæ
+ v\, stående — HØJRE FØRST — 3 × 12 H / 3 × 10 V\, RPE 7\, 60 s\nC
+ openhagen plank — VENSTRE side — 3 × 30 sek\, 45 s\nHip airplane — 
+ 2 × 5/side\, 60 s\n\nÅbn i appen: https://traeningsnav.example.workers.d
+ ev/session/styrke-a?uge=6
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-a?uge
+ =6
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:t2-uge6@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261104T070000
+DURATION:PT60M
+SUMMARY:Løb — 3×10 min tærskel
+DESCRIPTION:Uge 6 af 14 — Tærskel\n\nT2 · Tærskel\nHovedsæt: 3 × 10 
+ min\nPause: 2 min jog\nFart: 4:25/km\nOpvarmning: Alle kvalitetspas (T og 
+ I): 15 min rolig opvarmning + 4×20 sek strides før\, 10 min roligt nedl
+ øb efter.\nI alt: ~12 km\nFormål: Mere tid på farten.\n\nÅbn i appen: 
+ https://traeningsnav.example.workers.dev/session/t2?uge=6
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/t2?uge=6
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-b-uge6@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261105
+DTEND;VALUE=DATE:20261106
+SUMMARY:Styrke B
+DESCRIPTION:Uge 6 af 14 — Tærskel\n\nMobilitetsblok først\nKabelrows el
+ ler håndvægtsrows — 3 × 10\, RPE 7\, 90 s\nLat pulldown eller pull-up
+  — 3 × 8\, RPE 7\, 90 s\nHip thrust — 3 × 10\, RPE 7\, 75 s\nSkulder
+ pres\, håndvægt — 3 × 8\, RPE 7\, 90 s\nCopenhagen plank — VENSTRE 
+ side — 2 × 30 sek\, 45 s\nFace pull — 2 × 15\, RPE 7\, 45 s\nBiceps 
+ curl — 3 × 10\, RPE 7\, 60 s\nTriceps pushdown — 3 × 12\, RPE 7\, 60
+  s\nSiddende tåhæv (bøjet knæ) — 3 × 15\, RPE 7\, 60 s\n\nÅbn i ap
+ pen: https://traeningsnav.example.workers.dev/session/styrke-b?uge=6
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-b?uge
+ =6
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:l1-plus-uge6@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261107T070000
+DURATION:PT60M
+SUMMARY:Løb — 11 km roligt
+DESCRIPTION:Uge 6 af 14 — Tærskel\n\nL1+ · Langt roligt\nUgeplan: L1+ (
+ 11 km)\nHovedsæt: 11 km roligt\nFart: 5:20–5:50/km\nI alt: 11 km\nForm
+ ål: Aerob udholdenhed.\n\nÅbn i appen: https://traeningsnav.example.work
+ ers.dev/session/l1-plus?uge=6
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/l1-plus?uge=
+ 6
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:r-uge6@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261108T070000
+DURATION:PT60M
+SUMMARY:Løb — 4 km restitutionsløb
+DESCRIPTION:Uge 6 af 14 — Tærskel\nValgfri\n\nR · Restitutionsløb\nUge
+ plan: R (4 km)\nHovedsæt: 4–7 km\, se Ugeplan\nFart: 5:50/km eller lang
+ sommere\nI alt: 4–7 km\nFormål: Meget roligt\, blødt underlag. Første
+  pas der ryger hvis lyske eller achilles melder sig.\n\nÅbn i appen: http
+ s://traeningsnav.example.workers.dev/session/r?uge=6
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/r?uge=6
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-a-uge7@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261109
+DTEND;VALUE=DATE:20261110
+SUMMARY:Styrke A
+DESCRIPTION:Uge 7 af 14 — Tærskel\n\nMobilitetsblok først\nRumænsk dø
+ dløft (RDL) — 3 × 8\, RPE 7\, 90 s\nBulgarian split squat — 3 × 8/s
+ ide\, RPE 7\, 90 s\nNordic hamstring curl — 3 × 5\, 90 s\nEnbens tåhæ
+ v\, stående — HØJRE FØRST — 3 × 12 H / 3 × 10 V\, RPE 7\, 60 s\nC
+ openhagen plank — VENSTRE side — 3 × 30 sek\, 45 s\nHip airplane — 
+ 2 × 5/side\, 60 s\n\nÅbn i appen: https://traeningsnav.example.workers.d
+ ev/session/styrke-a?uge=7
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-a?uge
+ =7
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:t3-uge7@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261111T070000
+DURATION:PT60M
+SUMMARY:Løb — 4×8 min tærskel
+DESCRIPTION:Uge 7 af 14 — Tærskel\n\nT3 · Tærskel\nHovedsæt: 4 × 8 m
+ in\nPause: 90 sek jog\nFart: 4:20/km\nOpvarmning: Alle kvalitetspas (T og 
+ I): 15 min rolig opvarmning + 4×20 sek strides før\, 10 min roligt nedl
+ øb efter.\nI alt: ~12\,5 km\nFormål: Hårdeste tærskelpas.\n\nÅbn i ap
+ pen: https://traeningsnav.example.workers.dev/session/t3?uge=7
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/t3?uge=7
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-b-uge7@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261112
+DTEND;VALUE=DATE:20261113
+SUMMARY:Styrke B
+DESCRIPTION:Uge 7 af 14 — Tærskel\n\nMobilitetsblok først\nKabelrows el
+ ler håndvægtsrows — 3 × 10\, RPE 7\, 90 s\nLat pulldown eller pull-up
+  — 3 × 8\, RPE 7\, 90 s\nHip thrust — 3 × 10\, RPE 7\, 75 s\nSkulder
+ pres\, håndvægt — 3 × 8\, RPE 7\, 90 s\nCopenhagen plank — VENSTRE 
+ side — 2 × 30 sek\, 45 s\nFace pull — 2 × 15\, RPE 7\, 45 s\nBiceps 
+ curl — 3 × 10\, RPE 7\, 60 s\nTriceps pushdown — 3 × 12\, RPE 7\, 60
+  s\nSiddende tåhæv (bøjet knæ) — 3 × 15\, RPE 7\, 60 s\n\nÅbn i ap
+ pen: https://traeningsnav.example.workers.dev/session/styrke-b?uge=7
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-b?uge
+ =7
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:l2-plus-uge7@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261114T070000
+DURATION:PT60M
+SUMMARY:Løb — 13 km roligt
+DESCRIPTION:Uge 7 af 14 — Tærskel\n\nL2+ · Langt roligt\nUgeplan: L2+ (
+ 13 km)\nHovedsæt: 13 km roligt\nFart: 5:20–5:50/km\nI alt: 13 km\nForm
+ ål: Aerob udholdenhed.\n\nÅbn i appen: https://traeningsnav.example.work
+ ers.dev/session/l2-plus?uge=7
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/l2-plus?uge=
+ 7
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:r-uge7@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261115T070000
+DURATION:PT60M
+SUMMARY:Løb — 5 km restitutionsløb
+DESCRIPTION:Uge 7 af 14 — Tærskel\nValgfri\n\nR · Restitutionsløb\nUge
+ plan: R (5 km)\nHovedsæt: 4–7 km\, se Ugeplan\nFart: 5:50/km eller lang
+ sommere\nI alt: 4–7 km\nFormål: Meget roligt\, blødt underlag. Første
+  pas der ryger hvis lyske eller achilles melder sig.\n\nÅbn i appen: http
+ s://traeningsnav.example.workers.dev/session/r?uge=7
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/r?uge=7
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-a-uge8@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261116
+DTEND;VALUE=DATE:20261117
+SUMMARY:Styrke A (let)
+DESCRIPTION:Uge 8 af 14 — Testuge\n\nMobilitetsblok først\nRumænsk død
+ løft (RDL) — 2 × 8\, RPE 6\, 90 s\nBulgarian split squat — 2 × 8/si
+ de\, RPE 6\, 90 s\nNordic hamstring curl — 2 × 5\, 90 s\nEnbens tåhæv
+ \, stående — HØJRE FØRST — 2 × 12 H / 2 × 10 V\, RPE 6\, 60 s\nCo
+ penhagen plank — VENSTRE side — 2 × 30 sek\, 45 s\nHip airplane — 2
+  × 5/side\, 60 s\n\nÅbn i appen: https://traeningsnav.example.workers.de
+ v/session/styrke-a?uge=8
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-a?uge
+ =8
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:e2-uge8@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261118T070000
+DURATION:PT60M
+SUMMARY:Løb — 8 km roligt + strides
+DESCRIPTION:Uge 8 af 14 — Testuge\n\nE2 · Roligt\nHovedsæt: 8 km roligt
+  + 4×20 sek strides\nFart: 5:20–5:50/km\nI alt: 8 km\nFormål: Aerob ba
+ se. Kadence 170–175 spm.\n\nÅbn i appen: https://traeningsnav.example.w
+ orkers.dev/session/e2?uge=8
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/e2?uge=8
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-b-uge8@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261119
+DTEND;VALUE=DATE:20261120
+SUMMARY:Styrke B (let)
+DESCRIPTION:Uge 8 af 14 — Testuge\n\nMobilitetsblok først\nKabelrows ell
+ er håndvægtsrows — 2 × 10\, RPE 6\, 90 s\nLat pulldown eller pull-up 
+ — 2 × 8\, RPE 6\, 90 s\nHip thrust — 2 × 10\, RPE 6\, 75 s\nSkulderp
+ res\, håndvægt — 2 × 8\, RPE 6\, 90 s\nCopenhagen plank — VENSTRE s
+ ide — 2 × 30 sek\, 45 s\nFace pull — 2 × 15\, RPE 6\, 45 s\nBiceps c
+ url — 2 × 10\, RPE 6\, 60 s\nTriceps pushdown — 2 × 12\, RPE 6\, 60 
+ s\nSiddende tåhæv (bøjet knæ) — 2 × 15\, RPE 6\, 60 s\n\nÅbn i app
+ en: https://traeningsnav.example.workers.dev/session/styrke-b?uge=8
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-b?uge
+ =8
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:tt-uge8@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261121T070000
+DURATION:PT60M
+SUMMARY:Løb — 5 km alt ud
+DESCRIPTION:Uge 8 af 14 — Testuge\n\nTT · Testløb\nUgeplan: TT – 5 km
+  test (lør 21. nov)\nHovedsæt: 5 km alt ud\nFart: Alt ud\nI alt: ~11 km\
+ nFormål: Under 20:40 = sub 20 er i spil. 20:40–21:10 = tæt på\, tempo
+ et justeres. Over 21:10 = vi sigter efter PR i stedet.\n\nÅbn i appen: ht
+ tps://traeningsnav.example.workers.dev/session/tt?uge=8
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/tt?uge=8
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:r-uge8@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261122T070000
+DURATION:PT60M
+SUMMARY:Løb — 5 km restitutionsløb
+DESCRIPTION:Uge 8 af 14 — Testuge\nValgfri\n\nR · Restitutionsløb\nUgep
+ lan: R (5 km)\nHovedsæt: 4–7 km\, se Ugeplan\nFart: 5:50/km eller langs
+ ommere\nI alt: 4–7 km\nFormål: Meget roligt\, blødt underlag. Første 
+ pas der ryger hvis lyske eller achilles melder sig.\n\nÅbn i appen: https
+ ://traeningsnav.example.workers.dev/session/r?uge=8
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/r?uge=8
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-a-uge9@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261123
+DTEND;VALUE=DATE:20261124
+SUMMARY:Styrke A
+DESCRIPTION:Uge 9 af 14 — 5 km-specifik\n\nMobilitetsblok først\nEnbens 
+ RDL — 3 × 8/side\, RPE 7–8\, 90 s\nStep-down — 3 × 8/side\, RPE 7
+ –8\, 90 s\nGlideskinne leg curl — 3 × 8\, 90 s\nEnbens tåhæv\, stå
+ ende — HØJRE FØRST — 3 × 12 H / 3 × 10 V\, RPE 7–8\, 60 s\nCopen
+ hagen plank — VENSTRE side — 3 × 15–20 sek\, 45 s\nPallof press —
+  3 × 10/side\, 60 s\n\nÅbn i appen: https://traeningsnav.example.workers
+ .dev/session/styrke-a?uge=9
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-a?uge
+ =9
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:i-a-uge9@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261125T070000
+DURATION:PT60M
+SUMMARY:Løb — 6×800 m VO2max
+DESCRIPTION:Uge 9 af 14 — 5 km-specifik\n\nI-A · VO2max\nHovedsæt: 6 ×
+  800 m\nPause: 2 min jog\nFart: 3:50–3:55/km\nOpvarmning: Alle kvalitets
+ pas (T og I): 15 min rolig opvarmning + 4×20 sek strides før\, 10 min ro
+ ligt nedløb efter.\nI alt: ~11 km\nFormål: Hovedpasset i den specifikke 
+ fase.\n\nÅbn i appen: https://traeningsnav.example.workers.dev/session/i-
+ a?uge=9
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/i-a?uge=9
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-b-uge9@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261126
+DTEND;VALUE=DATE:20261127
+SUMMARY:Styrke B
+DESCRIPTION:Uge 9 af 14 — 5 km-specifik\n\nMobilitetsblok først\nT-bar r
+ ow — 3 × 10\, RPE 7–8\, 90 s\nPull-up med elastik — 3 × 8\, RPE 7
+ –8\, 90 s\nEnbens hip thrust — 3 × 10/side\, RPE 7–8\, 75 s\nBænkp
+ res eller armstrækninger — 3 × 8\, RPE 7–8\, 90 s\nCopenhagen plank 
+ — VENSTRE side — 2 × 15–20 sek\, 45 s\nProne Y-T på skråbænk —
+  2 × 12\, RPE 7–8\, 45 s\nHammer curl — 3 × 10\, RPE 7–8\, 60 s\nO
+ verhead triceps extension — 3 × 12\, RPE 7–8\, 60 s\nSiddende tåhæv
+  (bøjet knæ) — 3 × 15\, RPE 7–8\, 60 s\n\nÅbn i appen: https://tra
+ eningsnav.example.workers.dev/session/styrke-b?uge=9
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-b?uge
+ =9
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:l3-uge9@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261128T070000
+DURATION:PT60M
+SUMMARY:Løb — 14 km roligt
+DESCRIPTION:Uge 9 af 14 — 5 km-specifik\n\nL3 · Langt roligt\nUgeplan: L
+ 3 (14 km)\nHovedsæt: 14 km roligt\nFart: 5:20–5:50/km\nI alt: 14 km\nFo
+ rmål: Længste tur i perioden. Loftet står fast — ekstra volumen går 
+ til R-løbet.\n\nÅbn i appen: https://traeningsnav.example.workers.dev/se
+ ssion/l3?uge=9
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/l3?uge=9
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:r-uge9@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261129T070000
+DURATION:PT60M
+SUMMARY:Løb — 6 km restitutionsløb
+DESCRIPTION:Uge 9 af 14 — 5 km-specifik\nValgfri\n\nR · Restitutionsløb
+ \nUgeplan: R (6 km)\nHovedsæt: 4–7 km\, se Ugeplan\nFart: 5:50/km eller
+  langsommere\nI alt: 4–7 km\nFormål: Meget roligt\, blødt underlag. F
+ ørste pas der ryger hvis lyske eller achilles melder sig.\n\nÅbn i appen
+ : https://traeningsnav.example.workers.dev/session/r?uge=9
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/r?uge=9
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-a-uge10@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261130
+DTEND;VALUE=DATE:20261201
+SUMMARY:Styrke A
+DESCRIPTION:Uge 10 af 14 — 5 km-specifik\n\nMobilitetsblok først\nEnbens
+  RDL — 3 × 8/side\, RPE 7–8\, 90 s\nStep-down — 3 × 8/side\, RPE 7
+ –8\, 90 s\nGlideskinne leg curl — 3 × 8\, 90 s\nEnbens tåhæv\, stå
+ ende — HØJRE FØRST — 3 × 12 H / 3 × 10 V\, RPE 7–8\, 60 s\nCopen
+ hagen plank — VENSTRE side — 3 × 15–20 sek\, 45 s\nPallof press —
+  3 × 10/side\, 60 s\n\nÅbn i appen: https://traeningsnav.example.workers
+ .dev/session/styrke-a?uge=10
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-a?uge
+ =10
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:i-b-uge10@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261202T070000
+DURATION:PT60M
+SUMMARY:Løb — 5×1000 m VO2max
+DESCRIPTION:Uge 10 af 14 — 5 km-specifik\n\nI-B · VO2max\nHovedsæt: 5 
+ × 1000 m\nPause: 90 sek jog\nFart: 3:55/km\nOpvarmning: Alle kvalitetspas
+  (T og I): 15 min rolig opvarmning + 4×20 sek strides før\, 10 min rolig
+ t nedløb efter.\nI alt: ~11\,5 km\nFormål: Længere reps — tættere p
+ å løbets rytme.\n\nÅbn i appen: https://traeningsnav.example.workers.de
+ v/session/i-b?uge=10
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/i-b?uge=10
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-b-uge10@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261203
+DTEND;VALUE=DATE:20261204
+SUMMARY:Styrke B
+DESCRIPTION:Uge 10 af 14 — 5 km-specifik\n\nMobilitetsblok først\nT-bar 
+ row — 3 × 10\, RPE 7–8\, 90 s\nPull-up med elastik — 3 × 8\, RPE 7
+ –8\, 90 s\nEnbens hip thrust — 3 × 10/side\, RPE 7–8\, 75 s\nBænkp
+ res eller armstrækninger — 3 × 8\, RPE 7–8\, 90 s\nCopenhagen plank 
+ — VENSTRE side — 2 × 15–20 sek\, 45 s\nProne Y-T på skråbænk —
+  2 × 12\, RPE 7–8\, 45 s\nHammer curl — 3 × 10\, RPE 7–8\, 60 s\nO
+ verhead triceps extension — 3 × 12\, RPE 7–8\, 60 s\nSiddende tåhæv
+  (bøjet knæ) — 3 × 15\, RPE 7–8\, 60 s\n\nÅbn i appen: https://tra
+ eningsnav.example.workers.dev/session/styrke-b?uge=10
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-b?uge
+ =10
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:l4-uge10@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261205T070000
+DURATION:PT60M
+SUMMARY:Løb — 12 km roligt + strides
+DESCRIPTION:Uge 10 af 14 — 5 km-specifik\n\nL4 · Langt + strides\nUgepla
+ n: L4 (12 km + strides)\nHovedsæt: 12 km roligt + 6×20 sek strides til s
+ idst\nPause: 60 sek gang\nFart: Roligt\; strides hurtigt men afslappet\nI 
+ alt: 12\,5 km\nFormål: Volumen plus neuromuskulær skarphed.\n\nÅbn i ap
+ pen: https://traeningsnav.example.workers.dev/session/l4?uge=10
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/l4?uge=10
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:r-uge10@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261206T070000
+DURATION:PT60M
+SUMMARY:Løb — 7 km restitutionsløb
+DESCRIPTION:Uge 10 af 14 — 5 km-specifik\nValgfri\n\nR · Restitutionslø
+ b\nUgeplan: R (7 km)\nHovedsæt: 4–7 km\, se Ugeplan\nFart: 5:50/km elle
+ r langsommere\nI alt: 4–7 km\nFormål: Meget roligt\, blødt underlag. F
+ ørste pas der ryger hvis lyske eller achilles melder sig.\n\nÅbn i appen
+ : https://traeningsnav.example.workers.dev/session/r?uge=10
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/r?uge=10
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-a-uge11@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261207
+DTEND;VALUE=DATE:20261208
+SUMMARY:Styrke A
+DESCRIPTION:Uge 11 af 14 — 5 km-specifik (aflastning)\n\nMobilitetsblok f
+ ørst\nEnbens RDL — 2 × 8/side\, RPE 6\, 90 s\nStep-down — 2 × 8/sid
+ e\, RPE 6\, 90 s\nGlideskinne leg curl — 2 × 8\, 90 s\nEnbens tåhæv\,
+  stående — HØJRE FØRST — 2 × 12 H / 2 × 10 V\, RPE 6\, 60 s\nCope
+ nhagen plank — VENSTRE side — 2 × 15–20 sek\, 45 s\nPallof press 
+ — 2 × 10/side\, 60 s\n\nÅbn i appen: https://traeningsnav.example.work
+ ers.dev/session/styrke-a?uge=11
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-a?uge
+ =11
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:i-c-uge11@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261209T070000
+DURATION:PT60M
+SUMMARY:Løb — 8×400 m fart
+DESCRIPTION:Uge 11 af 14 — 5 km-specifik (aflastning)\n\nI-C · Fart\nHov
+ edsæt: 8 × 400 m\nPause: 90 sek jog\nFart: 3:40–3:45/km\nOpvarmning: A
+ lle kvalitetspas (T og I): 15 min rolig opvarmning + 4×20 sek strides fø
+ r\, 10 min roligt nedløb efter.\nI alt: ~9\,5 km\nFormål: Over løbsfart
+ . Gør 3:59/km til noget der føles kontrolleret.\n\nÅbn i appen: https:/
+ /traeningsnav.example.workers.dev/session/i-c?uge=11
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/i-c?uge=11
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-b-uge11@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261210
+DTEND;VALUE=DATE:20261211
+SUMMARY:Styrke B
+DESCRIPTION:Uge 11 af 14 — 5 km-specifik (aflastning)\n\nMobilitetsblok f
+ ørst\nT-bar row — 2 × 10\, RPE 6\, 90 s\nPull-up med elastik — 2 × 
+ 8\, RPE 6\, 90 s\nEnbens hip thrust — 2 × 10/side\, RPE 6\, 75 s\nBænk
+ pres eller armstrækninger — 2 × 8\, RPE 6\, 90 s\nCopenhagen plank —
+  VENSTRE side — 2 × 15–20 sek\, 45 s\nProne Y-T på skråbænk — 2 
+ × 12\, RPE 6\, 45 s\nHammer curl — 2 × 10\, RPE 6\, 60 s\nOverhead tri
+ ceps extension — 2 × 12\, RPE 6\, 60 s\nSiddende tåhæv (bøjet knæ) 
+ — 2 × 15\, RPE 6\, 60 s\n\nÅbn i appen: https://traeningsnav.example.w
+ orkers.dev/session/styrke-b?uge=11
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-b?uge
+ =11
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:l1-plus-uge11@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261212T070000
+DURATION:PT60M
+SUMMARY:Løb — 11 km roligt
+DESCRIPTION:Uge 11 af 14 — 5 km-specifik (aflastning)\n\nL1+ · Langt rol
+ igt\nUgeplan: L1+ (11 km)\nHovedsæt: 11 km roligt\nFart: 5:20–5:50/km\n
+ I alt: 11 km\nFormål: Aerob udholdenhed.\n\nÅbn i appen: https://traenin
+ gsnav.example.workers.dev/session/l1-plus?uge=11
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/l1-plus?uge=
+ 11
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:r-uge11@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261213T070000
+DURATION:PT60M
+SUMMARY:Løb — 4 km restitutionsløb
+DESCRIPTION:Uge 11 af 14 — 5 km-specifik (aflastning)\nValgfri\n\nR · Re
+ stitutionsløb\nUgeplan: R (4 km)\nHovedsæt: 4–7 km\, se Ugeplan\nFart:
+  5:50/km eller langsommere\nI alt: 4–7 km\nFormål: Meget roligt\, blød
+ t underlag. Første pas der ryger hvis lyske eller achilles melder sig.\n\
+ nÅbn i appen: https://traeningsnav.example.workers.dev/session/r?uge=11
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/r?uge=11
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-a-uge12@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261214
+DTEND;VALUE=DATE:20261215
+SUMMARY:Styrke A
+DESCRIPTION:Uge 12 af 14 — 5 km-specifik\n\nMobilitetsblok først\nEnbens
+  RDL — 2(+1) × 8/side\, RPE 7\, 90 s\nStep-down — 2(+1) × 8/side\, R
+ PE 7\, 90 s\nGlideskinne leg curl — 2(+1) × 8\, 90 s\nEnbens tåhæv\, 
+ stående — HØJRE FØRST — 2(+1) × 12 H / 2(+1) × 10 V\, RPE 7\, 60 
+ s\nCopenhagen plank — VENSTRE side — 2(+1) × 15–20 sek\, 45 s\nPall
+ of press — 2(+1) × 10/side\, 60 s\n\nÅbn i appen: https://traeningsnav
+ .example.workers.dev/session/styrke-a?uge=12
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-a?uge
+ =12
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:i-a-plus-uge12@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261216T070000
+DURATION:PT60M
+SUMMARY:Løb — 7×800 m VO2max
+DESCRIPTION:Uge 12 af 14 — 5 km-specifik\n\nI-A+ · VO2max\nHovedsæt: 7 
+ × 800 m\nPause: 2 min jog\nFart: 3:50–3:55/km\nOpvarmning: Alle kvalite
+ tspas (T og I): 15 min rolig opvarmning + 4×20 sek strides før\, 10 min 
+ roligt nedløb efter.\nI alt: ~12 km\nFormål: Som I-A med én repetition 
+ mere. Sidste hårde pas.\n\nÅbn i appen: https://traeningsnav.example.wor
+ kers.dev/session/i-a-plus?uge=12
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/i-a-plus?uge
+ =12
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-b-uge12@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261217
+DTEND;VALUE=DATE:20261218
+SUMMARY:Styrke B
+DESCRIPTION:Uge 12 af 14 — 5 km-specifik\n\nMobilitetsblok først\nT-bar 
+ row — 2(+1) × 10\, RPE 7\, 90 s\nPull-up med elastik — 2(+1) × 8\, R
+ PE 7\, 90 s\nEnbens hip thrust — 2(+1) × 10/side\, RPE 7\, 75 s\nBænkp
+ res eller armstrækninger — 2(+1) × 8\, RPE 7\, 90 s\nCopenhagen plank 
+ — VENSTRE side — 2 × 15–20 sek\, 45 s\nProne Y-T på skråbænk —
+  2 × 12\, RPE 7\, 45 s\nHammer curl — 2(+1) × 10\, RPE 7\, 60 s\nOverh
+ ead triceps extension — 2(+1) × 12\, RPE 7\, 60 s\nSiddende tåhæv (b
+ øjet knæ) — 2(+1) × 15\, RPE 7\, 60 s\n\nÅbn i appen: https://traeni
+ ngsnav.example.workers.dev/session/styrke-b?uge=12
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-b?uge
+ =12
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:l3-uge12@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261219T070000
+DURATION:PT60M
+SUMMARY:Løb — 14 km roligt
+DESCRIPTION:Uge 12 af 14 — 5 km-specifik\n\nL3 · Langt roligt\nUgeplan: 
+ L3 (14 km)\nHovedsæt: 14 km roligt\nFart: 5:20–5:50/km\nI alt: 14 km\nF
+ ormål: Længste tur i perioden. Loftet står fast — ekstra volumen går
+  til R-løbet.\n\nÅbn i appen: https://traeningsnav.example.workers.dev/s
+ ession/l3?uge=12
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/l3?uge=12
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:r-uge12@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261220T070000
+DURATION:PT60M
+SUMMARY:Løb — 7 km restitutionsløb
+DESCRIPTION:Uge 12 af 14 — 5 km-specifik\nValgfri\n\nR · Restitutionslø
+ b\nUgeplan: R (7 km)\nHovedsæt: 4–7 km\, se Ugeplan\nFart: 5:50/km elle
+ r langsommere\nI alt: 4–7 km\nFormål: Meget roligt\, blødt underlag. F
+ ørste pas der ryger hvis lyske eller achilles melder sig.\n\nÅbn i appen
+ : https://traeningsnav.example.workers.dev/session/r?uge=12
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/r?uge=12
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-a-uge13@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261221
+DTEND;VALUE=DATE:20261222
+SUMMARY:Styrke A (let)
+DESCRIPTION:Uge 13 af 14 — Taper\n\nMobilitetsblok først\nRumænsk dødl
+ øft (RDL) — 2 × 8\, RPE 6\, 90 s\nBulgarian split squat — 2 × 8/sid
+ e\, RPE 6\, 90 s\nNordic hamstring curl — 2 × 5\, 90 s\nEnbens tåhæv\
+ , stående — HØJRE FØRST — 2 × 12 H / 2 × 10 V\, RPE 6\, 60 s\nCop
+ enhagen plank — VENSTRE side — 2 × 15–20 sek\, 45 s\nHip airplane 
+ — 2 × 5/side\, 60 s\n\nÅbn i appen: https://traeningsnav.example.worke
+ rs.dev/session/styrke-a?uge=13
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-a?uge
+ =13
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:i-d-uge13@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261223T070000
+DURATION:PT60M
+SUMMARY:Løb — 4×1000 m skarphed
+DESCRIPTION:Uge 13 af 14 — Taper\n\nI-D · Skarphed\nHovedsæt: 4 × 1000
+  m\nPause: 2 min jog\nFart: 3:55/km\nOpvarmning: Alle kvalitetspas (T og I
+ ): 15 min rolig opvarmning + 4×20 sek strides før\, 10 min roligt nedlø
+ b efter.\nI alt: ~10 km\nFormål: Taper-pas. Holder skarpheden\, koster in
+ genting.\n\nÅbn i appen: https://traeningsnav.example.workers.dev/session
+ /i-d?uge=13
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/i-d?uge=13
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:styrke-b-uge13@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261224
+DTEND;VALUE=DATE:20261225
+SUMMARY:Styrke B (let)
+DESCRIPTION:Uge 13 af 14 — Taper\n\nMobilitetsblok først\nKabelrows elle
+ r håndvægtsrows — 2 × 10\, RPE 6\, 90 s\nLat pulldown eller pull-up 
+ — 2 × 8\, RPE 6\, 90 s\nHip thrust — 2 × 10\, RPE 6\, 75 s\nSkulderp
+ res\, håndvægt — 2 × 8\, RPE 6\, 90 s\nCopenhagen plank — VENSTRE s
+ ide — 2 × 15–20 sek\, 45 s\nFace pull — 2 × 15\, RPE 6\, 45 s\nBic
+ eps curl — 2 × 10\, RPE 6\, 60 s\nTriceps pushdown — 2 × 12\, RPE 6\
+ , 60 s\nSiddende tåhæv (bøjet knæ) — 2 × 15\, RPE 6\, 60 s\n\nÅbn 
+ i appen: https://traeningsnav.example.workers.dev/session/styrke-b?uge=13
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/styrke-b?uge
+ =13
+CATEGORIES:Styrke
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:l2-uge13@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261226T070000
+DURATION:PT60M
+SUMMARY:Løb — 12 km roligt
+DESCRIPTION:Uge 13 af 14 — Taper\n\nL2 · Langt roligt\nUgeplan: L2 (12 k
+ m)\nHovedsæt: 12 km roligt\nFart: 5:20–5:50/km\nI alt: 12 km\nFormål: 
+ Aerob udholdenhed.\n\nÅbn i appen: https://traeningsnav.example.workers.d
+ ev/session/l2?uge=13
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/l2?uge=13
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rolig-5km-strides-uge14@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261228T070000
+DURATION:PT60M
+SUMMARY:Løb — 5 km roligt + strides
+DESCRIPTION:Uge 14 af 14 — LØBSUGE\n\nRoligt\nUgeplan: 5 km roligt + 4×
+ 20 sek strides\nHovedsæt: 5 km roligt + 4×20 sek strides\n\nÅbn i appen
+ : https://traeningsnav.example.workers.dev/session/rolig-5km-strides?uge=1
+ 4
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rolig-5km-st
+ rides?uge=14
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rolig-3km-strides-uge14@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261230T070000
+DURATION:PT60M
+SUMMARY:Løb — 3 km meget roligt + strides
+DESCRIPTION:Uge 14 af 14 — LØBSUGE\n\nMeget roligt\nUgeplan: 3 km meget 
+ roligt + 3×20 sek strides\nHovedsæt: 3 km meget roligt + 3×20 sek strid
+ es\n\nÅbn i appen: https://traeningsnav.example.workers.dev/session/rolig
+ -3km-strides?uge=14
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rolig-3km-st
+ rides?uge=14
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:lob-uge14@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20261231T070000
+DURATION:PT60M
+SUMMARY:Løb — 5 km konkurrence
+DESCRIPTION:Uge 14 af 14 — LØBSUGE\n\nLØB · Konkurrence\nUgeplan: LØB
+ : 5 km – sub 20\nHovedsæt: 5 km\nFart: 3:59/km = 19:55\nI alt: ~9 km\nF
+ ormål: Første km må IKKE være hurtigere end 3:55.\n\nÅbn i appen: htt
+ ps://traeningsnav.example.workers.dev/session/lob?uge=14
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/lob?uge=14
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:maal-loebet@traeningsnav
+DTSTAMP:20260927T120000Z
+LAST-MODIFIED:20260927T120000Z
+SEQUENCE:23284800
+DTSTART;VALUE=DATE:20261231
+DTEND;VALUE=DATE:20270101
+SUMMARY:Mål: 5 km – sub 20
+DESCRIPTION:Prioritet: skadesfri → Prag og maraton → sub 20 på 5 km d.
+  31/12. Version 4: rehab-blok i uge 1–4\, ny ugerytme (man/ons/tor/lør)
+ \, én session pr. dag.\nTræningsplan 28. sep 2026 – 31. dec 2026
+CATEGORIES:Mål
+TRANSP:TRANSPARENT
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:rolig-5-6km-uge14@traeningsnav
+DTSTAMP:20261001T120000Z
+LAST-MODIFIED:20261001T120000Z
+SEQUENCE:23630400
+DTSTART;TZID=Europe/Copenhagen:20270102T070000
+DURATION:PT60M
+SUMMARY:Løb — 5–6 km meget roligt
+DESCRIPTION:Uge 14 af 14 — LØBSUGE\n\nMeget roligt\nUgeplan: 5–6 km me
+ get roligt\nHovedsæt: 5–6 km meget roligt\n\nÅbn i appen: https://trae
+ ningsnav.example.workers.dev/session/rolig-5-6km?uge=14
+URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rolig-5-6km?
+ uge=14
+CATEGORIES:Løb
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR

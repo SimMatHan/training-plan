@@ -42,7 +42,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         globIgnores: ['**/*vietnamese*'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [/^\/api\//, /^\/cal\//],
         cleanupOutdatedCaches: true,
         // Første installation overtager siden med det samme (offline fra første besøg).
         // Senere versioner venter stadig på "Opdater" (skipWaiting er slået fra).
@@ -51,6 +51,6 @@ export default defineConfig({
     }),
   ],
   server: {
-    proxy: { '/api': 'http://localhost:8787' },
+    proxy: { '/api': 'http://localhost:8787', '/cal': 'http://localhost:8787' },
   },
 });

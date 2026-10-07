@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { PlanVersionMeta } from '../../shared/records.schema';
+import { CalendarSection } from '../components/CalendarSection';
 import { Screen, Section } from '../components/Screen';
 import { usePlan } from '../data/plan';
 import { api } from '../lib/api';
@@ -106,6 +107,8 @@ export function SettingsPage() {
           </ul>
         )}
       </Section>
+
+      <CalendarSection />
 
       <Section title="Data">
         <p className="mb-3 text-sm text-muted">Alle træninger, sæt, noter, lyske- og ankelmålinger samt planversioner som én JSON-fil.</p>

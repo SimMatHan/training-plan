@@ -6,6 +6,8 @@ export interface Env {
   ASSETS: Fetcher;
   /** Sættes med `wrangler secret put API_TOKEN` (lokalt i .dev.vars). */
   API_TOKEN?: string;
+  /** Token i kalenderfeedets URL (/cal/<token>.ics). Sættes med `wrangler secret put CAL_TOKEN`. */
+  CAL_TOKEN?: string;
 }
 
 export interface AppEnv {
