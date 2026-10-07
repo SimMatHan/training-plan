@@ -4,6 +4,7 @@ import { Screen, Section } from '../components/Screen';
 import { usePlan } from '../data/plan';
 import { api } from '../lib/api';
 import { formatWithYear } from '../lib/dates';
+import { BUILD, useAppUpdate } from '../lib/appUpdate';
 import { exportData } from '../lib/export';
 import { setToken } from '../lib/token';
 
@@ -123,6 +124,8 @@ export function SettingsPage() {
         )}
       </Section>
 
+      <AppSection />
+
       <Section title="Enhed">
         <button
           type="button"
@@ -133,5 +136,49 @@ export function SettingsPage() {
         </button>
       </Section>
     </Screen>
+  );
+}
+
+/** Version og manuel søgning efter opdateringer. */
+function AppSection() {
+  const { ready, apply, check } = useAppUpdate();
+  const [state, setState] = useState<'idle' | 'checking' | 'none' | 'offline'>('idle');
+
+  async function search() {
+    setState('checking');
+    const result = await check();
+    setState(result === 'found' ? 'idle' : result);
+  }
+
+  return (
+    <Section title="App">
+      <p className="mb-3 text-sm text-muted">
+        Version <span className="num font-medium text-fg">{BUILD.id}</span> · bygget {formatWithYear(BUILD.time)}
+      </p>
+      {ready ? (
+        <button type="button" onClick={apply} className="min-h-12 rounded-lg bg-fg px-4 font-semibold text-bg">
+          Opdater til ny version
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => void search()}
+          disabled={state === 'checking'}
+          className="min-h-12 rounded-lg border border-line px-4 font-medium disabled:opacity-40"
+        >
+          {state === 'checking' ? 'Søger …' : 'Søg efter opdatering'}
+        </button>
+      )}
+      {!ready && state === 'none' && (
+        <p role="status" className="mt-2 text-sm text-muted">
+          Du har den nyeste version.
+        </p>
+      )}
+      {!ready && state === 'offline' && (
+        <p role="status" className="mt-2 text-sm text-muted">
+          Ingen forbindelse. Prøv igen med net.
+        </p>
+      )}
+    </Section>
   );
 }

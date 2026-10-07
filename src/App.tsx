@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 import { BottomNav } from './components/BottomNav';
 import { TokenScreen } from './components/TokenScreen';
+import { UpdateBanner } from './components/UpdateBanner';
 import { PlanProvider } from './data/plan';
 import { startSync } from './data/sync';
 import { useToken } from './lib/token';
@@ -35,6 +36,8 @@ export function App() {
         <Route component={TodayPage} />
       </Switch>
       {/* Under logning fylder timeren bunden; navigationen er "← I dag" i toppen. */}
+      {/* Opdateringsbjælken vises ikke midt i en session. */}
+      {!location.startsWith('/session/') && <UpdateBanner />}
       {!location.startsWith('/session/') && <BottomNav />}
     </PlanProvider>
   );
