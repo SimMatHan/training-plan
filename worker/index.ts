@@ -6,6 +6,7 @@ import { bearerToken, requireAuth } from './auth';
 import type { AppEnv, Env } from './env';
 import { planRoutes } from './routes/plan';
 import { syncRoutes } from './routes/sync';
+import { trendRoutes } from './routes/trends';
 
 export const app = new Hono<AppEnv>().basePath('/api');
 
@@ -15,6 +16,7 @@ app.get('/health', (c) => c.json({ ok: true }));
 app.use('*', requireAuth(bearerToken()));
 app.route('/plan', planRoutes);
 app.route('/sync', syncRoutes);
+app.route('/trends', trendRoutes);
 
 app.notFound((c) => c.json({ error: 'Ikke fundet' }, 404));
 

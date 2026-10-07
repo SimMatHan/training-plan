@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
 import { getSession, resolveStrengthSession } from '../../shared/resolve';
 import { ExerciseBlock } from '../components/ExerciseBlock';
@@ -5,6 +6,8 @@ import { MobilityChecklist } from '../components/MobilityChecklist';
 import { NoteField } from '../components/NoteField';
 import { RestTimerBar } from '../components/RestTimerBar';
 import { RpePicker } from '../components/RpePicker';
+import { RunLog } from '../components/RunLog';
+import { ScoreScale } from '../components/ScoreScale';
 import { SessionMark } from '../components/SessionMark';
 import { SyncBadge } from '../components/SyncBadge';
 import { usePlan } from '../data/plan';
@@ -23,6 +26,7 @@ export function SessionPage() {
   const workout = useWorkout(uuid);
   const logs = useWorkoutLogs(uuid);
   const timer = useTimer();
+  const [missingGroin, setMissingGroin] = useState(false);
   useWakeLock(true);
 
   if (workout === undefined || logs === undefined || !active) return <main className="p-4 text-muted">Henter …</main>;
@@ -41,8 +45,17 @@ export function SessionPage() {
   const strength = session?.kind === 'styrke' && workout.week_no ? resolveStrengthSession(plan, session.id, workout.week_no) : undefined;
   const showMobility = session?.kind === 'mobilitet' || (session?.kind === 'styrke' && session.mobility === 'before');
   const timerFor = timer.state?.workoutUuid === workout.uuid;
+  const isRun = session?.kind === 'løb' || session?.kind === 'cardio';
+  const scheduled = plan.weeks.find((w) => w.weekNo === workout.week_no)?.sessions.find((s) => s.sessionId === session?.id);
+  // Lysken vurderes efter alle styrke-, løbe- og cardiosessioner.
+  const asksGroin = workout.type !== 'mobilitet';
 
   async function finish() {
+    if (asksGroin && workout!.groin_during == null) {
+      setMissingGroin(true);
+      document.getElementById('groin')?.scrollIntoView({ block: 'center' });
+      return;
+    }
     await finishWorkout(workout!.uuid);
     if (timerFor) skipTimer();
     navigate('/');
@@ -103,12 +116,25 @@ export function SessionPage() {
           ),
         )}
 
-        {session && (session.kind === 'løb' || session.kind === 'cardio') && (
-          <p className="py-5 text-muted">Løbelog kommer i næste milepæl.</p>
-        )}
+        {isRun && session && (session.kind === 'løb' || session.kind === 'cardio') && <RunLog workout={workout} session={session} scheduled={scheduled} />}
 
         <section className="flex flex-col gap-4 py-6">
           <h2 className="text-2xl">Sessionen</h2>
+          {asksGroin && (
+            <div id="groin" className={missingGroin && workout.groin_during == null ? 'rounded-lg outline-3 outline-offset-4 outline-a' : ''}>
+              <ScoreScale
+                label="Venstre lyske under træningen"
+                hint="Højst 3 er grønt, hvis lysken også er væk i morgen tidlig."
+                value={workout.groin_during}
+                onChange={(v) => void patchWorkout(workout.uuid, { groin_during: v })}
+              />
+              {missingGroin && workout.groin_during == null && (
+                <p role="alert" className="mt-2 text-sm text-a-ink">
+                  Angiv lysken før du afslutter.
+                </p>
+              )}
+            </div>
+          )}
           <RpePicker label="RPE for hele sessionen" value={workout.rpe} onChange={(rpe) => void patchWorkout(workout.uuid, { rpe })} />
           <NoteField label="Note til sessionen" value={workout.note} onSave={(note) => void patchWorkout(workout.uuid, { note })} />
           {!workout.finished_at ? (

@@ -47,12 +47,11 @@ export function useWorkout(uuid: string | undefined) {
   return useLiveQuery(async () => (uuid ? ((await db.workouts.get(uuid)) ?? null) : null), [uuid]);
 }
 
-/** Ugens træninger (til status pr. session). */
-export function useWeekWorkouts(weekNo: number | undefined): Workout[] {
+/** Ugens træninger (til status pr. session). undefined mens de indlæses. */
+export function useWeekWorkouts(weekNo: number | undefined): Workout[] | undefined {
   return useLiveQuery(
     async () => (weekNo ? (await db.workouts.where('week_no').equals(weekNo).toArray()).filter(alive) : []),
     [weekNo],
-    [],
   );
 }
 
