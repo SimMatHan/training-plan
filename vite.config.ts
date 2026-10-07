@@ -44,6 +44,9 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
+        // Første installation overtager siden med det samme (offline fra første besøg).
+        // Senere versioner venter stadig på "Opdater" (skipWaiting er slået fra).
+        clientsClaim: true,
       },
     }),
   ],

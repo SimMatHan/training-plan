@@ -30,6 +30,9 @@ export function AppUpdateProvider({ children }: { children: ReactNode }) {
     updateServiceWorker,
   } = useRegisterSW({
     immediate: true,
+    // Genindlæsningen styres af apply(); pluginnet genindlæser kun, hvis siden
+    // allerede var styret af en service worker, da den blev åbnet.
+    onNeedReload() {},
     onRegisteredSW(_url, r) {
       registration.current = r;
       if (!r) return;
@@ -53,9 +56,15 @@ export function AppUpdateProvider({ children }: { children: ReactNode }) {
     return r.installing || r.waiting ? ('found' as const) : ('none' as const);
   }, []);
 
+  const apply = useCallback(() => {
+    // Genindlæs når den nye service worker har overtaget siden.
+    navigator.serviceWorker?.addEventListener('controllerchange', () => window.location.reload(), { once: true });
+    void updateServiceWorker(true);
+  }, [updateServiceWorker]);
+
   const value: AppUpdate = {
     ready,
-    apply: () => void updateServiceWorker(true),
+    apply,
     check,
     dismiss: () => setDismissed(true),
     dismissed,
