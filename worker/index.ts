@@ -1,9 +1,10 @@
 // Ét Worker-projekt: static assets (PWA) serveres direkte af Cloudflare, og kun
-// /api/* rammer denne kode (run_worker_first i wrangler.jsonc).
+// /api/* og /cal/* rammer denne kode (run_worker_first i wrangler.jsonc).
 import { Hono } from 'hono';
 import { ZodError } from 'zod';
 import { bearerToken, requireAuth } from './auth';
 import type { AppEnv, Env } from './env';
+import { calendarRoutes, feedRoutes } from './routes/calendar';
 import { exportRoutes, historyRoutes } from './routes/history';
 import { planRoutes } from './routes/plan';
 import { syncRoutes } from './routes/sync';
@@ -20,6 +21,7 @@ app.route('/sync', syncRoutes);
 app.route('/trends', trendRoutes);
 app.route('/history', historyRoutes);
 app.route('/export', exportRoutes);
+app.route('/calendar', calendarRoutes);
 
 app.notFound((c) => c.json({ error: 'Ikke fundet' }, 404));
 
@@ -35,6 +37,8 @@ export default {
   fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const { pathname } = new URL(request.url);
     if (pathname === '/api' || pathname.startsWith('/api/')) return app.fetch(request, env, ctx);
+    // Kalenderfeedet har sit eget token i URL'en (ikke bearer), så det ligger uden for /api.
+    if (pathname.startsWith('/cal/')) return feedRoutes.fetch(request, env, ctx);
     return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;

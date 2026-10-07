@@ -41,6 +41,7 @@
     "@vitejs/plugin-react": "^6.1.2",
     "concurrently": "^10.0.5",
     "exceljs": "^4.4.0",
+    "ical.js": "^2.2.1",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",

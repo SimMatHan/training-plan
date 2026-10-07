@@ -245,6 +245,8 @@ export const PlanSchema = z
       gate: z.string().optional(),
     }),
     runNotes: z.array(z.string()).default([]),
+    /** Mål og milepæle ud over løbet på raceDate. Vises som heldagsevents i kalenderfeedet. */
+    goals: z.array(z.object({ date: IsoDate, title: z.string().min(1), note: z.string().optional() })).default([]),
   })
   .superRefine((plan, ctx) => {
     const issue = (message: string, path: (string | number)[] = []) => ctx.addIssue({ code: 'custom', message, path });

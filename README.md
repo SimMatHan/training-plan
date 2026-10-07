@@ -7,7 +7,8 @@ telefonen har en lokal kopi i IndexedDB, så logning virker uden net.
 ```
 iPhone (PWA) ──► Cloudflare Worker ──► D1
                  ├ static assets (dist/)
-                 └ /api (Hono, bearer-token)
+                 ├ /api (Hono, bearer-token)
+Kalender-app ──► └ /cal/<CAL_TOKEN>.ics (kalenderfeed)
 ```
 
 ## Indhold
@@ -18,9 +19,10 @@ iPhone (PWA) ──► Cloudflare Worker ──► D1
 4. [Seed](#seed)
 5. [Ny planversion](#ny-planversion)
 6. [Lokal udvikling](#lokal-udvikling)
-7. [Accepttest på iPhone](#accepttest-på-iphone)
-8. [Fejlfinding](#fejlfinding)
-9. [Sådan virker det](#sådan-virker-det)
+7. [Kalenderfeed](#kalenderfeed)
+8. [Accepttest på iPhone](#accepttest-på-iphone)
+9. [Fejlfinding](#fejlfinding)
+10. [Sådan virker det](#sådan-virker-det)
 
 ## Deploy første gang
 
@@ -114,6 +116,14 @@ Tjek at API'et svarer, og at tokenet virker:
 ```sh
 curl https://traeningsnav.<dit-subdomæne>.workers.dev/api/health
 curl -H "Authorization: Bearer <token>" https://traeningsnav.<dit-subdomæne>.workers.dev/api/plan/versions
+```
+
+Sæt også kalendertokenet (se [Kalenderfeed](#kalenderfeed)). Det er en anden secret end
+`API_TOKEN`:
+
+```sh
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+npx wrangler secret put CAL_TOKEN
 ```
 
 ### 6. Installér på iPhone
@@ -216,6 +226,59 @@ npm run dev                           # Vite på :5173, Worker på :8787 (/api p
 
 Lokal D1 ligger i `.wrangler/` og kan nulstilles med `rm -rf .wrangler`.
 
+## Kalenderfeed
+
+Kalenderen abonnerer på `GET /cal/<CAL_TOKEN>.ics`. Feedet genereres ved hvert kald ud fra den aktive
+planversion og logs (intet caches i D1), og kalenderappen henter det igen hver 6. time
+(`REFRESH-INTERVAL`); svaret må caches i 15 minutter.
+
+### Sæt det op
+
+1. Sæt `CAL_TOKEN` (deploy trin 5). Tokenet står i URL'en og kan lække via kalenderapps, derfor er det
+   ikke `API_TOKEN`. Forkert eller manglende token giver 404.
+2. I appen: **Indstillinger → Kalender** viser abonnements-URL'en med en kopiknap.
+3. På iPhone: **Indstillinger → Kalender → Konti → Tilføj konto → Andet → Tilføj kalender-abonnement**,
+   indsæt URL'en, **Næste → Gem**. (Knappen **Abonnér** i appen åbner samme dialog via `webcal://`.)
+4. Vælg under **Indstillinger → Kalender** i appen, om styrke, løb og crosstrainer skal stå som heldag
+   (standard) eller med starttidspunkt og varighed. Det gemmes i `calendar_settings`.
+
+### Rotér tokenet
+
+Der er ingen knap i appen. Lav et nyt token og sæt det:
+
+```sh
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+npx wrangler secret put CAL_TOKEN
+```
+
+Den gamle URL giver straks 404. Slet abonnementet i kalenderen og tilføj det igen med den nye URL fra
+**Indstillinger → Kalender**. Lokalt står tokenet i `.dev.vars` (`CAL_TOKEN=lokal-kalender-token`).
+
+### Hvad står der
+
+| Kilde | Event |
+|---|---|
+| Planlagt session, ikke lavet | Planens (evt. flyttede) dag i ugen |
+| Session lavet | Den faktiske dato, `✓ ` foran titlen. I gang = faktisk dato uden mærke |
+| Sprunget over (markeret i appen, eller ugen er passeret uden træning) | Bliver stående med `– ` foran titlen |
+| Løbet på `raceDate` og `goals` i planen | Heldagsevent, `Mål: …` |
+
+Titlen er kort: `Styrke A`, `Løb — 3×10 min tærskel`, `Crosstrainer — 45 min`. Beskrivelsen har uge og fase,
+øvelserne med ugens dosering (`Enbens RDL — 3 × 8/side, RPE 6, 75 s`), et resultat for lavede sessioner
+(topvægt pr. øvelse, løbetal, RPE og lyske) og et link til `/session/<sessionId>?uge=<n>` i appen. Linket
+åbner ugens træning, hvis den er startet, ellers ugen.
+
+**Opdatering uden dubletter:** `UID` er `<sessionId>-uge<n>@traeningsnav` og ændrer sig aldrig for en
+session i en uge. `LAST-MODIFIED`, `DTSTAMP` og `SEQUENCE` afledes af det seneste tidsstempel blandt alt,
+der påvirker eventet: planskiftet (`plan_versions.activated_at`), træninger, sæt, lyske, flytninger og
+kalenderindstillingen (tombstones tæller med), plus midnat efter ugen, når en session bliver misset.
+`SEQUENCE` er sekunder fra 1/1 2026 til det tidspunkt, så den stiger ved hver ændring uden at noget gemmes.
+
+Koden: `worker/calendar/ical.ts` (serializer: CRLF, foldning ved 75 oktetter, escaping, `VTIMEZONE` for
+Europe/Copenhagen), `worker/calendar/feed.ts` (plan + logs → events) og `worker/services/calendar.ts` (D1).
+`test/__snapshots__/kalender.ics` er et snapshot af feedet for en kendt plan og et par logs. Ændrer du
+feedet med vilje, opdateres det med `npx vitest run -u`.
+
 ## Accepttest på iPhone
 
 Definition of done for fase 1. Kør dem efter første deploy:
@@ -228,6 +291,14 @@ Definition of done for fase 1. Kør dem efter første deploy:
 - [ ] Slet appen fra hjemmeskærmen, installér igen og indsæt tokenet: alle data er der stadig.
 - [ ] Service-funktionerne i `worker/services/` kan kaldes uden HTTP-laget (`npm test`).
 
+Fase 2 (kalenderfeed):
+
+- [ ] Abonnér fra iPhone (se [Kalenderfeed](#kalenderfeed)). Alle 14 ugers sessioner og løbet 31/12 står i
+      kalenderen "Træningsplan".
+- [ ] Log torsdagens session om fredagen. Efter næste opdatering står den fredag med ✓, og torsdag er tom.
+      (Opdatér med det samme: træk ned i Kalender-appens kalenderliste.)
+- [ ] Skift planversion under **Indstillinger → Plan**. Eventene ændres uden dubletter.
+
 ## Fejlfinding
 
 | Symptom | Årsag og løsning |
@@ -236,6 +307,8 @@ Definition of done for fase 1. Kør dem efter første deploy:
 | Build fejler med "Couldn't find a D1 DB" | `database_id` i `wrangler.jsonc` er ikke sat eller pushet (trin 2). |
 | Appen siger "Tokenet blev afvist" | `API_TOKEN` er ikke sat, eller tokenet er skrevet forkert (trin 5). |
 | "Ingen aktiv planversion — kør seed" | Seed er ikke kørt på produktion (trin 3). |
+| Kalenderen siger, at abonnementet ikke kan hentes (404) | `CAL_TOKEN` er ikke sat, eller URL'en er fra før tokenet blev roteret. |
+| "Kalenderfeedet er ikke slået til" under Indstillinger | `CAL_TOKEN` mangler på Worker'en (trin 5). |
 | Status "Sync-fejl" | Tryk på statussen for fejlbeskeden. Data ligger sikkert lokalt og sendes ved næste sync. |
 | Appen viser gammel version | Luk den helt og åbn den igen. Service workeren skifter ved næste start. |
 
@@ -285,7 +358,8 @@ Reglerne ligger i `shared/groin.ts` og bruges både af appen og af services:
 
 ### API
 
-Alle kald undtagen `/api/health` kræver `Authorization: Bearer <API_TOKEN>`.
+Alle kald undtagen `/api/health` kræver `Authorization: Bearer <API_TOKEN>`. Kalenderfeedet ligger uden for
+`/api` og bruger sit eget token i URL'en.
 
 | Metode | Sti | Hvad |
 |---|---|---|
@@ -300,6 +374,9 @@ Alle kald undtagen `/api/health` kræver `Authorization: Bearer <API_TOKEN>`.
 | GET | `/api/history/exercises/:exerciseId?limit=` | Alle gange en øvelse er logget, nyeste først |
 | GET | `/api/history/weeks/:weekNo` | Ugens sessioner, volumen pr. øvelse, løbe-km og trafiklys |
 | GET | `/api/export` | Alle data som én JSON-fil (planversioner og alle logtabeller) |
+| GET | `/api/calendar` | Abonnements-URL'en og kalenderindstillinger pr. sessionstype |
+| PUT | `/api/calendar/settings/:type` | `{ all_day, start_time: "HH:MM", duration_min }` for `styrke`, `løb` eller `cardio` |
+| GET | `/cal/<CAL_TOKEN>.ics` | Kalenderfeedet (`text/calendar`). Forkert token giver 404 |
 
 Auth er et udskifteligt Hono-middleware (`worker/auth.ts`): `requireAuth(bearerToken())`.
 Fase 3 tilføjer en OAuth-strategi til MCP-connectoren ved siden af tokenet.
@@ -314,6 +391,7 @@ Forretningslogikken ligger i `worker/services/` og tager `db: D1Database` som f�
 | `getExerciseHistory(db, exerciseId, limit)`, `getWeeklySummary(db, weekNo)`, `exportAll(db)` | `history.ts` |
 | `getGroinTrend(db, fromDate)`, `getMobilityTrend(db)` | `trends.ts` |
 | `pushChanges(db, changes)`, `pullChanges(db, since)` | `sync.ts` |
+| `buildCalendarFeed(db, { origin })`, `getCalendarSettings(db)`, `setCalendarSetting(db, type, setting)` | `calendar.ts` |
 
 ### Struktur
 

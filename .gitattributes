@@ -1,0 +1,2 @@
+# Kalendersnapshot skal beholde CRLF præcis som feedet.
+test/__snapshots__/*.ics -text

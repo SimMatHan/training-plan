@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearch } from 'wouter';
 import { dateOfDay, weekForDate } from '../../shared/resolve';
 import { AddActivityButton } from '../components/AddActivitySheet';
 import { GateBox } from '../components/GateBox';
@@ -13,10 +14,12 @@ export function WeekPage() {
   const today = todayIso();
   const plan = active?.plan;
   const current = plan ? (weekForDate(plan, today)?.weekNo ?? (today < plan.startDate ? 1 : plan.weeks.length)) : 1;
-  const [weekNo, setWeekNo] = useState<number>();
+  // ?uge=<n> fra et kalenderlink åbner den uge.
+  const linked = Number(new URLSearchParams(useSearch()).get('uge')) || undefined;
+  const [weekNo, setWeekNo] = useState<number | undefined>(linked);
   if (!plan) return <PlanStatus title="Uge" />;
 
-  const shown = weekNo ?? current;
+  const shown = weekNo && plan.weeks.some((w) => w.weekNo === weekNo) ? weekNo : current;
   const index = plan.weeks.findIndex((w) => w.weekNo === shown);
   const week = plan.weeks[index];
   const step = (d: number) => setWeekNo(plan.weeks[index + d]?.weekNo ?? shown);

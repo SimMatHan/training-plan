@@ -55,12 +55,13 @@ export async function getActivePlan(db: D1Database): Promise<{ meta: PlanVersion
  * Gør en eksisterende version aktiv (versionsskift og tilbagerulning).
  * Begge opdateringer køres i én batch, som D1 udfører som en transaktion.
  */
-export async function activatePlanVersion(db: D1Database, version: number): Promise<PlanVersionMeta> {
+export async function activatePlanVersion(db: D1Database, version: number, now = new Date().toISOString()): Promise<PlanVersionMeta> {
   const exists = await db.prepare('SELECT 1 FROM plan_versions WHERE version = ?').bind(version).first();
   if (!exists) throw new NotFoundError(`Planversion ${version} findes ikke`);
   await db.batch([
     db.prepare('UPDATE plan_versions SET is_active = 0 WHERE is_active = 1 AND version <> ?').bind(version),
-    db.prepare('UPDATE plan_versions SET is_active = 1 WHERE version = ?').bind(version),
+    // activated_at: kalenderfeedet tæller skiftet som en ændring af alle events (SEQUENCE).
+    db.prepare('UPDATE plan_versions SET is_active = 1, activated_at = ? WHERE version = ?').bind(now, version),
   ]);
   return (await getPlanVersion(db, version)).meta;
 }
