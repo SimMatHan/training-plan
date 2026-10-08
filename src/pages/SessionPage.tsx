@@ -139,7 +139,8 @@ export function SessionPage() {
 
   return (
     <main className={`mx-auto max-w-xl px-4 ${timerFor ? (timerCompact ? 'pb-36' : 'pb-[24rem]') : 'pb-12'}`}>
-      <header className="pt-safe blur-chrome sticky top-0 z-20 -mx-4 border-b-[0.5px] border-separator px-2">
+      {/* Fast flade, ikke blur: Safari på iPhone slørede også bjælkens egen tekst. */}
+      <header className="pt-safe sticky top-0 z-20 -mx-4 border-b-[0.5px] border-separator bg-bg px-2">
         <div className="grid h-11 grid-cols-[minmax(5.5rem,auto)_1fr_minmax(5.5rem,auto)] items-center gap-1">
           <Link href="/" className="inline-flex min-h-11 items-center gap-0.5 pr-2 text-body text-ink">
             <CaretLeft size={22} weight="bold" className="text-brand-red" aria-hidden="true" />I dag

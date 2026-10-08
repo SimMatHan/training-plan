@@ -37,7 +37,9 @@ export function LargeTitle({ title, subtitle, accessory, back }: { title: string
     <>
       <div
         aria-hidden={!compact}
-        className={`pt-safe blur-chrome fixed inset-x-0 top-0 z-30 border-b-[0.5px] border-separator transition-opacity duration-200 ease-ios ${compact ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        // Blur kun når bjælken vises, og helt skjult ellers: Safari kan male backdrop-filter selv ved
+        // opacity 0 og sløre det, der ligger under den usynlige bjælke.
+        className={`pt-safe fixed inset-x-0 top-0 z-30 border-b-[0.5px] border-separator transition-[opacity,visibility] duration-200 ease-ios ${compact ? 'blur-chrome visible opacity-100' : 'pointer-events-none invisible opacity-0'}`}
       >
         <div className="relative mx-auto flex h-11 max-w-xl items-center px-4">
           {back && compact && <BackLink back={back} />}
