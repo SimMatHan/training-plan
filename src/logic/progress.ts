@@ -30,7 +30,8 @@ export function slotProgress(plan: Plan, slot: ResolvedSlot, sets: SetLog[]): Pr
 
 export function mobilityProgress(plan: Plan, checks: MobilityCheck[]): Progress {
   const done = new Set(checks.filter((c) => c.done && !c.deleted_at).map((c) => c.item_id));
-  return { done: plan.mobility.items.filter((i) => done.has(i.id)).length, total: plan.mobility.items.length };
+  const items = plan.mobility?.items ?? [];
+  return { done: items.filter((i) => done.has(i.id)).length, total: items.length };
 }
 
 /** Næste ufærdige sektion efter `after` (eller fra starten), eller null. */

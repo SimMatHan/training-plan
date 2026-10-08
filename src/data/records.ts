@@ -4,6 +4,7 @@
 // skrivetransaktioner i rækkefølge, så to hurtige ændringer af samme post
 // (fx kg og derefter ✓) ikke overskriver hinanden.
 import type { SyncTable, Workout } from '../../shared/records.schema';
+import { ownSlug } from '../lib/auth';
 import { db, recordTable, type RecordTypes } from './db';
 import { scheduleSync } from './sync';
 
@@ -22,13 +23,16 @@ export async function writeRecord<T extends SyncTable>(
   build: (prev: RecordTypes[T] | undefined) => Draft<T>,
 ): Promise<RecordTypes[T]> {
   const t = recordTable(table);
+  // Alt der logges på telefonen, hører til brugerens egen atlet.
+  const athleteSlug = ownSlug();
+  if (!athleteSlug) throw new Error('Ingen egen atlet: log ind igen');
   let saved!: RecordTypes[T];
   await db.transaction('rw', t, db.outbox, async () => {
     const prev = await t.get(uuid);
     const updated_at = nextTimestamp(prev?.updated_at);
     saved = { deleted_at: null, ...build(prev), uuid, updated_at } as RecordTypes[T];
     await t.put(saved);
-    await db.outbox.put({ key: `${table}:${uuid}`, table, uuid, queuedAt: updated_at });
+    await db.outbox.put({ key: `${table}:${uuid}`, table, uuid, athleteSlug, queuedAt: updated_at });
   });
   scheduleSync();
   return saved;
@@ -62,7 +66,6 @@ export function emptyWorkout(fields: Pick<Workout, 'date' | 'type'> & Partial<Wo
     finished_at: null,
     rpe: null,
     note: null,
-    groin_during: null,
     source: 'app',
     external_id: null,
     distance_km: null,

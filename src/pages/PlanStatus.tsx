@@ -1,12 +1,16 @@
+import { AthletePicker } from '../components/AthletePicker';
 import { Screen } from '../components/Screen';
 import { usePlan } from '../data/plan';
 
-/** Vises mens planen hentes første gang, eller hvis den ikke kan hentes. */
-export function PlanStatus({ title }: { title: string }) {
-  const { loading, offline, error, refresh } = usePlan();
+/** Vises mens planen hentes første gang, hvis den ikke kan hentes, eller hvis der ingen plan er endnu. */
+export function PlanStatus({ title, picker = false }: { title: string; picker?: boolean }) {
+  const { slug, loading, offline, error, none, refresh } = usePlan();
   return (
     <Screen title={title}>
-      {loading ? (
+      {picker && <AthletePicker value={slug} />}
+      {none && !loading ? (
+        <p className="text-muted">Ingen plan endnu. Den første plan kommer som et forslag fra Claude, som du godkender på I dag.</p>
+      ) : loading ? (
         <p className="text-muted">Henter planen …</p>
       ) : (
         <div className="flex flex-col items-start gap-3">

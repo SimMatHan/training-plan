@@ -1,6 +1,6 @@
 # Kopiér til .dev.vars (gitignored) til lokal udvikling.
-API_TOKEN=lokal-udviklings-token
-CAL_TOKEN=lokal-kalender-token
-# Fase 3: kodeord på /authorize, og tillad MCP Inspector's localhost-callback (kun lokalt!).
-OWNER_PASSWORD=lokalt-kodeord
+# Appens adresse lokalt (Vite). Passkeys bindes til værtsnavnet, og mutationer skal komme herfra.
+# Bruger du `npm run preview` (alt på :8787), så sæt den til http://localhost:8787.
+APP_ORIGIN=http://localhost:5173
+# Tillad MCP Inspector's localhost-callback (kun lokalt!).
 OAUTH_ALLOW_LOCALHOST=true

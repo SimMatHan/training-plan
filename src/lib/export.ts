@@ -3,18 +3,20 @@
 import type { SyncTable } from '../../shared/records.schema';
 import { SYNC_TABLES } from '../../shared/tables';
 import { db, kvGet, recordTable } from '../data/db';
-import { api, OfflineError } from './api';
+import { athleteApi, OfflineError } from './api';
 import { todayIso } from './dates';
 
 const TABLES: readonly SyncTable[] = SYNC_TABLES;
 
-async function localExport() {
+async function localExport(slug: string) {
   const out: Record<string, unknown> = {
     format: 'traeningsnav-eksport',
-    formatVersion: 1,
+    formatVersion: 2,
     exportedAt: new Date().toISOString(),
     source: 'lokal kopi (offline) — kan mangle ændringer fra andre enheder',
+    athlete: slug,
     activePlan: await kvGet('activePlan'),
+    profile: await kvGet('profile'),
     pendingSync: await db.outbox.count(),
   };
   for (const t of TABLES) out[t] = await recordTable(t).toArray();
@@ -22,18 +24,18 @@ async function localExport() {
 }
 
 /** Henter eksporten og giver den til brugeren: delingsark på telefon, download på desktop. */
-export async function exportData(): Promise<'server' | 'lokal'> {
+export async function exportData(slug: string): Promise<'server' | 'lokal'> {
   let data: unknown;
   let source: 'server' | 'lokal' = 'server';
   try {
-    data = await api('/export');
+    data = await athleteApi(slug, '/export');
   } catch (e) {
     if (!(e instanceof OfflineError)) throw e;
-    data = await localExport();
+    data = await localExport(slug);
     source = 'lokal';
   }
 
-  const name = `traeningsnav-eksport-${todayIso()}${source === 'lokal' ? '-lokal' : ''}.json`;
+  const name = `traeningsnav-${slug}-${todayIso()}${source === 'lokal' ? '-lokal' : ''}.json`;
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const file = new File([blob], name, { type: 'application/json' });
 

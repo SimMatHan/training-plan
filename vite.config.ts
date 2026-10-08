@@ -39,6 +39,7 @@ export default defineConfig({
       },
       workbox: {
         // App-skallen caches; data caches i IndexedDB (Dexie), ikke i service workeren.
+        // Svar fra /api, /mcp, /oauth og /cal caches aldrig: der er ingen runtimeCaching.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         globIgnores: ['**/*vietnamese*'],
         navigateFallback: '/index.html',
@@ -52,6 +53,7 @@ export default defineConfig({
     }),
   ],
   server: {
-    proxy: { '/api': 'http://localhost:8787', '/cal': 'http://localhost:8787' },
+    // Alt Worker'en håndterer. Sæt APP_ORIGIN=http://localhost:5173 i .dev.vars (passkeys og Origin-tjek).
+    proxy: Object.fromEntries(['/api', '/cal', '/mcp', '/authorize', '/oauth', '/.well-known'].map((p) => [p, 'http://localhost:8787'])),
   },
 });

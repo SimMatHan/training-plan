@@ -1,11 +1,13 @@
 // Historik fra den lokale database, så den også virker offline.
 import { useLiveQuery } from 'dexie-react-hooks';
-import { assessGroin } from '../../shared/groin';
+import { assessAllPain } from '../../shared/pain';
 import { exerciseHistory, weeklySummary, type ExerciseHistoryEntry, type WeeklySummary } from '../../shared/history';
 import type { Plan } from '../../shared/plan.schema';
 import { todayIso } from '../lib/dates';
 import { db } from './db';
+import { useMonitors } from './plan';
 
+/** Samme form som serverens /history/exercises (trænervisningen). */
 export interface ExerciseOverview {
   exerciseId: string;
   times: number;
@@ -39,18 +41,20 @@ export function useExerciseHistory(exerciseId: string): ExerciseHistoryEntry[] |
 /** Opsummering af planens uger op til og med `untilWeek`, nyeste først. */
 export function useWeeklySummaries(plan: Plan | undefined, untilWeek: number): WeeklySummary[] | undefined {
   const today = todayIso();
+  const ids = useMonitors().map((m) => m.id);
+  const key = ids.join(',');
   return useLiveQuery(async () => {
     if (!plan) return undefined;
-    const [workouts, sets, checks, overrides] = await Promise.all([
+    const [workouts, sets, scores, overrides] = await Promise.all([
       db.workouts.toArray(),
       db.set_logs.toArray(),
-      db.groin_checks.toArray(),
+      db.pain_scores.toArray(),
       db.schedule_overrides.toArray(),
     ]);
-    const groin = assessGroin(workouts, checks, today);
+    const groin = assessAllPain(workouts, scores, ids, today);
     return plan.weeks
       .filter((w) => w.weekNo <= untilWeek)
       .map((w) => weeklySummary(plan, w.weekNo, workouts, sets, groin, overrides))
       .reverse();
-  }, [plan, untilWeek, today]);
+  }, [plan, untilWeek, today, key]);
 }

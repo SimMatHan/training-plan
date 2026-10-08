@@ -21,6 +21,7 @@ export function MobilityChecklist({
   const [pending, setPending] = useState<Record<string, boolean>>({});
   const saved = new Set(checks.filter((c) => c.done).map((c) => c.item_id));
   const isDone = (id: string) => pending[id] ?? saved.has(id);
+  if (!block) return null;
   const count = block.items.filter((i) => isDone(i.id)).length;
 
   return (

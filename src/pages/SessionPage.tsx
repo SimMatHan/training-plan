@@ -12,8 +12,9 @@ import { RunLog } from '../components/RunLog';
 import { ScoreScale } from '../components/ScoreScale';
 import { SessionMark } from '../components/SessionMark';
 import { SyncBadge } from '../components/SyncBadge';
+import { saveDuringScore, useDuringScores } from '../data/health';
 import { useCoachNotes } from '../data/notes';
-import { usePlan } from '../data/plan';
+import { useMonitors, usePlan } from '../data/plan';
 import { deleteRecord } from '../data/records';
 import { skipTimer, useTimer } from '../data/timer';
 import { finishWorkout, patchWorkout, useWorkout, useWorkoutLogs } from '../data/workouts';
@@ -41,7 +42,9 @@ export function SessionPage() {
   const logs = useWorkoutLogs(uuid);
   const timer = useTimer();
   const weekNotes = useCoachNotes(workout?.week_no ?? undefined);
-  const [missingGroin, setMissingGroin] = useState(false);
+  const monitors = useMonitors();
+  const painScores = useDuringScores(uuid);
+  const [missingPain, setMissingPain] = useState(false);
   // undefined = ikke valgt endnu; null = alt foldet sammen.
   const [open, setOpen] = useState<string | null | undefined>(undefined);
   const prevComplete = useRef<Record<string, boolean> | null>(null);
@@ -50,7 +53,7 @@ export function SessionPage() {
   const plan = active?.plan;
   const session = plan && workout?.planned_session_id ? getSession(plan, workout.planned_session_id) : undefined;
   const strength = plan && session?.kind === 'styrke' && workout?.week_no ? resolveStrengthSession(plan, session.id, workout.week_no) : undefined;
-  const showMobility = session?.kind === 'mobilitet' || (session?.kind === 'styrke' && session.mobility === 'before');
+  const showMobility = !!plan?.mobility && (session?.kind === 'mobilitet' || (session?.kind === 'styrke' && session.mobility === 'before'));
 
   // Fremskridt pr. sektion, i rækkefølge: mobilitet først, derefter øvelserne.
   const order: string[] = [];
@@ -101,8 +104,10 @@ export function SessionPage() {
   const timerFor = timer.state?.workoutUuid === workout.uuid;
   const isRun = session?.kind === 'løb' || session?.kind === 'cardio';
   const scheduled = plan.weeks.find((w) => w.weekNo === workout.week_no)?.sessions.find((s) => s.sessionId === session?.id);
-  // Lysken vurderes efter alle styrke-, løbe- og cardiosessioner.
-  const asksGroin = workout.type !== 'mobilitet';
+  // Smerten vurderes pr. monitor efter alle styrke-, løbe- og cardiosessioner.
+  const asksPain = workout.type !== 'mobilitet' && monitors.length > 0;
+  const scoreOf = (monitorId: number) => painScores.find((p) => p.monitor_id === monitorId)?.score ?? null;
+  const missing = asksPain ? monitors.filter((m) => scoreOf(m.id) == null) : [];
 
   const toggle = (id: string) => {
     const next = open === id ? null : id;
@@ -111,9 +116,9 @@ export function SessionPage() {
   };
 
   async function finish() {
-    if (asksGroin && workout!.groin_during == null) {
-      setMissingGroin(true);
-      document.getElementById('groin')?.scrollIntoView({ block: 'center' });
+    if (missing.length) {
+      setMissingPain(true);
+      document.getElementById(`smerte-${missing[0].id}`)?.scrollIntoView({ block: 'center' });
       return;
     }
     await finishWorkout(workout!.uuid);
@@ -128,7 +133,8 @@ export function SessionPage() {
       logs!.sets.some((s) => s.done || s.reps != null || s.weight_kg != null || s.seconds != null) ||
       logs!.mobility.some((m) => m.done) ||
       logs!.notes.some((n) => n.note || n.rpe != null) ||
-      [w.distance_km, w.duration_sec, w.avg_hr, w.groin_during, w.rpe, w.note].some((v) => v != null && v !== '');
+      painScores.length > 0 ||
+      [w.distance_km, w.duration_sec, w.avg_hr, w.rpe, w.note].some((v) => v != null && v !== '');
     const question =
       kind === 'annuller' ? 'Annullere sessionen? Det du har logget i den slettes.' : 'Slette denne træning? Alt logget i den forsvinder fra historikken.';
     // En tom session (startet ved en fejl) annulleres uden spørgsmål.
@@ -181,8 +187,8 @@ export function SessionPage() {
         {showMobility && (
           <Collapsible
             id={MOBILITY}
-            title={plan.mobility.name}
-            subtitle={plan.mobility.durationMin ? `${plan.mobility.durationMin.min}–${plan.mobility.durationMin.max} min` : undefined}
+            title={plan.mobility!.name}
+            subtitle={plan.mobility!.durationMin ? `${plan.mobility!.durationMin.min}–${plan.mobility!.durationMin.max} min` : undefined}
             progress={progress[MOBILITY]}
             open={open === MOBILITY}
             onToggle={() => toggle(MOBILITY)}
@@ -220,21 +226,25 @@ export function SessionPage() {
 
         <section className="flex flex-col gap-4 py-6">
           <h2 className="text-2xl">Sessionen</h2>
-          {asksGroin && (
-            <div id="groin" className={missingGroin && workout.groin_during == null ? 'rounded-lg outline-3 outline-offset-4 outline-a' : ''}>
-              <ScoreScale
-                label="Venstre lyske under træningen"
-                hint="Højst 3 er grønt, hvis lysken også er væk i morgen tidlig."
-                value={workout.groin_during}
-                onChange={(v) => void patchWorkout(workout.uuid, { groin_during: v })}
-              />
-              {missingGroin && workout.groin_during == null && (
-                <p role="alert" className="mt-2 text-sm text-a-ink">
-                  Angiv lysken før du afslutter.
-                </p>
-              )}
-            </div>
-          )}
+          {asksPain &&
+            monitors.map((m) => {
+              const value = scoreOf(m.id);
+              return (
+                <div key={m.id} id={`smerte-${m.id}`} className={missingPain && value == null ? 'rounded-lg outline-3 outline-offset-4 outline-a' : ''}>
+                  <ScoreScale
+                    label={`${m.label} under træningen`}
+                    hint="Højst 3 er grønt, hvis det også er væk i morgen tidlig."
+                    value={value}
+                    onChange={(v) => void saveDuringScore(workout, m.id, v)}
+                  />
+                  {missingPain && value == null && (
+                    <p role="alert" className="mt-2 text-sm text-a-ink">
+                      Angiv {m.label.charAt(0).toLowerCase() + m.label.slice(1)} før du afslutter.
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           <RpePicker label="RPE for hele sessionen" value={workout.rpe} onChange={(rpe) => void patchWorkout(workout.uuid, { rpe })} />
           <NoteField label="Note til sessionen" value={workout.note} onSave={(note) => void patchWorkout(workout.uuid, { note })} />
           {!workout.finished_at ? (

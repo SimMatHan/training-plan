@@ -39,7 +39,7 @@ const items = [
 
 export function BottomNav() {
   const [location] = useLocation();
-  const isActive = (href: string) => (href === '/' ? location === '/' || location.startsWith('/session') || location.startsWith('/ankel') || location.startsWith('/forslag') : location.startsWith(href));
+  const isActive = (href: string) => (href === '/' ? location === '/' || location.startsWith('/session') || location.startsWith('/ankel') || location.startsWith('/mobilitet') || location.startsWith('/forslag') : location.startsWith(href));
 
   return (
     <nav aria-label="Hovedmenu" className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-line bg-bg">
