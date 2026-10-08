@@ -7,19 +7,18 @@ import { api, athleteApi, OfflineError } from '../lib/api';
 import { useMe } from '../lib/auth';
 import { formatWithYear } from '../lib/dates';
 import { addPasskey, passkeyError } from '../lib/passkeys';
-import { Section } from './Screen';
+import { smallButton, TextButton } from '../ui/Button';
+import { fieldClass, Select, Switch } from '../ui/Field';
+import { Card, Group } from '../ui/InsetList';
+import { ErrorText as Err, Muted } from '../ui/Screen';
 
 const errorText = (e: unknown) => (e instanceof OfflineError ? 'Ingen forbindelse. Prøv igen med net.' : (e as Error).message);
-const button = 'min-h-12 rounded-lg border border-line px-4 font-medium disabled:opacity-40';
-const input = 'min-h-12 rounded-lg border border-line bg-raised px-3 text-base text-fg';
+const button = smallButton('secondary');
+const input = fieldClass;
 
-function ErrorText({ error }: { error?: string }) {
-  return error ? (
-    <p role="alert" className="mb-3 text-sm text-a-ink">
-      {error}
-    </p>
-  ) : null;
-}
+const ErrorText = ({ error }: { error?: string }) => <Err className="mb-3">{error}</Err>;
+/** Liste i et inset-kort. */
+const list = 'inset-list mb-3 overflow-hidden rounded-card bg-surface';
 
 export function AccountSection() {
   const me = useMe();
@@ -30,15 +29,17 @@ export function AccountSection() {
     await signOut();
   }
   return (
-    <Section title="Konto">
-      <p className="mb-3">
-        Logget ind som <span className="font-semibold">{me.user.name}</span>
-        {me.user.isAdmin && <span className="text-muted"> · admin</span>}
-      </p>
-      <button type="button" onClick={() => void out()} disabled={busy} className={button}>
-        {busy ? 'Logger ud …' : 'Log ud'}
-      </button>
-    </Section>
+    <Group title="Konto">
+      <Card className="flex items-center justify-between gap-3">
+        <p className="text-body">
+          Logget ind som <span className="font-semibold">{me.user.name}</span>
+          {me.user.isAdmin && <span className="text-ink-2"> · admin</span>}
+        </p>
+        <TextButton danger onClick={() => void out()} disabled={busy}>
+          {busy ? 'Logger ud …' : 'Log ud'}
+        </TextButton>
+      </Card>
+    </Group>
   );
 }
 
@@ -65,16 +66,16 @@ export function SecuritySection() {
   }
 
   return (
-    <Section title="Sikkerhed">
-      <p className="mb-3 text-sm text-muted">Du logger ind med en passkey (Face ID). Passkeys fra iCloud-nøgleringen virker på alle dine Apple-enheder.</p>
+    <Group title="Sikkerhed">
+      <Muted className="mb-3 px-1">Du logger ind med en passkey (Face ID). Passkeys fra iCloud-nøgleringen virker på alle dine Apple-enheder.</Muted>
       <ErrorText error={error} />
       {keys && (
-        <ul className="mb-3 divide-y divide-line border-y border-line">
+        <ul className={list}>
           {keys.map((k) => (
-            <li key={k.id} className="flex min-h-14 items-center gap-3 py-2">
+            <li key={k.id} className="flex min-h-14 items-center gap-2 px-4 py-2">
               <div className="min-w-0 flex-1">
-                <div className="font-medium">{k.label}</div>
-                <div className="text-sm text-muted">
+                <div className="text-row">{k.label}</div>
+                <div className="text-footnote text-ink-2">
                   Oprettet {formatWithYear(k.createdAt)}
                   {k.lastUsedAt && ` · sidst brugt ${formatWithYear(k.lastUsedAt)}`}
                 </div>
@@ -86,7 +87,7 @@ export function SecuritySection() {
                   const label = prompt('Navn på passkey', k.label);
                   if (label?.trim()) void run(() => api(`/me/passkeys/${k.id}`, { method: 'PATCH', json: { label } }));
                 }}
-                className="min-h-12 rounded-lg px-2 text-sm font-medium text-muted"
+                className="min-h-11 rounded-lg px-2 text-secondary font-medium text-ink-2"
               >
                 Omdøb
               </button>
@@ -94,7 +95,7 @@ export function SecuritySection() {
                 type="button"
                 disabled={busy || keys.length <= 1}
                 onClick={() => confirm(`Slet passkey "${k.label}"?`) && void run(() => api(`/me/passkeys/${k.id}`, { method: 'DELETE' }))}
-                className="min-h-12 rounded-lg px-2 text-sm font-medium text-a-ink disabled:opacity-30"
+                className="min-h-11 rounded-lg px-2 text-secondary font-medium text-danger disabled:opacity-30"
               >
                 Slet
               </button>
@@ -105,7 +106,7 @@ export function SecuritySection() {
       <button type="button" disabled={busy} onClick={() => void run(addPasskey)} className={button}>
         Tilføj passkey på denne enhed
       </button>
-    </Section>
+    </Group>
   );
 }
 
@@ -131,24 +132,24 @@ export function SharingSection() {
 
   const others = sharing?.access.filter((a) => a.userId !== me.user.id) ?? [];
   return (
-    <Section title="Deling">
-      <p className="mb-3 text-sm text-muted">
+    <Group title="Deling">
+      <Muted className="mb-3 px-1">
         En træner kan se din uge, historik og Claudes forslag og bruge Claude til at lave dit program. Kun du kan logge og godkende forslag.
-      </p>
+      </Muted>
       <ErrorText error={error} />
-      {sharing && others.length === 0 && <p className="mb-3 text-sm">Kun du har adgang til din træning.</p>}
+      {sharing && others.length === 0 && <Card className="mb-3 text-body">Kun du har adgang til din træning.</Card>}
       {others.length > 0 && (
-        <ul className="mb-3 divide-y divide-line border-y border-line">
+        <ul className={list}>
           {others.map((a) => (
-            <li key={a.userId} className="flex min-h-14 items-center gap-3 py-2">
+            <li key={a.userId} className="flex min-h-14 items-center gap-3 px-4 py-2">
               <div className="flex-1">
-                <div className="font-medium">{a.name}</div>
-                <div className="text-sm text-muted">Træner siden {formatWithYear(a.grantedAt)}</div>
+                <div className="text-row">{a.name}</div>
+                <div className="text-footnote text-ink-2">Træner siden {formatWithYear(a.grantedAt)}</div>
               </div>
               <button
                 type="button"
                 onClick={() => confirm(`Fjern ${a.name}s adgang? Det gælder også Claude-forbindelsen med det samme.`) && void change(() => athleteApi(slug, `/sharing/${a.userId}`, { method: 'DELETE' }))}
-                className="min-h-12 rounded-lg border border-line px-3 text-sm font-medium text-a-ink"
+                className="min-h-11 rounded-lg px-2 text-secondary font-medium text-danger"
               >
                 Fjern adgang
               </button>
@@ -161,7 +162,7 @@ export function SharingSection() {
           Giv {c.name} adgang som træner
         </button>
       ))}
-    </Section>
+    </Group>
   );
 }
 
@@ -198,17 +199,17 @@ export function MonitoringSection() {
   const toggleTest = (t: MobilityTest) => act(`/mobility-tests/${t.id}`, 'PATCH', { active: !t.active });
 
   return (
-    <Section title="Overvågning">
-      <p className="mb-3 text-sm text-muted">
+    <Group title="Overvågning">
+      <Muted className="mb-3 px-1">
         Smerte-monitors får en score efter hver træning og et spørgsmål morgenen efter (trafiklys). Mobilitetstests minder dig om en ny måling efter 14 dage.
-      </p>
+      </Muted>
       <ErrorText error={error} />
-      <h3 className="mb-1 text-sm font-semibold text-muted">Smerte</h3>
-      <ul className="mb-2 divide-y divide-line border-y border-line">
+      <h3 className="mb-1.5 px-1 text-footnote text-ink-2">Smerte</h3>
+      <ul className={list}>
         {profile?.monitors.map((m) => (
-          <li key={m.id} className="flex min-h-12 items-center gap-3 py-1.5">
-            <span className={`flex-1 ${m.active ? 'font-medium' : 'text-muted line-through'}`}>{m.label}</span>
-            <button type="button" onClick={() => void toggle(m)} className="min-h-12 rounded-lg px-2 text-sm font-medium text-muted">
+          <li key={m.id} className="flex min-h-12 items-center gap-3 px-4 py-1.5">
+            <span className={`flex-1 ${m.active ? 'text-row' : 'text-ink-2 line-through'}`}>{m.label}</span>
+            <button type="button" onClick={() => void toggle(m)} className="min-h-11 rounded-lg px-2 text-secondary font-medium text-ink-2">
               {m.active ? 'Deaktivér' : 'Aktivér'}
             </button>
           </li>
@@ -221,14 +222,14 @@ export function MonitoringSection() {
         </button>
       </form>
 
-      <h3 className="mb-1 text-sm font-semibold text-muted">Mobilitetstests</h3>
-      <ul className="mb-2 divide-y divide-line border-y border-line">
+      <h3 className="mb-1.5 px-1 text-footnote text-ink-2">Mobilitetstests</h3>
+      <ul className={list}>
         {profile?.mobilityTests.map((t) => (
-          <li key={t.id} className="flex min-h-12 items-center gap-3 py-1.5">
-            <span className={`flex-1 ${t.active ? 'font-medium' : 'text-muted line-through'}`}>
-              {t.name} <span className="font-normal text-muted">({t.unit}{t.per_side ? ', højre og venstre' : ''})</span>
+          <li key={t.id} className="flex min-h-12 items-center gap-3 px-4 py-1.5">
+            <span className={`flex-1 ${t.active ? 'text-row' : 'text-ink-2 line-through'}`}>
+              {t.name} <span className="font-normal text-ink-2">({t.unit}{t.per_side ? ', højre og venstre' : ''})</span>
             </span>
-            <button type="button" onClick={() => void toggleTest(t)} className="min-h-12 rounded-lg px-2 text-sm font-medium text-muted">
+            <button type="button" onClick={() => void toggleTest(t)} className="min-h-11 rounded-lg px-2 text-secondary font-medium text-ink-2">
               {t.active ? 'Deaktivér' : 'Aktivér'}
             </button>
           </li>
@@ -239,15 +240,12 @@ export function MonitoringSection() {
           <input value={test.name} maxLength={40} onChange={(e) => setTest({ ...test, name: e.target.value })} placeholder="Fx Knee-to-wall" aria-label="Ny test" className={`${input} min-w-0 flex-1`} />
           <input value={test.unit} maxLength={12} onChange={(e) => setTest({ ...test, unit: e.target.value })} aria-label="Enhed" className={`${input} w-20`} />
         </div>
-        <label className="flex min-h-12 items-center gap-2 text-sm">
-          <input type="checkbox" checked={test.perSide} onChange={(e) => setTest({ ...test, perSide: e.target.checked })} className="size-6" />
-          Højre og venstre måles hver for sig
-        </label>
+        <Switch label="Højre og venstre måles hver for sig" checked={test.perSide} onChange={(perSide) => setTest({ ...test, perSide })} />
         <button type="submit" disabled={!test.name.trim() || !test.unit.trim()} className={button}>
           Tilføj test
         </button>
       </form>
-    </Section>
+    </Group>
   );
 }
 
@@ -281,68 +279,62 @@ export function UsersSection() {
   }
 
   return (
-    <Section title="Brugere">
+    <Group title="Brugere">
       <ErrorText error={error} />
       <form onSubmit={invite} className="mb-3 flex flex-col gap-2">
-        <label className="flex flex-col gap-1 text-sm text-muted">
-          Inviter
-          <select
-            value={userId ?? ''}
-            onChange={(e) => {
-              const id = e.target.value ? Number(e.target.value) : null;
-              setUserId(id);
-              const u = data?.users.find((x) => x.id === id);
-              if (u) setName(u.name);
-            }}
-            className={input}
-          >
-            <option value="">Ny bruger</option>
-            {data?.users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} (ny passkey — gendannelse)
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label="Inviter"
+          value={userId ?? ''}
+          onChange={(e) => {
+            const id = e.target.value ? Number(e.target.value) : null;
+            setUserId(id);
+            const u = data?.users.find((x) => x.id === id);
+            if (u) setName(u.name);
+          }}
+        >
+          <option value="">Ny bruger</option>
+          {data?.users.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.name} (ny passkey — gendannelse)
+            </option>
+          ))}
+        </Select>
         <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} placeholder="Navn, fx Karo" aria-label="Navn" disabled={userId !== null} className={input} />
-        <label className="flex min-h-12 items-center gap-2 text-sm">
-          <input type="checkbox" checked={admin} onChange={(e) => setAdmin(e.target.checked)} className="size-6" />
-          Admin (kan invitere andre)
-        </label>
+        <Switch label="Admin (kan invitere andre)" checked={admin} onChange={setAdmin} />
         <button type="submit" disabled={!name.trim()} className={button}>
           Opret invitation
         </button>
       </form>
       {link && (
         <div className="mb-4">
-          <p className="mb-1 text-sm text-muted">Linket gælder i 7 dage og kan bruges én gang. Send det til personen; det åbnes på telefonen.</p>
-          <p className="num rounded-lg border border-line bg-surface p-3 text-sm break-all select-all">{link}</p>
+          <p className="mb-1 text-footnote text-ink-2">Linket gælder i 7 dage og kan bruges én gang. Send det til personen; det åbnes på telefonen.</p>
+          <p className="num rounded-card bg-surface p-4 text-secondary break-all select-all">{link}</p>
           <button type="button" onClick={() => void navigator.clipboard?.writeText(link)} className={`${button} mt-2`}>
             Kopiér link
           </button>
         </div>
       )}
       {data && (
-        <ul className="divide-y divide-line border-y border-line text-sm">
+        <ul className={`${list} text-secondary`}>
           {data.users.map((u) => (
-            <li key={u.id} className="flex min-h-12 items-center gap-3 py-1.5">
-              <span className="flex-1 font-medium">
+            <li key={u.id} className="flex min-h-12 items-center gap-3 px-4 py-1.5">
+              <span className="flex-1 text-row">
                 {u.name}
-                {u.isAdmin && <span className="font-normal text-muted"> · admin</span>}
+                {u.isAdmin && <span className="font-normal text-ink-2"> · admin</span>}
               </span>
-              <span className="text-muted">
+              <span className="text-ink-2">
                 {u.athletes.map((a) => `${a.slug} (${a.role})`).join(', ')} · {u.passkeys} {u.passkeys === 1 ? 'passkey' : 'passkeys'}
               </span>
             </li>
           ))}
           {data.invites.map((i, n) => (
-            <li key={`i${n}`} className="flex min-h-12 items-center gap-3 py-1.5 text-muted">
+            <li key={`i${n}`} className="flex min-h-12 items-center gap-3 px-4 py-1.5 text-ink-2">
               <span className="flex-1">Invitation: {i.name}{i.userId ? ' (gendannelse)' : ''}</span>
               <span>udløber {formatWithYear(i.expiresAt)}</span>
             </li>
           ))}
         </ul>
       )}
-    </Section>
+    </Group>
   );
 }

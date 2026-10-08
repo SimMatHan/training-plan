@@ -128,7 +128,7 @@ npm run invite -- --name Simon --admin --url https://<domæne>
 
 1. Åbn adressen i **Safari** (ikke Chrome). **Del → Føj til hjemmeskærm → Tilføj.**
 2. Åbn linket fra `npm run invite` i Safari, tryk **Opret adgang med Face ID**. Passkey'en gemmes i iCloud-nøgleringen.
-3. Åbn appen fra hjemmeskærmen og tryk **Log ind med passkey**. Første gang henter den planen og alle data. Statussen
+3. Åbn appen fra hjemmeskærmen og tryk **Log ind med Face ID**. Første gang henter den planen og alle data. Statussen
    øverst skal vise **Synket**.
 
 `npm run invite` er også nødvejen, hvis alle passkeys er mistet: med et eksisterende navn bliver det en gendannelse
@@ -208,6 +208,14 @@ henter den nye version i baggrunden (når appen åbnes eller får fokus, og hver
 
 Versionen under **Indstillinger → App** er commit-id'et fra Workers Builds, så du kan se, om telefonen kører
 det seneste deploy.
+
+### Nyt hjemmeskærmikon
+
+Et nyt appikon (fx vægtløfteren fra det nye design) kommer med næste opdatering i browserfanen og i Safari, men
+**iOS viser først det nye ikon på hjemmeskærmen, når appen er fjernet og tilføjet igen**: hold på ikonet → **Fjern
+app → Slet fra hjemmeskærm**, åbn adressen i Safari og **Del → Føj til hjemmeskærm**. Log ind med Face ID; sørg
+for at statussen sagde **Synket** først, så intet usendt går tabt. Service workerens cache har fået et nyt navn
+(`CACHE_VERSION` i `vite.config.ts`), så installerede apps henter alle filer forfra ved opdateringen.
 
 ## Migrationer
 
@@ -297,7 +305,8 @@ npm run dev                           # Vite på :5173, Worker på :8787 (/api, 
 | `npm run plan:build` | Genererer plan og seed fra Excel |
 | `npm run plan:version` | SQL til en ny planversion (se ovenfor) |
 | `npm run deploy` | Manuel deploy fra din maskine: build, migrationer og deploy |
-| `npm run icons` | Genererer PWA-ikoner fra `public/icon.svg` |
+| `npm run icons` | Genererer favicon, hjemmeskærm- og manifestikoner fra `brand/icon.svg` til `brand/` og `public/` |
+| `npm run screenshots [-- <navn>]` | Screenshots af alle skærme i 390 × 844, lys og mørk, til `screenshots/` (se Design) |
 | `npm run invite -- --name <navn> [--admin] [--url …] [--local]` | Invitationslink (ny bruger, eller gendannelse ved et eksisterende navn) |
 | `npm run db:verify-migration -- <backup.sql> [--cleanup]` | Afprøver fase 5-migrationen mod en kopi af produktionen |
 
@@ -385,7 +394,7 @@ Det kan ikke gøres fra mobilappen, men connectoren virker der bagefter.
 1. Åbn **claude.ai** i en browser. **Indstillinger → Connectors → Tilføj brugerdefineret connector** (Add custom connector).
 2. **Navn:** `Træningsnav – Simon`. **URL:** `https://<domæne>/mcp/simon` (adresserne står i appen under
    **Indstillinger → Claude**). Lad OAuth Client ID/Secret være tomme; Claude registrerer sig selv.
-3. **Tilføj → Forbind.** Er du ikke logget ind i appen i den browser, beder siden om **Log ind med passkey**. Derefter:
+3. **Tilføj → Forbind.** Er du ikke logget ind i appen i den browser, beder siden om **Log ind med Face ID**. Derefter:
    "Giv Claude adgang til **Simons** træningsdata? Du logger ind som Simon (dig selv)." Tryk **Giv adgang**.
 
 Som træner gør du det samme med `https://<domæne>/mcp/karo` (siden siger "Du logger ind som Simon (træner)"). Det
@@ -481,7 +490,7 @@ til `/authorize`; log ind med passkey og tryk **Giv adgang**. Under **Tools** ka
 
 ## Brugere, login og deling
 
-- **Login:** passkey (Face ID, synkes via iCloud-nøgleringen). Ikke logget ind → "Log ind med passkey". Intet andet.
+- **Login:** passkey (Face ID, synkes via iCloud-nøgleringen). Ikke logget ind → "Log ind med Face ID". Intet andet.
 - **Invitationer:** `/invite/<token>`, gyldige i 7 dage og kun én gang; kun SHA-256 af tokenet gemmes. Admin opretter dem
   under **Indstillinger → Brugere** (ny bruger, eller "gendannelse" = ny passkey til en eksisterende bruger) eller med
   `npm run invite`. En ny bruger får sin egen atlet og en kort onboarding: navn, tærskelpuls (valgfri) og et aktivt valg
@@ -508,9 +517,10 @@ Definition of done for fase 1. Kør dem efter første deploy:
 - [ ] Appen er installeret fra Safari på hjemmeskærmen og åbner uden browserbjælke.
 - [ ] **Flytilstand:** slå den til, log en hel Styrke A-session (eller Rehab A), og luk appen.
       Statussen viser "Offline · N venter". Slå nettet til, åbn appen, og vent på "Synket".
-- [ ] Næste gang samme øvelse dukker op, står sidste gangs tal dæmpet i felterne.
+- [ ] Næste gang samme øvelse dukker op, står talhjulene på sidste gangs tal, og en hel Styrke A kan logges uden tastatur.
 - [ ] Luk appen midt i en pause og åbn den igen: intet er tabt, og timeren står rigtigt.
-- [ ] Slet appen fra hjemmeskærmen, installér igen og log ind med passkey: alle data er der stadig.
+- [ ] Slet appen fra hjemmeskærmen, installér igen og log ind med passkey: alle data er der stadig, og hjemmeskærmen
+      viser vægtløfter-ikonet.
 - [ ] Service-funktionerne i `worker/services/` kan kaldes uden HTTP-laget (`npm test`).
 
 Fase 2 (kalenderfeed):
@@ -563,6 +573,28 @@ Fase 5 (login og flere atleter):
 Logs: **Workers & Pages → traeningsnav → Logs** (observability er slået til), eller `npx wrangler tail`.
 
 ## Sådan virker det
+
+### Design
+
+Native iOS-følelse, lyst og luftigt, med én brandfarve: en pink-til-rød gradient. Hver skærm besvarer ét spørgsmål,
+og det vigtigste tal (sidste gangs tal) står stort i gradient.
+
+- **Tokens** i `src/styles/tokens.css`: brand, flader og tekst (iOS-systemfarver), kategorifarver og trafiklys, lys og
+  mørk. `src/styles.css` eksponerer dem for Tailwind og slår Tailwinds egne farver fra, så komponenter kun kan bruge
+  tokens. Gradienten bruges kun til logo, heltetal, primærknap, graf, pausetimer og aktiv fane.
+- **Systemfonten** (SF Pro på iPhone), tabulære cifre overalt. Ingen fontfiler.
+- **Primitiver** i `src/ui/`: `LargeTitle`, `InsetList`, `ExerciseRow`, `HeroNumber`, knapper, `Segmented`, `Wheel`
+  (talhjul), `Ring`, `TabBar`, `Sheet`, `LineChart`, felter og trafiklys. Skærmene bygges kun af dem.
+  `/dev/ui` viser dem alle i lys og mørk; siden findes kun i dev-build (`npm run dev`).
+- **Ikonfliser:** kategorien kommer fra planens fokusområde (`src/logic/category.ts`). Ikoner er
+  [Phosphor](https://phosphoricons.com) (MIT).
+- **Logning** tager én øvelse ad gangen. Talhjulene står på sidste gangs vægt og reps, så et sæt magen til sidst er ét
+  tryk på ✓; tryk på det valgte tal åbner tastaturet. Vægttrinnet er 2,5 kg for stang, kabel og maskine og 0,5 kg ellers
+  (`src/logic/wheel.ts`). Slår et sæt rekorden (vægt × reps), ruller heltetallet til det nye tal med "Ny rekord".
+- **Logo** i `brand/` (kilde: `brand/icon.svg`); `npm run icons` laver resten.
+- **Screenshots:** `npm run screenshots` starter Vite, svarer selv på `/api` med fem ugers falsk historik
+  (`scripts/screenshots/fixtures.ts`) og fotograferer skærmene mandag i uge 6. Kræver Playwrights Chromium
+  (`npx playwright install chromium`). Uden SF Pro (Linux) bruges Inter som stedfortræder, hvis den er installeret.
 
 ### Logning og sync
 
@@ -680,12 +712,13 @@ HTTP. Ingen forespørgsel mod en atlet-tabel er uden `WHERE athlete_id = ?`:
 ### Struktur
 
 ```
-src/        frontend (React, Tailwind, Dexie)
+src/        frontend (React, Tailwind, Dexie); src/ui/ designets primitiver, src/styles/tokens.css farverne
 worker/     Hono-API; forretningslogik i worker/services/; MCP-værktøjer i worker/mcp/, OAuth i worker/oauth/
 shared/     zod-skemaer, plan-resolver og ren logik (historik, trafiklys, progression), brugt begge steder
 migrations/ D1-migrationer (køres automatisk); migrations-pending/ venter på bekræftelse
 plan/       traeningsplan.xlsx, seed- og versionsscripts, genereret plan
-scripts/    invite (invitationslink fra CLI) og verify-migration (fase 5 mod en kopi af produktionen)
+scripts/    invite (invitationslink fra CLI), verify-migration (fase 5 mod en kopi af produktionen), icons og screenshots
+brand/      logo og appikoner (kilde: icon.svg)
 test/       vitest; test/d1.ts er en D1-adapter over node:sqlite, test/world.ts to atleter med sessioner,
             test/authenticator.ts en passkey i software
 ```

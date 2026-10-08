@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 import { BottomNav } from './components/BottomNav';
 import { UpdateBanner } from './components/UpdateBanner';
@@ -15,6 +15,10 @@ import { SessionRoute } from './pages/SessionLinkPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TodayPage } from './pages/TodayPage';
 import { WeekPage } from './pages/WeekPage';
+
+// Primitiverne i lys og mørk. Kun i dev-build: import.meta.env.DEV er false i produktion, så
+// Vite udelader siden helt.
+const DevUi = import.meta.env.DEV ? lazy(() => import('./ui/DevUi')) : null;
 
 export function App() {
   const auth = useAuth();
@@ -33,6 +37,13 @@ export function App() {
     if (auth.status === 'in') startUserSession(auth.me);
     // Kun når brugeren skifter, ikke ved hver opdatering af /api/me.
   }, [userId]);
+
+  if (DevUi && location === '/dev/ui')
+    return (
+      <Suspense>
+        <DevUi />
+      </Suspense>
+    );
 
   // /invite/<token> virker, uanset om nogen er logget ind.
   const invite = location.match(/^\/invite\/([^/?#]+)/);

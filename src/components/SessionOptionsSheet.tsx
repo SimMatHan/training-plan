@@ -9,7 +9,9 @@ import { moveSession } from '../data/schedule';
 import { skipSession } from '../data/workouts';
 import { formatShort, WEEKDAYS, WEEKDAYS_SHORT } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
-import { Sheet } from './Sheet';
+import { PrimaryButton, SecondaryButton } from '../ui/Button';
+import { ChoiceGrid, TextField } from '../ui/Field';
+import { Sheet } from '../ui/Sheet';
 
 const REASONS = ['Lyske/smerte', 'Achilles', 'Syg', 'Kalender/tid', 'Træt', 'Andet'];
 
@@ -71,23 +73,19 @@ export function SessionOptionsSheet({
   if (skipped)
     return (
       <Sheet open={open} onClose={onClose} title={title}>
-        <p className="mb-1 font-medium">Sprunget over</p>
-        <p className="mb-4 text-sm text-muted">
-          {[skipped.skip_reason, skipped.note].filter(Boolean).join(' · ') || 'Ingen årsag angivet.'}
-        </p>
-        <button type="button" onClick={() => void undoSkip()} className="min-h-12 w-full rounded-lg border border-line font-medium">
-          Fortryd — sessionen er ikke sprunget over
-        </button>
+        <p className="text-headline">Sprunget over</p>
+        <p className="mb-5 text-secondary text-ink-2">{[skipped.skip_reason, skipped.note].filter(Boolean).join(' · ') || 'Ingen årsag angivet.'}</p>
+        <SecondaryButton onClick={() => void undoSkip()}>Fortryd — sessionen er ikke sprunget over</SecondaryButton>
       </Sheet>
     );
 
   return (
     <Sheet open={open} onClose={onClose} title={title}>
-      <h3 className="mb-1 text-lg">Flyt til en anden dag</h3>
-      <p className="mb-2 text-sm text-muted">
-        Planlagt {WEEKDAYS[scheduled.plannedDay]} {formatShort(dateOfDay(week, scheduled.plannedDay))} Prikken markerer planens dag.
+      <h3 className="text-headline">Flyt til en anden dag</h3>
+      <p className="mb-3 text-secondary text-ink-2">
+        Planlagt {WEEKDAYS[scheduled.plannedDay]} {formatShort(dateOfDay(week, scheduled.plannedDay))}. Prikken markerer planens dag.
       </p>
-      <div role="group" aria-label="Dag" className="grid grid-cols-7 gap-0.5">
+      <div role="group" aria-label="Dag" className="grid grid-cols-7 gap-1">
         {[1, 2, 3, 4, 5, 6, 7].map((day) => {
           const selected = day === scheduled.day;
           const date = dateOfDay(week, day);
@@ -98,51 +96,32 @@ export function SessionOptionsSheet({
               aria-pressed={selected}
               aria-label={`${WEEKDAYS[day]} ${formatShort(date)}${day === scheduled.plannedDay ? ', planens dag' : ''}`}
               onClick={() => void move(day)}
-              className={`flex min-h-16 flex-col items-center justify-center rounded-lg text-sm ${selected ? 'bg-fg font-semibold text-bg' : 'border border-line'}`}
+              className={`flex min-h-16 flex-col items-center justify-center rounded-[10px] text-footnote ${selected ? 'bg-ink font-semibold text-surface' : 'bg-surface-2 text-ink'}`}
             >
               <span>{WEEKDAYS_SHORT[day]}</span>
-              <span className="num text-base">{Number(date.slice(8, 10))}</span>
-              {day === scheduled.plannedDay && !selected && <span aria-hidden="true" className="mt-0.5 size-1.5 rounded-full bg-muted" />}
+              <span className="num text-headline">{Number(date.slice(8, 10))}</span>
+              {day === scheduled.plannedDay && !selected && <span aria-hidden="true" className="mt-0.5 size-1.5 rounded-full bg-ink-2" />}
             </button>
           );
         })}
       </div>
       {scheduled.moved && (
-        <button type="button" onClick={() => void move(scheduled.plannedDay)} className="mt-2 min-h-12 w-full rounded-lg border border-line font-medium">
+        <SecondaryButton onClick={() => void move(scheduled.plannedDay)} className="mt-2">
           Tilbage til {WEEKDAYS[scheduled.plannedDay]}
-        </button>
+        </SecondaryButton>
       )}
 
-      <hr className="my-5 border-line" />
+      <hr className="my-6 border-separator" />
 
-      <h3 className="mb-1 text-lg">Spring over</h3>
-      <p className="mb-2 text-sm text-muted">Logges, så det står i historikken og ikke bare som misset.</p>
-      <div role="group" aria-label="Årsag" className="grid grid-cols-3 gap-1.5">
-        {REASONS.map((r) => (
-          <button
-            key={r}
-            type="button"
-            aria-pressed={reason === r}
-            onClick={() => setReason(reason === r ? null : r)}
-            className={`min-h-12 rounded-lg px-1 text-sm font-medium ${reason === r ? 'bg-fg text-bg' : 'border border-line'}`}
-          >
-            {r}
-          </button>
-        ))}
+      <h3 className="text-headline">Spring over</h3>
+      <p className="mb-3 text-secondary text-ink-2">Logges, så det står i historikken og ikke bare som misset.</p>
+      <ChoiceGrid label="Årsag" columns={3} options={REASONS} value={reason} onChange={(r) => setReason(reason === r ? null : r)} />
+      <div className="mt-3">
+        <TextField label="Note (valgfri)" type="text" maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} />
       </div>
-      <label className="mt-3 flex flex-col gap-1 text-sm text-muted">
-        Note (valgfri)
-        <input
-          type="text"
-          maxLength={200}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          className="min-h-12 rounded-lg border border-line bg-raised px-3 text-base text-fg"
-        />
-      </label>
-      <button type="button" onClick={() => void skip()} disabled={busy} className="mt-4 min-h-14 w-full rounded-lg bg-fg text-lg font-semibold text-bg disabled:opacity-40">
+      <PrimaryButton onClick={() => void skip()} disabled={busy} className="mt-5">
         Markér som sprunget over
-      </button>
+      </PrimaryButton>
     </Sheet>
   );
 }

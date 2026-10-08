@@ -1,16 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { CaretLeft, ListBullets } from '@phosphor-icons/react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
-import { formatDose, formatIntensity, getSession, resolveStrengthSession } from '../../shared/resolve';
+import type { Plan, Session } from '../../shared/plan.schema';
+import type { Workout } from '../../shared/records.schema';
+import { formatRange, getSession, resolveStrengthSession } from '../../shared/resolve';
 import { CoachNotes } from '../components/CoachNotes';
-import { Collapsible } from '../components/Collapsible';
 import { ExerciseBlock } from '../components/ExerciseBlock';
 import { MobilityChecklist } from '../components/MobilityChecklist';
 import { NoteField } from '../components/NoteField';
-import { RestTimerBar } from '../components/RestTimerBar';
+import { RestTimer } from '../components/RestTimer';
 import { RpePicker } from '../components/RpePicker';
 import { RunLog } from '../components/RunLog';
 import { ScoreScale } from '../components/ScoreScale';
-import { SessionMark } from '../components/SessionMark';
 import { SyncBadge } from '../components/SyncBadge';
 import { saveDuringScore, useDuringScores } from '../data/health';
 import { useCoachNotes } from '../data/notes';
@@ -21,18 +22,23 @@ import { finishWorkout, patchWorkout, useWorkout, useWorkoutLogs } from '../data
 import { formatLong } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
 import { useWakeLock } from '../lib/wakeLock';
+import { exerciseCategory } from '../logic/category';
 import { isComplete, mobilityProgress, nextIncomplete, slotProgress, type Progress } from '../logic/progress';
+import { PrimaryButton, SecondaryButton, TextButton } from '../ui/Button';
+import { HeroNumber } from '../ui/HeroNumber';
+import { IconTile } from '../ui/IconTile';
+import { InsetList, InsetRow, RowText } from '../ui/InsetList';
+import { Muted } from '../ui/Screen';
+import { Sheet } from '../ui/Sheet';
+import { TILE_INSET } from '../ui/ExerciseRow';
 
 const MOBILITY = 'mobilitet';
+const FINISH = 'afslut';
 
-const scrollToSection = (id: string) =>
-  requestAnimationFrame(() =>
-    document.getElementById(`sektion-${id}`)?.scrollIntoView({
-      block: 'start',
-      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-    }),
-  );
-
+/**
+ * Logning, én øvelse ad gangen: mobilitet (hvis planen siger før), hver plads i sessionen og
+ * til sidst afslutning med smerte, RPE og note. Løb og aktiviteter er ét trin.
+ */
 export function SessionPage() {
   const [, params] = useRoute('/session/:uuid');
   const uuid = params?.uuid;
@@ -45,17 +51,18 @@ export function SessionPage() {
   const monitors = useMonitors();
   const painScores = useDuringScores(uuid);
   const [missingPain, setMissingPain] = useState(false);
-  // undefined = ikke valgt endnu; null = alt foldet sammen.
-  const [open, setOpen] = useState<string | null | undefined>(undefined);
-  const prevComplete = useRef<Record<string, boolean> | null>(null);
+  const [step, setStep] = useState<string>();
+  const [overview, setOverview] = useState(false);
+  const [timerCompact, setTimerCompact] = useState(false);
   useWakeLock(true);
 
   const plan = active?.plan;
   const session = plan && workout?.planned_session_id ? getSession(plan, workout.planned_session_id) : undefined;
   const strength = plan && session?.kind === 'styrke' && workout?.week_no ? resolveStrengthSession(plan, session.id, workout.week_no) : undefined;
   const showMobility = !!plan?.mobility && (session?.kind === 'mobilitet' || (session?.kind === 'styrke' && session.mobility === 'before'));
+  const stepped = !!strength || session?.kind === 'mobilitet';
 
-  // Fremskridt pr. sektion, i rækkefølge: mobilitet først, derefter øvelserne.
+  // Trinene i rækkefølge: mobilitet først, så pladserne, til sidst afslutning.
   const order: string[] = [];
   const progress: Record<string, Progress> = {};
   if (plan && logs) {
@@ -68,29 +75,15 @@ export function SessionPage() {
       progress[slot.slotId] = slotProgress(plan, slot, logs.sets);
     }
   }
-  const completeKey = order.map((id) => (isComplete(progress[id]) ? 1 : 0)).join('');
+  const steps = [...order, FINISH];
 
-  // Åbn første ufærdige sektion, når data er indlæst.
+  // Start på det første ufærdige trin, når data er indlæst.
   useEffect(() => {
-    if (open !== undefined || !logs || !plan) return;
-    setOpen(nextIncomplete(order, progress));
-    prevComplete.current = Object.fromEntries(order.map((id) => [id, isComplete(progress[id])]));
-  }, [logs, plan, open]);
+    if (step !== undefined || !logs || !plan || !workout) return;
+    setStep(workout.finished_at ? steps[0] : (nextIncomplete(order, progress) ?? FINISH));
+  }, [logs, plan, workout, step]);
 
-  // Når den åbne sektion bliver færdig, hoppes der videre til den næste.
-  useEffect(() => {
-    const prev = prevComplete.current;
-    if (!prev || open === undefined) return;
-    const now = Object.fromEntries(order.map((id) => [id, isComplete(progress[id])]));
-    prevComplete.current = now;
-    if (open && !prev[open] && now[open]) {
-      const next = nextIncomplete(order, progress, open);
-      setOpen(next);
-      if (next) scrollToSection(next);
-    }
-  }, [completeKey]);
-
-  if (workout === undefined || logs === undefined || !active || !plan) return <main className="p-4 text-muted">Henter …</main>;
+  if (workout === undefined || logs === undefined || !active || !plan) return <main className="pt-safe p-4 text-ink-2">Henter …</main>;
   if (workout === null || workout.deleted_at)
     return (
       <main className="pt-safe p-4">
@@ -102,31 +95,29 @@ export function SessionPage() {
     );
 
   const timerFor = timer.state?.workoutUuid === workout.uuid;
-  const isRun = session?.kind === 'løb' || session?.kind === 'cardio';
-  const scheduled = plan.weeks.find((w) => w.weekNo === workout.week_no)?.sessions.find((s) => s.sessionId === session?.id);
-  // Smerten vurderes pr. monitor efter alle styrke-, løbe- og cardiosessioner.
-  const asksPain = workout.type !== 'mobilitet' && monitors.length > 0;
-  const scoreOf = (monitorId: number) => painScores.find((p) => p.monitor_id === monitorId)?.score ?? null;
-  const missing = asksPain ? monitors.filter((m) => scoreOf(m.id) == null) : [];
+  const current = stepped ? (step ?? steps[0]) : FINISH;
+  const index = steps.indexOf(current);
+  const slots = strength?.slots ?? [];
+  const slotIndex = slots.findIndex((s) => s.slotId === current);
+  const slot = slots[slotIndex];
+  const title = !stepped
+    ? session
+      ? sessionTitle(session)
+      : (workout.activity ?? 'Træning')
+    : current === MOBILITY
+      ? plan.mobility!.name
+      : current === FINISH
+        ? 'Afslut'
+        : slot.exercises.map((e) => e.label).join(' + ');
 
-  const toggle = (id: string) => {
-    const next = open === id ? null : id;
-    setOpen(next);
-    if (next) scrollToSection(next);
+  const go = (id: string) => {
+    setStep(id);
+    setOverview(false);
+    window.scrollTo({ top: 0 });
   };
+  const next = steps[index + 1];
+  const nextLabel = current === MOBILITY ? (slots.length ? 'Til øvelserne' : 'Til afslutning') : next === FINISH ? 'Til afslutning' : 'Næste øvelse';
 
-  async function finish() {
-    if (missing.length) {
-      setMissingPain(true);
-      document.getElementById(`smerte-${missing[0].id}`)?.scrollIntoView({ block: 'center' });
-      return;
-    }
-    await finishWorkout(workout!.uuid);
-    if (timerFor) skipTimer();
-    navigate('/');
-  }
-
-  /** Annuller (forkert session startet) og slet: begge er en tombstone på træningen. */
   async function remove(kind: 'annuller' | 'slet') {
     const w = workout!;
     const hasData =
@@ -144,127 +135,195 @@ export function SessionPage() {
     navigate('/');
   }
 
-  const exerciseSubtitle = (slotIndex: number) => {
-    const slot = strength!.slots[slotIndex];
-    return slot.exercises
-      .map((e) => [formatDose(e.exercise, e.planned.dose), formatIntensity(e.planned.dose)].filter(Boolean).join(' · '))
-      .join(' + ');
-  };
+  const counter = slotIndex >= 0 ? `${slotIndex + 1}/${slots.length}` : undefined;
 
   return (
-    <main className={`pt-safe mx-auto max-w-xl px-4 ${timerFor ? 'pb-36' : 'pb-12'}`}>
-      <header className="pt-2 pb-3">
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <Link href="/" className="-ml-2 inline-flex min-h-12 items-center px-2 text-base">
-            ← I dag
+    <main className={`mx-auto max-w-xl px-4 ${timerFor ? (timerCompact ? 'pb-36' : 'pb-[24rem]') : 'pb-12'}`}>
+      <header className="pt-safe blur-chrome sticky top-0 z-20 -mx-4 border-b-[0.5px] border-separator px-2">
+        <div className="grid h-11 grid-cols-[minmax(5.5rem,auto)_1fr_minmax(5.5rem,auto)] items-center gap-1">
+          <Link href="/" className="inline-flex min-h-11 items-center gap-0.5 pr-2 text-body text-ink">
+            <CaretLeft size={22} weight="bold" className="text-brand-red" aria-hidden="true" />I dag
           </Link>
-          <div className="flex items-center gap-3">
-            <SyncBadge />
-            {!workout.finished_at && (
-              <button type="button" onClick={() => void remove('annuller')} className="min-h-12 rounded-lg border border-line px-3 text-sm font-medium">
-                Annuller
+          <h1 className="truncate text-center text-headline">{title}</h1>
+          <div className="flex justify-end">
+            {stepped ? (
+              <button type="button" onClick={() => setOverview(true)} aria-label={`Oversigt${counter ? `, øvelse ${counter}` : ''}`} className="num inline-flex min-h-11 items-center gap-1.5 px-2 text-body text-ink-2">
+                {counter ?? <ListBullets size={22} aria-hidden="true" />}
               </button>
+            ) : (
+              <span className="px-2">
+                <SyncBadge quiet />
+              </span>
             )}
-          </div>
-        </div>
-        <div className="flex gap-3">
-          {session && <SessionMark colorKey={session.colorKey} />}
-          <div>
-            <h1 className="text-3xl">{session ? sessionTitle(session) : (workout.activity ?? 'Træning')}</h1>
-            <p className="text-sm text-muted">
-              {workout.week_no && `Uge ${workout.week_no} · `}
-              {formatLong(workout.date)}
-              {!session && workout.activity && ' · uden for planen'}
-              {workout.finished_at && ' · afsluttet'}
-            </p>
           </div>
         </div>
       </header>
 
-      <CoachNotes notes={weekNotes.filter((n) => n.session_id === workout.planned_session_id && n.session_id)} plan={plan} showSession={false} />
+      <p className="mt-3 mb-4 px-1 text-footnote text-ink-2">
+        {session ? sessionTitle(session) : (workout.activity ?? 'Træning')}
+        {workout.week_no && ` · uge ${workout.week_no}`} · {formatLong(workout.date)}
+        {!session && workout.activity && ' · uden for planen'}
+        {workout.finished_at && ' · afsluttet'}
+      </p>
 
-      <div className="divide-y divide-line border-t border-line">
-        {showMobility && (
-          <Collapsible
-            id={MOBILITY}
-            title={plan.mobility!.name}
-            subtitle={plan.mobility!.durationMin ? `${plan.mobility!.durationMin.min}–${plan.mobility!.durationMin.max} min` : undefined}
-            progress={progress[MOBILITY]}
-            open={open === MOBILITY}
-            onToggle={() => toggle(MOBILITY)}
-            accent="bg-mob"
-          >
-            <MobilityChecklist plan={plan} workoutUuid={workout.uuid} checks={logs.mobility} hideHeading />
-          </Collapsible>
-        )}
+      {index <= 0 && <CoachNotes notes={weekNotes.filter((n) => n.session_id === workout.planned_session_id && n.session_id)} plan={plan} showSession={false} />}
 
-        {strength?.slots.map((slot, si) => (
-          <Collapsible
-            key={slot.slotId}
-            id={slot.slotId}
-            title={slot.exercises.map((e) => e.label).join(' + ')}
-            subtitle={(slot.superset ? 'Superset · ' : '') + exerciseSubtitle(si)}
-            progress={progress[slot.slotId]}
-            open={open === slot.slotId}
-            onToggle={() => toggle(slot.slotId)}
-          >
-            {slot.superset ? (
-              <div className="divide-y divide-line">
-                <p className="pb-1 text-sm text-muted">Tag dem lige efter hinanden; pause efter anden øvelse.</p>
-                {slot.exercises.map((ex, i) => (
-                  <ExerciseBlock key={ex.exercise.id} plan={plan} workoutUuid={workout.uuid} resolved={ex} sets={logs.sets} notes={logs.notes} supersetFirst={i === 0} />
-                ))}
-              </div>
-            ) : (
-              <ExerciseBlock plan={plan} workoutUuid={workout.uuid} resolved={slot.exercises[0]} sets={logs.sets} notes={logs.notes} supersetFirst={false} hideTitle />
-            )}
-          </Collapsible>
+      {current === MOBILITY && (
+        <>
+          <HeroNumber className="mb-5 px-1" label="Mobilitet før styrke" value={`${progress[MOBILITY].done}/${progress[MOBILITY].total}`} unit="lavet" />
+          <MobilityChecklist plan={plan} workoutUuid={workout.uuid} checks={logs.mobility} />
+        </>
+      )}
+
+      {slot &&
+        slot.exercises.map((ex, i) => (
+          <ExerciseBlock
+            key={`${slot.slotId}-${ex.exercise.id}`}
+            plan={plan}
+            workoutUuid={workout.uuid}
+            resolved={ex}
+            sets={logs.sets}
+            notes={logs.notes}
+            supersetFirst={slot.superset && i === 0}
+            showTitle={slot.superset}
+          />
         ))}
+      {slot?.superset && <Muted className="-mt-4 mb-6 px-1">Tag dem lige efter hinanden; pause efter anden øvelse.</Muted>}
 
-        {isRun && session && (session.kind === 'løb' || session.kind === 'cardio') && <RunLog workout={workout} session={session} scheduled={scheduled} />}
-        {!session && workout.activity && <RunLog workout={workout} />}
+      {!stepped && session && (session.kind === 'løb' || session.kind === 'cardio') && <RunHeader workout={workout} plan={plan} session={session} />}
+      {!stepped && (session?.kind === 'løb' || session?.kind === 'cardio') && (
+        <RunLog workout={workout} session={session} scheduled={plan.weeks.find((w) => w.weekNo === workout.week_no)?.sessions.find((s) => s.sessionId === session.id)} />
+      )}
+      {!stepped && !session && workout.activity && <RunLog workout={workout} />}
 
-        <section className="flex flex-col gap-4 py-6">
-          <h2 className="text-2xl">Sessionen</h2>
-          {asksPain &&
-            monitors.map((m) => {
-              const value = scoreOf(m.id);
+      {current === FINISH && (
+        <FinishSection
+          workout={workout}
+          monitors={monitors}
+          painScores={painScores}
+          missingPain={missingPain}
+          setMissingPain={setMissingPain}
+          onDone={() => {
+            if (timerFor) skipTimer();
+            navigate('/');
+          }}
+          onDelete={() => void remove('slet')}
+        />
+      )}
+
+      {current !== FINISH && next && (
+        <PrimaryButton onClick={() => go(next)} className="mt-2">
+          {nextLabel}
+        </PrimaryButton>
+      )}
+
+      {stepped && (
+        <Sheet open={overview} onClose={() => setOverview(false)} title={session ? sessionTitle(session) : 'Session'}>
+          <InsetList inset={TILE_INSET} className="mb-4">
+            {steps.map((id) => {
+              const s = slots.find((x) => x.slotId === id);
+              const p = progress[id];
               return (
-                <div key={m.id} id={`smerte-${m.id}`} className={missingPain && value == null ? 'rounded-lg outline-3 outline-offset-4 outline-a' : ''}>
-                  <ScoreScale
-                    label={`${m.label} under træningen`}
-                    hint="Højst 3 er grønt, hvis det også er væk i morgen tidlig."
-                    value={value}
-                    onChange={(v) => void saveDuringScore(workout, m.id, v)}
+                <InsetRow key={id} onClick={() => go(id)} current={id === current}>
+                  <IconTile category={id === MOBILITY ? 'mobility' : s ? exerciseCategory(plan, s.exercises[0].exercise.id) : 'legs'} />
+                  <RowText
+                    title={id === MOBILITY ? plan.mobility!.name : id === FINISH ? 'Afslut' : s!.exercises.map((e) => e.label).join(' + ')}
+                    detail={p && (isComplete(p) ? `Færdig · ${p.done}/${p.total}` : `${p.done}/${p.total} sæt`)}
                   />
-                  {missingPain && value == null && (
-                    <p role="alert" className="mt-2 text-sm text-a-ink">
-                      Angiv {m.label.charAt(0).toLowerCase() + m.label.slice(1)} før du afslutter.
-                    </p>
-                  )}
-                </div>
+                </InsetRow>
               );
             })}
-          <RpePicker label="RPE for hele sessionen" value={workout.rpe} onChange={(rpe) => void patchWorkout(workout.uuid, { rpe })} />
-          <NoteField label="Note til sessionen" value={workout.note} onSave={(note) => void patchWorkout(workout.uuid, { note })} />
-          {!workout.finished_at ? (
-            <button type="button" onClick={() => void finish()} className="min-h-14 rounded-lg bg-fg text-lg font-semibold text-bg">
-              Afslut session
-            </button>
-          ) : (
-            <button type="button" onClick={() => void patchWorkout(workout.uuid, { finished_at: null })} className="min-h-12 rounded-lg border border-line font-medium">
-              Genåbn session
-            </button>
-          )}
-          {workout.finished_at && (
-            <button type="button" onClick={() => void remove('slet')} className="min-h-12 self-start px-1 text-sm text-a-ink underline">
-              Slet træningen
-            </button>
-          )}
-        </section>
-      </div>
+          </InsetList>
+          <div className="flex items-center justify-between">
+            <SyncBadge />
+            {!workout.finished_at && (
+              <TextButton danger onClick={() => void remove('annuller')}>
+                Annuller session
+              </TextButton>
+            )}
+          </div>
+        </Sheet>
+      )}
 
-      {timerFor && <RestTimerBar />}
+      {timerFor && <RestTimer compact={timerCompact} onToggle={() => setTimerCompact((c) => !c)} />}
     </main>
+  );
+}
+
+/** Løb: målet som heltetal. */
+function RunHeader({ workout, plan, session }: { workout: Workout; plan: Plan; session: Session }) {
+  const scheduled = plan.weeks.find((w) => w.weekNo === workout.week_no)?.sessions.find((s) => s.sessionId === session.id);
+  const km = scheduled?.targetKm;
+  const min = scheduled?.targetMin;
+  if (!km && !min) return null;
+  return <HeroNumber className="mb-4 px-1" label="Mål" value={km ? formatRange(km) : formatRange(min)} unit={km ? 'km' : 'min'} />;
+}
+
+function FinishSection({
+  workout,
+  monitors,
+  painScores,
+  missingPain,
+  setMissingPain,
+  onDone,
+  onDelete,
+}: {
+  workout: Workout;
+  monitors: ReturnType<typeof useMonitors>;
+  painScores: ReturnType<typeof useDuringScores>;
+  missingPain: boolean;
+  setMissingPain: (v: boolean) => void;
+  onDone: () => void;
+  onDelete: () => void;
+}) {
+  // Smerten vurderes pr. monitor efter alle styrke-, løbe- og cardiosessioner.
+  const asksPain = workout.type !== 'mobilitet' && monitors.length > 0;
+  const scoreOf = (monitorId: number) => painScores.find((p) => p.monitor_id === monitorId)?.score ?? null;
+  const missing = asksPain ? monitors.filter((m) => scoreOf(m.id) == null) : [];
+
+  async function finish() {
+    if (missing.length) {
+      setMissingPain(true);
+      document.getElementById(`smerte-${missing[0].id}`)?.scrollIntoView({ block: 'center' });
+      return;
+    }
+    await finishWorkout(workout.uuid);
+    onDone();
+  }
+
+  return (
+    <section className="flex flex-col gap-6 px-1 pt-2">
+      {asksPain &&
+        monitors.map((m) => {
+          const value = scoreOf(m.id);
+          return (
+            <div key={m.id} id={`smerte-${m.id}`} className={missingPain && value == null ? 'rounded-card outline-2 outline-offset-4 outline-danger' : ''}>
+              <ScoreScale
+                label={`${m.label} under træningen`}
+                hint="Højst 3 er grønt, hvis det også er væk i morgen tidlig."
+                value={value}
+                onChange={(v) => void saveDuringScore(workout, m.id, v)}
+              />
+              {missingPain && value == null && (
+                <p role="alert" className="mt-2 text-secondary text-danger">
+                  Angiv {m.label.charAt(0).toLowerCase() + m.label.slice(1)} før du afslutter.
+                </p>
+              )}
+            </div>
+          );
+        })}
+      <RpePicker label="RPE for hele sessionen" value={workout.rpe} onChange={(rpe) => void patchWorkout(workout.uuid, { rpe })} />
+      <NoteField label="Note til sessionen" value={workout.note} onSave={(note) => void patchWorkout(workout.uuid, { note })} />
+      {!workout.finished_at ? (
+        <PrimaryButton onClick={() => void finish()}>Afslut session</PrimaryButton>
+      ) : (
+        <>
+          <SecondaryButton onClick={() => void patchWorkout(workout.uuid, { finished_at: null })}>Genåbn session</SecondaryButton>
+          <TextButton danger onClick={onDelete} className="self-start">
+            Slet træningen
+          </TextButton>
+        </>
+      )}
+    </section>
   );
 }

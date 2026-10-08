@@ -7,19 +7,30 @@ import { signedIn } from '../data/session';
 import { api, athleteApi } from '../lib/api';
 import { ownAthlete, setMe, useAuth } from '../lib/auth';
 import { fetchInvite, loginWithPasskey, passkeyError, registerWithInvite } from '../lib/passkeys';
+import { PrimaryButton } from '../ui/Button';
+import { TextField } from '../ui/Field';
+import { LargeTitle } from '../ui/LargeTitle';
+import { ErrorText } from '../ui/Screen';
+import { Segmented } from '../ui/Segmented';
 
-function Shell({ children }: { children: ReactNode }) {
-  return <main className="pt-safe mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-4 pb-16">{children}</main>;
+/** Login, invitation og splash: hvid flade, appikonet i midten med en blød rød glød, knappen nederst. */
+function Shell({ title = 'Træningsnav', line, children }: { title?: string; line?: ReactNode; children?: ReactNode }) {
+  return (
+    <div className="min-h-dvh bg-surface dark:bg-bg">
+      <main className="pt-safe pb-safe mx-auto flex min-h-dvh max-w-sm flex-col px-6">
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
+          <img src="/apple-touch-icon.png" width={96} height={96} alt="" className="size-24 rounded-[22px] shadow-glow" />
+          <h1 className="mt-6 text-[28px] leading-[34px] font-bold tracking-[-0.01em]">{title}</h1>
+          {line && <p className="mt-1.5 text-body text-ink-2">{line}</p>}
+        </div>
+        {children && <div className="flex flex-col gap-3 pb-6">{children}</div>}
+      </main>
+    </div>
+  );
 }
 
-const primary = 'min-h-14 w-full rounded-lg bg-fg text-lg font-semibold text-bg disabled:opacity-40';
-
 export function Splash() {
-  return (
-    <Shell>
-      <h1 className="text-4xl">Træningsnav</h1>
-    </Shell>
-  );
+  return <Shell />;
 }
 
 /** Kun stier til samtykket hos Claude (/authorize) må være "next" efter login. */
@@ -60,23 +71,19 @@ export function LoginPage() {
   }
 
   return (
-    <Shell>
-      <h1 className="mb-2 text-4xl">Træningsnav</h1>
-      <p className="mb-8 text-muted">
-        {next
+    <Shell
+      line={
+        next
           ? 'Log ind for at give Claude adgang.'
           : expired
             ? `Log ind igen, ${auth.me!.user.name}. Det du har logget, ligger på telefonen og sendes, når du er logget ind.`
-            : 'Log ind med Face ID.'}
-      </p>
-      {error && (
-        <p role="alert" className="mb-3 text-sm text-a-ink">
-          {error}
-        </p>
-      )}
-      <button type="button" onClick={() => void login()} disabled={busy} className={primary}>
-        {busy ? 'Logger ind …' : 'Log ind med passkey'}
-      </button>
+            : 'Din træningsplan, logning og progression.'
+      }
+    >
+      <ErrorText>{error}</ErrorText>
+      <PrimaryButton onClick={() => void login()} disabled={busy}>
+        {busy ? 'Logger ind …' : 'Log ind med Face ID'}
+      </PrimaryButton>
     </Shell>
   );
 }
@@ -106,26 +113,22 @@ export function InvitePage({ token }: { token: string }) {
   }
 
   return (
-    <Shell>
-      <h1 className="mb-2 text-4xl">{invite ? `Hej ${invite.name}` : 'Træningsnav'}</h1>
-      {invite && (
-        <p className="mb-8 text-muted">
-          {invite.existingUser
+    <Shell
+      title={invite ? `Hej ${invite.name}` : 'Træningsnav'}
+      line={
+        invite
+          ? invite.existingUser
             ? 'Opret en ny passkey med Face ID. Din historik og dine planer er der stadig.'
-            : 'Opret adgang med Face ID. Der er ingen kodeord: din telefon er din nøgle.'}
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="mb-3 text-sm text-a-ink">
-          {error}
-        </p>
-      )}
+            : 'Opret adgang med Face ID. Der er ingen kodeord: din telefon er din nøgle.'
+          : !error && 'Henter invitationen …'
+      }
+    >
+      <ErrorText>{error}</ErrorText>
       {invite && (
-        <button type="button" onClick={() => void register()} disabled={busy} className={primary}>
+        <PrimaryButton onClick={() => void register()} disabled={busy}>
           {busy ? 'Opretter …' : 'Opret adgang med Face ID'}
-        </button>
+        </PrimaryButton>
       )}
-      {!invite && !error && <p className="text-muted">Henter invitationen …</p>}
     </Shell>
   );
 }
@@ -163,57 +166,39 @@ export function OnboardingPage({ me }: { me: Me }) {
   }
 
   return (
-    <Shell>
-      <h1 className="mb-2 text-4xl">Velkommen</h1>
-      <p className="mb-6 text-muted">Et par ting, før du går i gang.</p>
+    <main className="pt-safe mx-auto max-w-sm px-4 pb-12">
+      <LargeTitle title="Velkommen" subtitle="Et par ting, før du går i gang." />
       <form onSubmit={submit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          Navn
-          <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} className="min-h-12 rounded-lg border border-line bg-raised px-3 text-base font-normal" />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          Tærskelpuls (valgfri)
-          <input
-            value={hr}
-            inputMode="numeric"
-            maxLength={3}
-            onChange={(e) => setHr(e.target.value.replace(/\D/g, ''))}
-            placeholder="Fx 172"
-            className="num min-h-12 rounded-lg border border-line bg-raised px-3 text-base font-normal"
-          />
-          {!hrValid && <span className="text-a-ink">Mellem 80 og 230.</span>}
-        </label>
+        <TextField label="Navn" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
+        <TextField
+          label="Tærskelpuls (valgfri)"
+          value={hr}
+          inputMode="numeric"
+          maxLength={3}
+          onChange={(e) => setHr(e.target.value.replace(/\D/g, ''))}
+          placeholder="Fx 172"
+          hint={!hrValid && <span className="text-danger">Mellem 80 og 230.</span>}
+        />
         {inviter && (
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium">Må {inviter.name} se din træning og foreslå ændringer som træner?</legend>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { v: true, label: 'Ja' },
-                { v: false, label: 'Nej' },
-              ].map((o) => (
-                <button
-                  key={o.label}
-                  type="button"
-                  aria-pressed={coach === o.v}
-                  onClick={() => setCoach(o.v)}
-                  className={`min-h-12 rounded-lg font-semibold ${coach === o.v ? 'bg-fg text-bg' : 'border border-line'}`}
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-            <p className="mt-2 text-sm text-muted">Kan ændres senere under Indstillinger → Deling. Kun du kan logge og godkende ændringer.</p>
-          </fieldset>
+          <div>
+            <p className="mb-1.5 text-footnote text-ink-2">Må {inviter.name} se din træning og foreslå ændringer som træner?</p>
+            <Segmented
+              label={`Må ${inviter.name} se din træning og foreslå ændringer som træner?`}
+              value={coach === null ? '' : coach ? 'ja' : 'nej'}
+              onChange={(v) => setCoach(v === 'ja')}
+              options={[
+                { value: 'ja', label: 'Ja' },
+                { value: 'nej', label: 'Nej' },
+              ]}
+            />
+            <p className="mt-2 text-footnote text-ink-2">Kan ændres senere under Indstillinger → Deling. Kun du kan logge og godkende ændringer.</p>
+          </div>
         )}
-        {error && (
-          <p role="alert" className="text-sm text-a-ink">
-            {error}
-          </p>
-        )}
-        <button type="submit" disabled={!ready || busy} className={primary}>
+        <ErrorText>{error}</ErrorText>
+        <PrimaryButton type="submit" disabled={!ready || busy}>
           {busy ? 'Gemmer …' : 'Kom i gang'}
-        </button>
+        </PrimaryButton>
       </form>
-    </Shell>
+    </main>
   );
 }

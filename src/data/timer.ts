@@ -45,6 +45,14 @@ export function resetTimer() {
   if (current) startTimer(current.durationSec, current.label, current.workoutUuid);
 }
 
+/** Forlænger pausen (fx +30 s). Er den slut, starter en ny pause på `sec`. */
+export function extendTimer(sec: number) {
+  if (!current) return;
+  const now = Date.now();
+  if (current.endsAt <= now) return startTimer(sec, current.label, current.workoutUuid);
+  set({ ...current, endsAt: current.endsAt + sec * 1000, durationSec: current.durationSec + sec });
+}
+
 export function skipTimer() {
   set(null);
 }

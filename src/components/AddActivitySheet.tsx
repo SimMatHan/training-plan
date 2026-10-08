@@ -4,8 +4,12 @@ import { weekForDate } from '../../shared/resolve';
 import { usePlan } from '../data/plan';
 import { startActivity, useRecentActivities } from '../data/workouts';
 import { todayIso } from '../lib/dates';
-import { Sheet } from './Sheet';
+import { Plus } from '@phosphor-icons/react';
+import { PrimaryButton } from '../ui/Button';
+import { ChoiceGrid, TextField } from '../ui/Field';
+import { Sheet } from '../ui/Sheet';
 
+const ANDET = 'Andet …';
 const DEFAULTS = ['Padel', 'Fodbold', 'Cykling', 'Svømning', 'Gåtur', 'Yoga'];
 
 /** Tilføj en aktivitet uden for planen, fx padel. */
@@ -43,65 +47,28 @@ export function AddActivitySheet({ open, onClose }: { open: boolean; onClose: ()
 
   return (
     <Sheet open={open} onClose={onClose} title="Anden aktivitet">
-      <p className="mb-3 text-sm text-muted">Træning uden for planen. Du logger tid, puls, RPE og lysken bagefter.</p>
-      <div role="group" aria-label="Aktivitet" className="grid grid-cols-3 gap-1.5">
-        {choices.map((c) => (
-          <button
-            key={c}
-            type="button"
-            aria-pressed={!custom && name === c}
-            onClick={() => {
-              setCustom(false);
-              setName(c);
-            }}
-            className={`min-h-12 rounded-lg px-2 font-medium ${!custom && name === c ? 'bg-fg text-bg' : 'border border-line'}`}
-          >
-            {c}
-          </button>
-        ))}
-        <button
-          type="button"
-          aria-pressed={custom}
-          onClick={() => {
-            setCustom(true);
-            setName('');
-          }}
-          className={`min-h-12 rounded-lg px-2 font-medium ${custom ? 'bg-fg text-bg' : 'border border-line'}`}
-        >
-          Andet …
-        </button>
-      </div>
+      <p className="mb-4 text-secondary text-ink-2">Træning uden for planen. Du logger tid, puls, RPE og lysken bagefter.</p>
+      <ChoiceGrid
+        label="Aktivitet"
+        columns={3}
+        options={[...choices, ANDET]}
+        value={custom ? ANDET : choices.includes(name) ? name : null}
+        onChange={(c) => {
+          setCustom(c === ANDET);
+          setName(c === ANDET ? '' : c);
+        }}
+      />
       {custom && (
-        <label className="mt-3 flex flex-col gap-1 text-sm text-muted">
-          Hvilken aktivitet?
-          <input
-            autoFocus
-            type="text"
-            maxLength={40}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="min-h-12 rounded-lg border border-line bg-raised px-3 text-base text-fg"
-          />
-        </label>
+        <div className="mt-3">
+          <TextField label="Hvilken aktivitet?" autoFocus type="text" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
       )}
-      <label className="mt-4 flex flex-col gap-1 text-sm text-muted">
-        Dato
-        <input
-          type="date"
-          value={date}
-          max={todayIso()}
-          onChange={(e) => e.target.value && setDate(e.target.value)}
-          className="min-h-12 rounded-lg border border-line bg-raised px-3 text-base text-fg"
-        />
-      </label>
-      <button
-        type="button"
-        onClick={() => void start()}
-        disabled={!name.trim() || busy}
-        className="mt-5 min-h-14 w-full rounded-lg bg-fg text-lg font-semibold text-bg disabled:opacity-40"
-      >
+      <div className="mt-4">
+        <TextField label="Dato" type="date" value={date} max={todayIso()} onChange={(e) => e.target.value && setDate(e.target.value)} />
+      </div>
+      <PrimaryButton onClick={() => void start()} disabled={!name.trim() || busy} className="mt-6">
         Start {name.trim() || 'aktivitet'}
-      </button>
+      </PrimaryButton>
     </Sheet>
   );
 }
@@ -111,8 +78,8 @@ export function AddActivityButton() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-line font-medium text-muted">
-        <span aria-hidden="true" className="text-lg">+</span> Anden aktivitet (padel o.l.)
+      <button type="button" onClick={() => setOpen(true)} className="mt-3 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-card text-body font-medium text-ink-2">
+        <Plus size={18} weight="bold" aria-hidden="true" /> Anden aktivitet (padel o.l.)
       </button>
       <AddActivitySheet open={open} onClose={() => setOpen(false)} />
     </>

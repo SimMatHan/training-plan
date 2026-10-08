@@ -1,29 +1,17 @@
-/** Skala 0–10 til smerte. 11 knapper i to rækker, så hver er mindst 48 px. */
+import { ChoiceGrid } from '../ui/Field';
+
+const VALUES = Array.from({ length: 11 }, (_, i) => i);
+
+/** Skala 0–10 til smerte. 11 knapper i to rækker, så hver er mindst 44 px. */
 export function ScoreScale({ value, onChange, label, hint }: { value: number | null; onChange: (v: number) => void; label: string; hint?: string }) {
   return (
-    <fieldset>
-      <legend className="mb-1 font-medium">{label}</legend>
-      {hint && <p className="mb-2 text-sm text-muted">{hint}</p>}
-      <div className="grid grid-cols-6 gap-1.5">
-        {Array.from({ length: 11 }, (_, v) => {
-          const selected = value === v;
-          return (
-            <button
-              key={v}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => onChange(v)}
-              className={`num min-h-12 rounded-md text-xl ${selected ? 'bg-fg font-bold text-bg' : 'border border-line'}`}
-            >
-              {v}
-            </button>
-          );
-        })}
-      </div>
-      <div className="mt-1 flex justify-between text-xs text-muted">
+    <div>
+      <ChoiceGrid label={<span className="text-headline text-ink">{label}</span>} columns={6} options={VALUES} value={value} onChange={onChange} />
+      <div className="mt-1 flex justify-between text-footnote text-ink-2">
         <span>0 = intet</span>
         <span>10 = værst</span>
       </div>
-    </fieldset>
+      {hint && <p className="mt-1 text-footnote text-ink-2">{hint}</p>}
+    </div>
   );
 }

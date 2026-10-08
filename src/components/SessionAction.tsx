@@ -1,31 +1,16 @@
+import { Check } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import type { PainAssessment } from '../../shared/pain';
 import type { Session, Week } from '../../shared/plan.schema';
 import type { Workout } from '../../shared/records.schema';
 import { usePlan } from '../data/plan';
-import { startSession, statusOf } from '../data/workouts';
-import { TrafficLight } from './TrafficLight';
+import { startSession, statusOf, type SessionStatus } from '../data/workouts';
+import { SmallButton } from '../ui/Button';
+import { StatusLight } from '../ui/StatusLight';
 
-/** Status og ét-tryks start/fortsæt for en planlagt session. */
-export function SessionAction({
-  session,
-  week,
-  workouts,
-  groin,
-  prominent = false,
-  primary = prominent,
-}: {
-  session: Session;
-  week: Week;
-  /** undefined mens ugens træninger indlæses — så vises ingen knap, så en lavet session ikke ligner "Start". */
-  workouts: Workout[] | undefined;
-  /** Det værste trafiklys pr. træning (alle monitors). */
-  groin?: Map<string, PainAssessment>;
-  prominent?: boolean;
-  /** Fyldt "Start"-knap (dagens session). Andre dage får en rolig kantknap. */
-  primary?: boolean;
-}) {
+/** Status for en planlagt session og en funktion, der starter eller åbner ugens træning. */
+export function useSessionOpener(session: Session, week: Week, workouts: Workout[] | undefined) {
   const { active } = usePlan();
   const [, navigate] = useLocation();
   const [busy, setBusy] = useState(false);
@@ -42,39 +27,43 @@ export function SessionAction({
     }
   }
 
-  // Sprunget over: ugelisten viser det i undertitlen; I dag-kortet viser en rolig status.
-  if (status === 'sprunget-over') return prominent ? <span className="shrink-0 text-sm font-medium text-muted">Sprunget over</span> : null;
-  const statusText = status === 'lavet' ? 'Lavet' : status === 'i-gang' ? 'I gang' : null;
+  return { status, workout, open, busy };
+}
+
+export const actionLabel: Record<SessionStatus, string> = { 'ikke-lavet': 'Start', 'i-gang': 'Fortsæt', lavet: 'Vis', 'sprunget-over': 'Vis' };
+
+/** Lille status + knap i en ugerække. */
+export function SessionAction({
+  session,
+  week,
+  workouts,
+  groin,
+}: {
+  session: Session;
+  week: Week;
+  /** undefined mens ugens træninger indlæses — så vises ingen knap, så en lavet session ikke ligner "Start". */
+  workouts: Workout[] | undefined;
+  /** Det værste trafiklys pr. træning (alle monitors). */
+  groin?: Map<string, PainAssessment>;
+}) {
+  const { status, workout, open, busy } = useSessionOpener(session, week, workouts);
+  if (!workouts) return <div className="min-h-11 min-w-16" />;
+  if (status === 'sprunget-over') return null;
   const light = workout && groin?.get(workout.uuid)?.light;
-  const label = status === 'ikke-lavet' ? 'Start' : status === 'i-gang' ? 'Fortsæt' : 'Vis';
-  if (!workouts) return <div className={`shrink-0 ${prominent ? 'min-h-12 min-w-24' : 'min-h-12 min-w-12'}`} />;
 
   return (
     <div className="flex shrink-0 items-center gap-2">
-      {statusText && (
+      {status === 'lavet' && (
         <span className="flex flex-col items-end gap-0.5">
-          <span className={`text-sm font-medium ${status === 'lavet' ? 'text-mob-ink' : 'text-yellow-ink'}`}>
-            {status === 'lavet' && <span aria-hidden="true">✓ </span>}
-            {statusText}
+          <span className="inline-flex items-center gap-1 text-secondary font-medium">
+            <Check size={14} weight="bold" className="text-status-green" aria-hidden="true" /> Lavet
           </span>
-          {light && <TrafficLight light={light} />}
+          {light && <StatusLight light={light} />}
         </span>
       )}
-      {(status !== 'lavet' || prominent) && (
-        <button
-          type="button"
-          onClick={() => void open()}
-          disabled={busy}
-          className={`min-h-12 rounded-lg px-4 font-semibold ${status === 'ikke-lavet' && primary ? 'bg-fg text-bg' : 'border border-line'} ${prominent ? 'min-w-24 text-lg' : ''}`}
-        >
-          {label}
-        </button>
-      )}
-      {status === 'lavet' && !prominent && (
-        <button type="button" onClick={() => void open()} aria-label={`Vis ${session.name}`} className="min-h-12 min-w-12 rounded-lg text-muted">
-          ›
-        </button>
-      )}
+      <SmallButton onClick={() => void open()} disabled={busy} aria-label={`${actionLabel[status]} ${session.name}`}>
+        {actionLabel[status]}
+      </SmallButton>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { AthleteRef } from '../../shared/athletes';
 import { ownAthlete, useMe } from '../lib/auth';
+import { Segmented } from '../ui/Segmented';
 
 const KEY = 'traeningsnav.viewAthlete';
 const listeners = new Set<() => void>();
@@ -48,21 +49,15 @@ export function AthletePicker({ value, onChange }: { value: string; onChange?: (
   const me = useMe();
   if (me.athletes.length < 2) return null;
   return (
-    <div role="group" aria-label="Atlet" className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-line p-1">
-      {me.athletes.map((a) => (
-        <button
-          key={a.slug}
-          type="button"
-          aria-pressed={a.slug === value}
-          onClick={() => {
-            choose(a.slug);
-            onChange?.(a.slug);
-          }}
-          className={`min-h-12 flex-1 rounded-md px-3 font-semibold whitespace-nowrap ${a.slug === value ? 'bg-fg text-bg' : 'text-muted'}`}
-        >
-          {a.role === 'ejer' ? `${a.name} (dig)` : a.name}
-        </button>
-      ))}
-    </div>
+    <Segmented
+      className="mb-4"
+      label="Atlet"
+      value={value}
+      onChange={(slug) => {
+        choose(slug);
+        onChange?.(slug);
+      }}
+      options={me.athletes.map((a) => ({ value: a.slug, label: a.role === 'ejer' ? `${a.name} (dig)` : a.name }))}
+    />
   );
 }

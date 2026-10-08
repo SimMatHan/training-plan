@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Skift ved nye ikoner eller andet, installerede PWA'er skal hente forfra: giver service workeren
+// et nyt cachenavn, så den gamle precache slettes (cleanupOutdatedCaches).
+const CACHE_VERSION = 'v2-design';
+
 // Version vist i Indstillinger. Workers Builds sætter WORKERS_CI_COMMIT_SHA.
 const buildId = (process.env.WORKERS_CI_COMMIT_SHA ?? 'lokal').slice(0, 7);
 
@@ -17,7 +21,7 @@ export default defineConfig({
     VitePWA({
       // Ny version hentes i baggrunden, men aktiveres først når brugeren trykker "Opdater".
       registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'icon.svg', 'apple-touch-icon-180x180.png'],
+      includeAssets: ['favicon.svg', 'favicon-32.png', 'icon.svg', 'apple-touch-icon.png'],
       manifest: {
         id: '/',
         name: 'Træningsnav',
@@ -28,20 +32,19 @@ export default defineConfig({
         scope: '/',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#EEF0EF',
-        theme_color: '#23262A',
+        background_color: '#F5F5F7',
+        theme_color: '#FFFFFF',
         icons: [
-          { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
-          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
         // App-skallen caches; data caches i IndexedDB (Dexie), ikke i service workeren.
         // Svar fra /api, /mcp, /oauth og /cal caches aldrig: der er ingen runtimeCaching.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        globIgnores: ['**/*vietnamese*'],
+        cacheId: `traeningsnav-${CACHE_VERSION}`,
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',
         // Worker-ruter: må aldrig få app-skallen fra service workeren (fx /authorize i browseren).
         navigateFallbackDenylist: [/^\/api\//, /^\/cal\//, /^\/mcp/, /^\/authorize/, /^\/oauth\//, /^\/\.well-known\//],

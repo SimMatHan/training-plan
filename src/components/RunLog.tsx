@@ -30,13 +30,13 @@ export function RunLog({ workout, session, scheduled }: { workout: Workout; sess
   ).filter((r): r is [string, string] => !!r[1]);
 
   return (
-    <section className="py-5">
-      {scheduled?.condition && <p className="mb-3 rounded-lg bg-surface px-3 py-2 font-medium">{scheduled.condition}</p>}
+    <section className="mb-8">
+      {scheduled?.condition && <p className="mb-3 rounded-card bg-surface px-4 py-3 text-headline">{scheduled.condition}</p>}
       {plan.length > 0 && (
-        <dl className="mb-5 grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-1.5 text-sm">
+        <dl className="mb-6 grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-2 rounded-card bg-surface p-4 text-secondary">
           {plan.map(([k, v]) => (
             <div key={k} className="contents">
-              <dt className="text-muted">{k}</dt>
+              <dt className="text-ink-2">{k}</dt>
               <dd className="num">{v}</dd>
             </div>
           ))}
@@ -44,27 +44,27 @@ export function RunLog({ workout, session, scheduled }: { workout: Workout; sess
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <label className="col-span-2 flex flex-col gap-1 text-sm text-muted">
+        <label className="col-span-2 flex flex-col gap-1 text-footnote text-ink-2">
           Distance (km){cardio && ' — valgfri'}
           <NumberField decimal label="Distance i km" value={workout.distance_km} placeholder={scheduled?.targetKm ? formatRange(scheduled.targetKm) : ''} onValue={(v) => save({ distance_km: v })} />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label className="flex flex-col gap-1 text-footnote text-ink-2">
           Tid, min
           <NumberField label="Tid, minutter" value={min} placeholder={scheduled?.targetMin ? formatRange(scheduled.targetMin) : ''} onValue={(v) => save({ duration_sec: joinDuration(v, sec) })} />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label className="flex flex-col gap-1 text-footnote text-ink-2">
           sek
           <NumberField label="Tid, sekunder" value={sec} onValue={(v) => save({ duration_sec: joinDuration(min, v == null ? null : Math.min(v, 59)) })} />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label className="flex flex-col gap-1 text-footnote text-ink-2">
           Gns. puls
           <NumberField label="Gennemsnitspuls" value={workout.avg_hr} onValue={(v) => save({ avg_hr: v != null && v >= 30 && v <= 250 ? v : null })} />
         </label>
-        <div className="flex flex-col gap-1 text-sm text-muted">
+        <div className="flex flex-col gap-1 text-footnote text-ink-2">
           Tempo
-          <output className="num flex h-14 items-center justify-center rounded-lg bg-surface text-3xl font-semibold text-fg" aria-label="Tempo, minutter pr. km">
+          <output className="num flex h-14 items-center justify-center rounded-[10px] bg-surface text-title text-ink" aria-label="Tempo, minutter pr. km">
             {pace ? `${pace}` : '–'}
-            {pace && <span className="ml-1 text-base font-normal text-muted">/km</span>}
+            {pace && <span className="ml-1 text-secondary font-normal text-ink-2">/km</span>}
           </output>
         </div>
       </div>

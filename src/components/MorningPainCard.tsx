@@ -4,6 +4,7 @@ import { saveMorningScore, useDuringScores, usePendingMorningChecks } from '../d
 import { useMonitors, usePlan } from '../data/plan';
 import { sessionTitle } from '../lib/sessions';
 import type { Workout } from '../../shared/records.schema';
+import { Card } from '../ui/InsetList';
 import { ScoreScale } from './ScoreScale';
 
 /** "Hvordan er venstre lyske i morges?" — én pr. monitor, dagen efter en træning, indtil det er besvaret. */
@@ -29,29 +30,31 @@ function MorningPainCard({ monitorId, workout }: { monitorId: number; workout: W
   const label = monitor.label.charAt(0).toLowerCase() + monitor.label.slice(1);
 
   return (
-    <section aria-labelledby={`morning-${monitorId}`} className="mb-7 rounded-lg border-2 border-fg p-4">
-      <h2 id={`morning-${monitorId}`} className="mb-1 text-2xl">
-        Hvordan er {label} i morges?
-      </h2>
-      <p className="mb-3 text-sm text-muted">
-        Dagen efter {session ? sessionTitle(session) : (workout.activity ?? 'træningen')}
-        {during != null && (
-          <>
-            {' '}
-            (under: <span className="num">{during}</span>/10)
-          </>
-        )}
-        .
-      </p>
-      <ScoreScale
-        label={`${monitor.label} nu`}
-        value={null}
-        onChange={async (v) => {
-          if (saving) return;
-          setSaving(true);
-          await saveMorningScore(monitorId, workout.uuid, v);
-        }}
-      />
+    <section aria-labelledby={`morning-${monitorId}`} className="mb-8">
+      <Card>
+        <h2 id={`morning-${monitorId}`} className="text-title">
+          Hvordan er {label} i morges?
+        </h2>
+        <p className="mb-4 text-secondary text-ink-2">
+          Dagen efter {session ? sessionTitle(session) : (workout.activity ?? 'træningen')}
+          {during != null && (
+            <>
+              {' '}
+              (under: <span className="num">{during}</span>/10)
+            </>
+          )}
+          .
+        </p>
+        <ScoreScale
+          label={`${monitor.label} nu`}
+          value={null}
+          onChange={async (v) => {
+            if (saving) return;
+            setSaving(true);
+            await saveMorningScore(monitorId, workout.uuid, v);
+          }}
+        />
+      </Card>
     </section>
   );
 }
