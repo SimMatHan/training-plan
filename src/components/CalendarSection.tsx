@@ -1,21 +1,49 @@
 import { useEffect, useState } from 'react';
 import { CALENDAR_TYPE_LABELS, CALENDAR_TYPES, DEFAULT_TIMED, type CalendarInfo, type CalendarSetting } from '../../shared/calendar';
-import { api, OfflineError } from '../lib/api';
+import { kvGet, kvSet } from '../data/db';
+import { usePlan } from '../data/plan';
+import { athleteApi, OfflineError } from '../lib/api';
 import { Section } from './Screen';
+
+const URL_KEY = 'calendarUrl';
 
 type CalendarType = (typeof CALENDAR_TYPES)[number];
 
-/** Indstillinger → Kalender: abonnements-URL, vejledning og tidspunkt pr. sessionstype. */
+/**
+ * Indstillinger → Kalender: abonnementslink, vejledning og tidspunkt pr. sessionstype.
+ * Linkets token gemmes kun hashet på serveren, så URL'en vises, når linket laves, og huskes
+ * derefter kun på denne enhed. "Lav nyt link" gør det gamle ugyldigt.
+ */
 export function CalendarSection() {
+  const { slug } = usePlan();
   const [info, setInfo] = useState<CalendarInfo>();
+  const [feedUrl, setFeedUrl] = useState<string | null>(null);
   const [error, setError] = useState<string>();
   const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    api<CalendarInfo>('/calendar')
+    void kvGet<string>(URL_KEY).then((u) => u && setFeedUrl(u));
+    athleteApi<CalendarInfo>(slug, '/calendar')
       .then(setInfo)
       .catch((e: Error) => setError(e instanceof OfflineError ? 'Offline — kalenderen kan sættes op, når der er net.' : e.message));
-  }, []);
+  }, [slug]);
+
+  async function newLink() {
+    if (info?.hasFeed && !confirm('Lav et nyt link? Det gamle holder op med at virke, og abonnementet skal tilføjes igen i kalenderen.')) return;
+    setBusy(true);
+    setError(undefined);
+    try {
+      const { feedUrl: url } = await athleteApi<{ feedUrl: string }>(slug, '/calendar/token', { method: 'POST' });
+      setFeedUrl(url);
+      setInfo((i) => i && { ...i, hasFeed: true });
+      await kvSet(URL_KEY, url);
+    } catch (e) {
+      setError(e instanceof OfflineError ? 'Ingen forbindelse.' : (e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function copy(url: string) {
     try {
@@ -30,7 +58,7 @@ export function CalendarSection() {
   async function save(type: CalendarType, next: Pick<CalendarSetting, 'all_day' | 'start_time' | 'duration_min'>) {
     setError(undefined);
     try {
-      const saved = await api<CalendarSetting>(`/calendar/settings/${encodeURIComponent(type)}`, { method: 'PUT', json: next });
+      const saved = await athleteApi<CalendarSetting>(slug, `/calendar/settings/${encodeURIComponent(type)}`, { method: 'PUT', json: next });
       setInfo((i) => i && { ...i, settings: i.settings.map((s) => (s.session_type === type ? saved : s)) });
     } catch (e) {
       setError((e as Error).message);
@@ -47,15 +75,31 @@ export function CalendarSection() {
           {error}
         </p>
       )}
-      {info && !info.feedUrl && <p className="mb-3 text-sm text-muted">Kalenderfeedet er ikke slået til: CAL_TOKEN er ikke sat på serveren (se README).</p>}
-      {info?.feedUrl && (
+      {info && !feedUrl && (
+        <p className="mb-3 text-sm text-muted">
+          {info.hasFeed
+            ? 'Der er et abonnementslink, men det vises kun på enheden, hvor det blev lavet. Lav et nyt link for at se det her (det gamle holder så op med at virke).'
+            : 'Der er ikke lavet et abonnementslink endnu.'}
+        </p>
+      )}
+      {info && (
+        <button
+          type="button"
+          onClick={() => void newLink()}
+          disabled={busy}
+          className={`mb-3 min-h-12 w-full rounded-lg px-4 font-semibold disabled:opacity-40 ${feedUrl ? 'border border-line' : 'bg-fg text-bg'}`}
+        >
+          {busy ? 'Laver link …' : 'Lav nyt link'}
+        </button>
+      )}
+      {feedUrl && (
         <>
-          <p className="num mb-2 rounded-lg border border-line bg-surface p-3 text-sm break-all select-all">{info.feedUrl}</p>
+          <p className="num mb-2 rounded-lg border border-line bg-surface p-3 text-sm break-all select-all">{feedUrl}</p>
           <div className="mb-3 flex gap-2">
-            <button type="button" onClick={() => void copy(info.feedUrl!)} className="min-h-12 flex-1 rounded-lg bg-fg px-4 font-semibold text-bg">
+            <button type="button" onClick={() => void copy(feedUrl)} className="min-h-12 flex-1 rounded-lg bg-fg px-4 font-semibold text-bg">
               {copied ? 'Kopieret ✓' : 'Kopiér adresse'}
             </button>
-            <a href={info.feedUrl.replace(/^https?:/, 'webcal:')} className="flex min-h-12 flex-1 items-center justify-center rounded-lg border border-line px-4 font-medium">
+            <a href={feedUrl.replace(/^https?:/, 'webcal:')} className="flex min-h-12 flex-1 items-center justify-center rounded-lg border border-line px-4 font-medium">
               Abonnér
             </a>
           </div>

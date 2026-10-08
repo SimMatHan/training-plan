@@ -1,11 +1,16 @@
-import { useState } from 'react';
-import { Link } from 'wouter';
+import { useEffect, useState } from 'react';
+import { Link, useSearch } from 'wouter';
+import type { Plan } from '../../shared/plan.schema';
 import { getExercise, getSession, weekForDate } from '../../shared/resolve';
 import type { WeeklySummary } from '../../shared/history';
+import { AthletePicker, useViewedAthlete } from '../components/AthletePicker';
 import { Screen } from '../components/Screen';
 import { TrafficLight } from '../components/TrafficLight';
-import { useExerciseOverview, useWeeklySummaries } from '../data/history';
-import { usePlan } from '../data/plan';
+import { useExerciseOverview, useWeeklySummaries, type ExerciseOverview } from '../data/history';
+import { usePlan, type ActivePlan } from '../data/plan';
+import { useRemote } from '../data/remote';
+import { athleteApi } from '../lib/api';
+import { ReadOnlyNote } from './ProposalPage';
 import { formatShort, todayIso, weekday, WEEKDAYS_SHORT } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
 import { dayState } from '../logic/progress';
@@ -28,8 +33,9 @@ function readTab(): Tab {
 
 export function HistoryPage() {
   const { active } = usePlan();
+  const viewed = useViewedAthlete(new URLSearchParams(useSearch()).get('atlet'));
   const [tab, setTab] = useState<Tab>(readTab);
-  if (!active) return <PlanStatus title="Historik" />;
+  if (viewed.own && !active) return <PlanStatus title="Historik" picker />;
 
   const choose = (t: Tab) => {
     setTab(t);
@@ -42,6 +48,8 @@ export function HistoryPage() {
 
   return (
     <Screen title="Historik">
+      <AthletePicker value={viewed.slug} />
+      {!viewed.own && <ReadOnlyNote name={viewed.name} />}
       <div role="group" aria-label="Vis historik pr." className="mb-5 grid grid-cols-2 gap-1 rounded-lg border border-line p-1">
         {(['oevelser', 'uger'] as const).map((t) => (
           <button
@@ -55,21 +63,34 @@ export function HistoryPage() {
           </button>
         ))}
       </div>
-      {tab === 'oevelser' ? <ExerciseList /> : <WeekList />}
+      {viewed.own ? (
+        tab === 'oevelser' ? (
+          <OwnExercises />
+        ) : (
+          <WeekList />
+        )
+      ) : (
+        <CoachHistory slug={viewed.slug} tab={tab} />
+      )}
     </Screen>
   );
 }
 
-function ExerciseList() {
+function OwnExercises() {
   const { active } = usePlan();
   const overview = useExerciseOverview();
   if (!overview || !active) return <p className="text-muted">Henter …</p>;
+  return <ExerciseList overview={overview} plan={active.plan} />;
+}
+
+/** Øvelser med historik. `query` sendes med til detaljesiden (trænervisning: ?atlet=<slug>). */
+function ExerciseList({ overview, plan, query = '' }: { overview: ExerciseOverview[]; plan: Plan | undefined; query?: string }) {
   if (overview.length === 0) return <p className="text-muted">Ingen øvelser logget endnu.</p>;
 
   return (
     <ul className="divide-y divide-line border-y border-line">
       {overview.map((o) => {
-        const ex = getExercise(active.plan, o.exerciseId);
+        const ex = plan && getExercise(plan, o.exerciseId);
         const headline =
           ex?.kind === 'weight_reps' && o.last.topWeight != null
             ? `${formatDecimal(o.last.topWeight)} kg`
@@ -78,7 +99,7 @@ function ExerciseList() {
               : `${o.last.totalReps} reps`;
         return (
           <li key={o.exerciseId}>
-            <Link href={`/historik/oevelse/${o.exerciseId}`} className="flex min-h-16 items-center gap-3 py-2.5">
+            <Link href={`/historik/oevelse/${o.exerciseId}${query}`} className="flex min-h-16 items-center gap-3 py-2.5">
               <span className="min-w-0 flex-1">
                 <span className="block font-medium">{ex?.name ?? o.exerciseId}</span>
                 <span className="num block text-sm text-muted">
@@ -108,7 +129,43 @@ function WeekList() {
   return (
     <ul className="flex flex-col gap-3">
       {summaries.map((w) => (
-        <WeekCard key={w.weekNo} week={w} isCurrent={w.weekNo === current} />
+        <WeekCard key={w.weekNo} week={w} isCurrent={w.weekNo === current} plan={plan!} />
+      ))}
+    </ul>
+  );
+}
+
+/** Trænervisning: en anden atlets historik, hentet fra serveren og skrivebeskyttet. */
+function CoachHistory({ slug, tab }: { slug: string; tab: Tab }) {
+  const plan = useRemote<ActivePlan | null>(slug, '/plan/active');
+  const overview = useRemote<ExerciseOverview[]>(slug, tab === 'oevelser' ? '/history/exercises' : null);
+  const [weeks, setWeeks] = useState<WeeklySummary[]>();
+  const p = plan.data?.plan;
+  const today = todayIso();
+  const current = p ? (weekForDate(p, today)?.weekNo ?? (today < p.startDate ? 0 : p.weeks.length)) : 0;
+  useEffect(() => {
+    if (tab !== 'uger' || !p) return;
+    let cancelled = false;
+    const nos = p.weeks.filter((w) => w.weekNo <= current).map((w) => w.weekNo);
+    Promise.all(nos.map((n) => athleteApi<WeeklySummary>(slug, `/history/weeks/${n}`))).then(
+      (list) => !cancelled && setWeeks(list.reverse()),
+      () => !cancelled && setWeeks([]),
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, tab, p, current]);
+
+  if (plan.error || overview.error) return <p className="text-a-ink">{plan.error ?? overview.error}</p>;
+  if (plan.loading) return <p className="text-muted">Henter …</p>;
+  if (tab === 'oevelser') return overview.data ? <ExerciseList overview={overview.data} plan={p} query={`?atlet=${slug}`} /> : <p className="text-muted">Henter …</p>;
+  if (!p) return <p className="text-muted">Ingen plan endnu.</p>;
+  if (!weeks) return <p className="text-muted">Henter …</p>;
+  if (weeks.length === 0) return <p className="text-muted">Planen er ikke startet endnu.</p>;
+  return (
+    <ul className="flex flex-col gap-3">
+      {weeks.map((w) => (
+        <WeekCard key={w.weekNo} week={w} isCurrent={w.weekNo === current} plan={p} readOnly />
       ))}
     </ul>
   );
@@ -116,11 +173,11 @@ function WeekList() {
 
 const LIGHT_DOT = { grøn: 'bg-mob', gul: 'bg-run', rød: 'bg-a', afventer: 'border-2 border-muted', ukendt: 'border-2 border-dashed border-muted' } as const;
 
-function WeekCard({ week, isCurrent }: { week: WeeklySummary; isCurrent: boolean }) {
-  const { active } = usePlan();
+/** Én uges opsummering. `readOnly` (trænervisning): ingen links til atletens træninger, som kun findes på hendes telefon. */
+export function WeekCard({ week, isCurrent, plan, readOnly = false }: { week: WeeklySummary; isCurrent: boolean; plan: Plan; readOnly?: boolean }) {
   const [open, setOpen] = useState(isCurrent);
   const title = (id: string, fallback: string) => {
-    const s = active && getSession(active.plan, id);
+    const s = getSession(plan, id);
     return s ? sessionTitle(s) : fallback;
   };
   return (
@@ -158,7 +215,7 @@ function WeekCard({ week, isCurrent }: { week: WeeklySummary; isCurrent: boolean
               <li key={s.sessionId} className="flex min-h-12 items-center gap-3 text-sm">
                 <span className="w-9 text-muted">{WEEKDAYS_SHORT[s.day]}</span>
                 <span className="min-w-0 flex-1">
-                  {s.workoutUuid ? (
+                  {s.workoutUuid && !readOnly ? (
                     <Link href={`/session/${s.workoutUuid}`} className="underline decoration-line underline-offset-4">
                       {title(s.sessionId, s.name)}
                     </Link>
@@ -191,9 +248,13 @@ function WeekCard({ week, isCurrent }: { week: WeeklySummary; isCurrent: boolean
                   <li key={x.workoutUuid} className="flex min-h-12 items-center gap-3 text-sm">
                     <span className="w-9 text-muted">{WEEKDAYS_SHORT[weekday(x.date)]}</span>
                     <span className="min-w-0 flex-1">
-                      <Link href={`/session/${x.workoutUuid}`} className="underline decoration-line underline-offset-4">
-                        {x.name}
-                      </Link>
+                      {readOnly ? (
+                        x.name
+                      ) : (
+                        <Link href={`/session/${x.workoutUuid}`} className="underline decoration-line underline-offset-4">
+                          {x.name}
+                        </Link>
+                      )}
                       {x.durationSec != null && <span className="num text-muted"> · {formatDuration(x.durationSec)}</span>}
                     </span>
                     {x.light && <TrafficLight light={x.light} />}

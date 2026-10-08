@@ -1,10 +1,20 @@
-// MCP-serveren på /mcp (Streamable HTTP, stateless via agents' createMcpHandler).
-// OAuthProvider står foran og har allerede afvist kald uden gyldigt token, når vi når hertil.
+// MCP-serveren på /mcp/<slug> (Streamable HTTP, stateless via agents' createMcpHandler).
+// OAuthResourceServer står foran og har allerede afvist kald uden et gyldigt token til netop
+// denne ressource (/mcp/<slug>). Her tjekkes det igen, at tokenets atlet er stiens atlet, og
+// adgangen slås op live, så en fjernet trænerrolle virker fra næste kald.
 import { McpServer } from '@modelcontextprotocol/server';
 import { createMcpHandler } from 'agents/mcp/server';
 import type { z } from 'zod';
 import type { Env } from '../env';
-import { callTool, TOOLS } from './tools';
+import { getAthleteBySlug, getRole } from '../services/athletes';
+import { callTool, serverInfo, TOOLS, type ToolContext } from './tools';
+
+/** Det OAuth-grant'en bærer (sat på /authorize). */
+export interface McpProps {
+  userId: number;
+  athleteId: number;
+  athleteSlug: string;
+}
 
 type StandardJsonProps = { jsonSchema: { input: (o: unknown) => Record<string, unknown>; output: (o: unknown) => Record<string, unknown> } };
 
@@ -24,16 +34,9 @@ function advertised(schema: z.ZodObject) {
   };
 }
 
-export function buildMcpServer(db: D1Database): McpServer {
-  const server = new McpServer(
-    { name: 'traeningsnav', title: 'Træningsnav', version: '1.0.0' },
-    {
-      instructions:
-        'Træningsnav er Simons træningsapp: 14 ugers plan med styrke, løb og rehab for venstre lyske og højre ankel. ' +
-        'Start med hent_status. Datoer er YYYY-MM-DD i dansk tid. Ændringer til planen foreslås med foreslaa_planaendring og ' +
-        'godkendes af Simon i appen. log_lob og skriv_note bruges kun, når Simon beder om det.',
-    },
-  );
+export function buildMcpServer(ctx: Omit<ToolContext, 'now'>): McpServer {
+  const info = serverInfo(ctx.athlete, ctx.role);
+  const server = new McpServer({ name: info.name, title: info.name, version: '2.0.0' }, { instructions: info.instructions });
   for (const t of TOOLS) {
     server.registerTool(
       t.name,
@@ -44,7 +47,7 @@ export function buildMcpServer(db: D1Database): McpServer {
         annotations: { title: t.title, readOnlyHint: t.readOnly, destructiveHint: false, idempotentHint: t.readOnly, openWorldHint: false },
       },
       (async (args: unknown) => {
-        const r = await callTool(db, t.name, args);
+        const r = await callTool({ ...ctx, now: new Date() }, t.name, args);
         return { content: [{ type: 'text' as const, text: r.text }], ...(r.ok ? {} : { isError: true }) };
       }) as never,
     );
@@ -52,12 +55,31 @@ export function buildMcpServer(db: D1Database): McpServer {
   return server;
 }
 
-/** Fetch-handler til OAuthProvider's apiHandler. Ny server pr. kald (stateless). */
+const deny = (status: number, error: string) =>
+  new Response(JSON.stringify({ error }), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
+
+/** Atletens slug fra /mcp/<slug>[/…]. */
+export const slugFromMcpPath = (pathname: string) => pathname.match(/^\/mcp\/([^/]+)/)?.[1] ?? null;
+
+/** Fetch-handler bag OAuthResourceServer. Ny server pr. kald (stateless). */
 export const mcpApiHandler = {
-  fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext & { props?: McpProps }): Promise<Response> {
+    const props = ctx.props;
+    const slug = slugFromMcpPath(new URL(request.url).pathname);
+    // Tokenet er udstedt til netop denne atlet. Audience-tjekket har allerede sikret det; tjek alligevel.
+    if (!props || !slug || props.athleteSlug !== slug) return deny(403, 'Tokenet gælder ikke denne atlet');
+    const athlete = await getAthleteBySlug(env.DB, slug);
+    if (!athlete || athlete.id !== props.athleteId) return deny(403, 'Tokenet gælder ikke denne atlet');
+    const role = await getRole(env.DB, props.userId, athlete.id);
+    if (!role) return deny(403, 'Adgangen til atleten er trukket tilbage');
+
     // Browser-Origins: claude.ai og vores eget domæne (plus localhost til MCP Inspector).
     // Kald uden Origin (claude.ai's servere) er altid gyldige; tokenet er den egentlige adgangskontrol.
     const allowedOriginHostnames = ['claude.ai', 'claude.com', 'localhost', '127.0.0.1', new URL(request.url).hostname];
-    return createMcpHandler(() => buildMcpServer(env.DB), { route: '/mcp', allowedOriginHostnames, corsOptions: false })(request, env, ctx);
+    return createMcpHandler(() => buildMcpServer({ db: env.DB, athlete, userId: props.userId, role }), {
+      route: `/mcp/${slug}`,
+      allowedOriginHostnames,
+      corsOptions: false,
+    })(request, env, ctx);
   },
 };

@@ -4,7 +4,7 @@ import type { Plan, Session, Week } from '../../shared/plan.schema';
 import type { Workout } from '../../shared/records.schema';
 import { dateOfDay, getSession } from '../../shared/resolve';
 import { effectiveSessions, type EffectiveSession } from '../../shared/schedule';
-import { useGroinAssessments } from '../data/health';
+import { useWorstLights } from '../data/health';
 import { useWeekOverrides } from '../data/schedule';
 import { statusOf, useWeekWorkouts } from '../data/workouts';
 import { formatShort, todayIso, weekday, WEEKDAYS_SHORT } from '../lib/dates';
@@ -24,7 +24,7 @@ import { TrafficLight } from './TrafficLight';
 export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; week: Week; today?: string }) {
   const workouts = useWeekWorkouts(week.weekNo);
   const overrides = useWeekOverrides(week.weekNo);
-  const groin = useGroinAssessments();
+  const groin = useWorstLights();
   const [options, setOptions] = useState<{ scheduled: EffectiveSession; session: Session; skipped?: Workout } | null>(null);
   const sessions = effectiveSessions(week, overrides ?? []);
   const extras = (workouts ?? []).filter((w) => !w.planned_session_id).sort((a, b) => a.date.localeCompare(b.date));

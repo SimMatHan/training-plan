@@ -1,25 +1,45 @@
-// Trends for lyske og ankel. Kaldes af API'et og af MCP i fase 3.
-import { assessGroin, type GroinAssessment } from '../../shared/groin';
+// Trends for smerte (pr. monitor) og mobilitet (pr. test). Kaldes af API'et og MCP.
+import type { MobilityTest, Monitor } from '../../shared/athletes';
 import { mobilityTrend, type MobilityPoint } from '../../shared/mobility';
-import { GroinCheck, MobilityMeasurement, Workout } from '../../shared/records.schema';
+import { assessPain, type PainAssessment } from '../../shared/pain';
+import type { MobilityMeasurement, Workout } from '../../shared/records.schema';
+import { listMobilityTests, listMonitors } from './athletes';
+import { readPainScores, readTable } from './history';
 
-const parseRows = <T>(schema: { parse: (v: unknown) => T }, rows: Record<string, unknown>[]) => rows.map((r) => schema.parse(r));
-
-/** Trafiklys pr. træning fra og med `fromDate` (YYYY-MM-DD). */
-export async function getGroinTrend(db: D1Database, fromDate: string, today = new Date().toISOString().slice(0, 10)): Promise<GroinAssessment[]> {
-  // Én dag før med, så "rød" (to i træk) kan vurderes for første træning i perioden.
-  const [workouts, checks] = await Promise.all([
-    db
-      .prepare(`SELECT * FROM workouts WHERE deleted_at IS NULL AND groin_during IS NOT NULL AND type <> 'mobilitet' ORDER BY date`)
-      .all<Record<string, unknown>>(),
-    db.prepare('SELECT * FROM groin_checks WHERE deleted_at IS NULL').all<Record<string, unknown>>(),
-  ]);
-  const all = assessGroin(parseRows(Workout, workouts.results), parseRows(GroinCheck, checks.results), today);
-  return all.filter((a) => a.date >= fromDate);
+export interface PainTrend {
+  monitor: Monitor;
+  assessments: PainAssessment[];
 }
 
-/** Alle knæ-til-væg-målinger med forskel mellem siderne (målet er 0). */
-export async function getMobilityTrend(db: D1Database): Promise<MobilityPoint[]> {
-  const { results } = await db.prepare('SELECT * FROM mobility_measurements WHERE deleted_at IS NULL').all<Record<string, unknown>>();
-  return mobilityTrend(parseRows(MobilityMeasurement, results));
+/** Trafiklys pr. monitor og træning fra og med `fromDate` (YYYY-MM-DD). Inaktive monitors kun med `includeInactive`. */
+export async function getPainTrend(
+  db: D1Database,
+  athleteId: number,
+  fromDate: string,
+  today = new Date().toISOString().slice(0, 10),
+  opts: { includeInactive?: boolean } = {},
+): Promise<PainTrend[]> {
+  // Hele historikken vurderes, så "rød" (to i træk) kan afgøres for første træning i perioden.
+  const [workouts, scores, monitors] = await Promise.all([
+    readTable(db, athleteId, 'workouts', "deleted_at IS NULL AND type <> 'mobilitet'") as Promise<Workout[]>,
+    readPainScores(db, athleteId),
+    listMonitors(db, athleteId),
+  ]);
+  return monitors
+    .filter((m) => m.active || opts.includeInactive)
+    .map((monitor) => ({ monitor, assessments: assessPain(workouts, scores, monitor.id, today).filter((a) => a.date >= fromDate) }));
+}
+
+export interface MobilityTrend {
+  test: MobilityTest;
+  points: MobilityPoint[];
+}
+
+/** Målinger pr. mobilitetstest, ældste først. Tests pr. side har forskel venstre − højre. */
+export async function getMobilityTrend(db: D1Database, athleteId: number, opts: { includeInactive?: boolean } = {}): Promise<MobilityTrend[]> {
+  const [tests, measurements] = await Promise.all([
+    listMobilityTests(db, athleteId),
+    readTable(db, athleteId, 'mobility_measurements', 'deleted_at IS NULL') as Promise<MobilityMeasurement[]>,
+  ]);
+  return tests.filter((t) => t.active || opts.includeInactive).map((test) => ({ test, points: mobilityTrend(measurements, test) }));
 }

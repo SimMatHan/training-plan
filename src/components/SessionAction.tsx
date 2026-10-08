@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import type { GroinAssessment } from '../../shared/groin';
+import type { PainAssessment } from '../../shared/pain';
 import type { Session, Week } from '../../shared/plan.schema';
 import type { Workout } from '../../shared/records.schema';
 import { usePlan } from '../data/plan';
@@ -20,7 +20,8 @@ export function SessionAction({
   week: Week;
   /** undefined mens ugens træninger indlæses — så vises ingen knap, så en lavet session ikke ligner "Start". */
   workouts: Workout[] | undefined;
-  groin?: Map<string, GroinAssessment>;
+  /** Det værste trafiklys pr. træning (alle monitors). */
+  groin?: Map<string, PainAssessment>;
   prominent?: boolean;
   /** Fyldt "Start"-knap (dagens session). Andre dage får en rolig kantknap. */
   primary?: boolean;

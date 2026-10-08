@@ -1,6 +1,6 @@
 // Historik pr. øvelse og pr. uge. Ren logik: appen kalder den med data fra
-// IndexedDB, services (og MCP i fase 3) med data fra D1.
-import type { GroinAssessment, GroinLight } from './groin';
+// IndexedDB, services (og MCP) med data fra D1.
+import { worstByWorkout, type PainAssessment, type PainLight } from './pain';
 import type { Plan } from './plan.schema';
 import type { ExerciseNote, ScheduleOverride, SetLog, Workout } from './records.schema';
 import { dateOfDay, getExercise, getSession } from './resolve';
@@ -86,7 +86,7 @@ export interface WeeklySummary {
     /** Årsag hvis sessionen er markeret som sprunget over. */
     skipReason?: string | null;
     workoutUuid?: string;
-    light?: GroinLight;
+    light?: PainLight;
   }[];
   /** Ikke-valgfrie sessioner lavet / planlagt. */
   done: number;
@@ -96,10 +96,10 @@ export interface WeeklySummary {
   /** Dage med mobilitetsblokken taget alene. */
   mobilityDays: number;
   /** Aktiviteter uden for planen, fx padel. */
-  extras: { workoutUuid: string; date: string; name: string; durationSec: number | null; light?: GroinLight }[];
+  extras: { workoutUuid: string; date: string; name: string; durationSec: number | null; light?: PainLight }[];
   runKm: number;
   volume: { exerciseId: string; name: string; sets: number; reps: number; volumeKg: number }[];
-  lights: GroinLight[];
+  lights: PainLight[];
 }
 
 /** Ugens status: sessioner, løbe-km, trafiklys og volumen pr. øvelse. */
@@ -108,13 +108,14 @@ export function weeklySummary(
   weekNo: number,
   workouts: Workout[],
   sets: SetLog[],
-  groin: GroinAssessment[],
+  pain: PainAssessment[],
   overrides: ScheduleOverride[] = [],
 ): WeeklySummary {
   const week = plan.weeks.find((w) => w.weekNo === weekNo);
   if (!week) throw new Error(`Uge ${weekNo} findes ikke i planen`);
   const inWeek = workouts.filter((w) => alive(w) && w.week_no === weekNo);
-  const lightOf = new Map(groin.map((g) => [g.workoutUuid, g.light]));
+  // Det værste lys på tværs af monitors pr. træning.
+  const lightOf = new Map([...worstByWorkout(pain)].map(([uuid, a]) => [uuid, a.light]));
 
   const sessions = effectiveSessions(week, overrides).map((s) => {
     const w = inWeek.find((x) => x.planned_session_id === s.sessionId);

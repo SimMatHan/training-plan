@@ -183,13 +183,16 @@ export const MobilityBlock = z.object({
   durationMin: NumRange.optional(),
   intro: z.string().optional(),
   items: z.array(MobilityItem).min(1),
-  measurement: z.object({
-    instructions: z.string(),
-    /** Uger hvor knæ-til-væg måles ifølge planen. */
-    weeks: z.array(z.int().min(1)),
-    /** Påmindelse når der er gået så mange dage siden sidste måling. */
-    reminderDays: z.int().min(1),
-  }),
+  /** Fase 5: mobilitetstests (fx knee-to-wall) ligger pr. atlet i mobility_tests; planen siger hvornår. */
+  measurement: z
+    .object({
+      instructions: z.string(),
+      /** Uger hvor der måles ifølge planen. */
+      weeks: z.array(z.int().min(1)),
+      /** Påmindelse når der er gået så mange dage siden sidste måling (pr. test). */
+      reminderDays: z.int().min(1),
+    })
+    .optional(),
   notes: z.array(z.string()).default([]),
 });
 
@@ -237,13 +240,17 @@ export const PlanSchema = z
     readingNotes: z.array(z.string()).default([]),
     exercises: z.array(Exercise).min(1),
     sessions: z.array(Session).min(1),
-    mobility: MobilityBlock,
+    /** Mobilitetsblokken. Valgfri: ikke alle atleter har en. */
+    mobility: MobilityBlock.optional(),
     weeks: z.array(Week).min(1),
-    groin: z.object({
-      side: z.literal('V'),
-      rules: z.array(TrafficLightRule),
-      gate: z.string().optional(),
-    }),
+    /** Trafiklysregler og port for smerteovervågningen (monitors). Valgfri. */
+    groin: z
+      .object({
+        side: z.enum(['H', 'V']).optional(),
+        rules: z.array(TrafficLightRule),
+        gate: z.string().optional(),
+      })
+      .optional(),
     runNotes: z.array(z.string()).default([]),
     /** Mål og milepæle ud over løbet på raceDate. Vises som heldagsevents i kalenderfeedet. */
     goals: z.array(z.object({ date: IsoDate, title: z.string().min(1), note: z.string().optional() })).default([]),
@@ -257,8 +264,8 @@ export const PlanSchema = z
     const sessions = new Map(plan.sessions.map((s) => [s.id, s]));
     if (sessions.size !== plan.sessions.length) issue('Dubletter blandt session-id');
 
-    const itemIds = new Set(plan.mobility.items.map((i) => i.id));
-    if (itemIds.size !== plan.mobility.items.length) issue('Dubletter blandt mobilitets-id');
+    const items = plan.mobility?.items ?? [];
+    if (new Set(items.map((i) => i.id)).size !== items.length) issue('Dubletter blandt mobilitets-id');
 
     const checkPlanned = (pe: { exerciseId: string; dose: Dose }, path: (string | number)[]) => {
       const ex = exercises.get(pe.exerciseId);

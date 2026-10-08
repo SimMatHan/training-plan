@@ -637,19 +637,24 @@ const BASELINE_UUID = '00000000-0000-4000-8000-000000000001';
 
 function seedSql(plan: Plan, measurements: { date: string; right: number; left: number; note: string | null }[]) {
   const now = `strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`;
+  // Fase 5: alt tilhører atleten "simon", som migration 0006 opretter (med knee-to-wall-testen).
+  const athlete = `(SELECT id FROM athletes WHERE slug = 'simon')`;
+  const test = `(SELECT id FROM mobility_tests WHERE athlete_id = ${athlete} AND name = 'Knee-to-wall')`;
   const lines = [
     '-- Genereret af plan/seed.ts — rediger ikke i hånden.',
-    '-- Indsætter planversion 1 som aktiv, men kun i en tom database.',
-    `INSERT INTO plan_versions (version, created_at, source, note, plan_json, is_active, based_on_version)`,
-    `SELECT 1, ${now}, 'seed', ${sql('Planversion 1 fra traeningsplan.xlsx')}, ${sql(JSON.stringify(plan))}, 1, NULL`,
-    `WHERE NOT EXISTS (SELECT 1 FROM plan_versions);`,
+    '-- Indsætter planversion 1 som aktiv for atleten simon, men kun hvis han ingen planversioner har.',
+    `INSERT INTO plan_versions (athlete_id, version, created_at, source, note, plan_json, is_active, based_on_version)`,
+    `SELECT ${athlete}, 1, ${now}, 'seed', ${sql('Planversion 1 fra traeningsplan.xlsx')}, ${sql(JSON.stringify(plan))}, 1, NULL`,
+    `WHERE NOT EXISTS (SELECT 1 FROM plan_versions WHERE athlete_id = ${athlete});`,
+    '',
+    `UPDATE mobility_tests SET instructions = ${sql(plan.mobility?.measurement?.instructions ?? null)} WHERE id = ${test} AND instructions IS NULL;`,
     '',
   ];
   measurements.forEach((m, i) => {
     const uuid = BASELINE_UUID.slice(0, -1) + String(i + 1);
     lines.push(
-      `INSERT INTO mobility_measurements (uuid, date, knee_to_wall_right_cm, knee_to_wall_left_cm, note, updated_at, deleted_at, server_updated_at)`,
-      `VALUES (${sql(uuid)}, ${sql(m.date)}, ${m.right}, ${m.left}, ${sql(m.note)}, ${now}, NULL, ${now})`,
+      `INSERT INTO mobility_measurements (uuid, athlete_id, test_id, date, value_right, value_left, value, note, updated_at, deleted_at, server_updated_at)`,
+      `VALUES (${sql(uuid)}, ${athlete}, ${test}, ${sql(m.date)}, ${m.right}, ${m.left}, NULL, ${sql(m.note)}, ${now}, NULL, ${now})`,
       `ON CONFLICT (uuid) DO NOTHING;`,
     );
   });
@@ -691,9 +696,9 @@ export function overview(plan: Plan, skipped: string[]) {
   p();
   p('| itemId | Øvelse | Dosering |');
   p('|---|---|---|');
-  for (const m of plan.mobility.items) p(`| \`${m.id}\` | ${m.name} | ${m.dose} |`);
+  for (const m of plan.mobility!.items) p(`| \`${m.id}\` | ${m.name} | ${m.dose} |`);
   p();
-  p(`Knæ-til-væg måles i uge ${plan.mobility.measurement.weeks.join(', ')}; påmindelse efter ${plan.mobility.measurement.reminderDays} dage.`);
+  p(`Knæ-til-væg måles i uge ${plan.mobility!.measurement!.weeks.join(', ')}; påmindelse efter ${plan.mobility!.measurement!.reminderDays} dage.`);
   p();
   p('## Løbe- og cardiosessioner');
   p();
@@ -762,6 +767,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   console.log(
     `Plan: ${plan.weeks.length} uger (${plan.startDate} → ${plan.raceDate}), ${plan.exercises.length} øvelser, ` +
       `${strengthSessions.length} styrkesessioner, ${plan.sessions.length - strengthSessions.length - 1} løb/cardio, ` +
-      `${plan.mobility.items.length} mobilitetspunkter. JSON: ${(Buffer.byteLength(JSON.stringify(plan)) / 1024).toFixed(1)} KB minificeret.`,
+      `${plan.mobility!.items.length} mobilitetspunkter. JSON: ${(Buffer.byteLength(JSON.stringify(plan)) / 1024).toFixed(1)} KB minificeret.`,
   );
 }

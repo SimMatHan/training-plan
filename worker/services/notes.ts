@@ -15,10 +15,10 @@ export const NoteInput = z.object({
 export type NoteInput = z.input<typeof NoteInput>;
 
 /** Opretter en note til en uge, en session i en uge, eller (uden begge) en generel note. */
-export async function createCoachNote(db: D1Database, raw: NoteInput, now = new Date().toISOString()): Promise<CoachNote> {
+export async function createCoachNote(db: D1Database, athleteId: number, raw: NoteInput, now = new Date().toISOString()): Promise<CoachNote> {
   const input = NoteInput.parse(raw);
   if (input.weekNo !== null || input.sessionId !== null) {
-    const { plan } = await getActivePlan(db);
+    const { plan } = await getActivePlan(db, athleteId);
     if (input.weekNo === null) throw new ValidationError('En note til en session skal også have en uge');
     const week = plan.weeks.find((w) => w.weekNo === input.weekNo);
     if (!week) throw new ValidationError(`Uge ${input.weekNo} findes ikke i planen`);
@@ -35,15 +35,15 @@ export async function createCoachNote(db: D1Database, raw: NoteInput, now = new 
     updated_at: now,
     deleted_at: null,
   };
-  await pushChanges(db, { coach_notes: [note] }, now);
+  await pushChanges(db, athleteId, { coach_notes: [note] }, now);
   return note;
 }
 
 /** Noter der ikke er slettet, ældste først. Lukkede noter kun med `includeDismissed`. */
-export async function listCoachNotes(db: D1Database, opts: { weekNo?: number; includeDismissed?: boolean } = {}): Promise<CoachNote[]> {
+export async function listCoachNotes(db: D1Database, athleteId: number, opts: { weekNo?: number; includeDismissed?: boolean } = {}): Promise<CoachNote[]> {
   const where = ['deleted_at IS NULL'];
   if (!opts.includeDismissed) where.push('dismissed_at IS NULL');
   if (opts.weekNo !== undefined) where.push('week_no = ?');
-  const notes = (await readTable(db, 'coach_notes', `WHERE ${where.join(' AND ')}`, ...(opts.weekNo !== undefined ? [opts.weekNo] : []))) as CoachNote[];
+  const notes = (await readTable(db, athleteId, 'coach_notes', where.join(' AND '), ...(opts.weekNo !== undefined ? [opts.weekNo] : []))) as CoachNote[];
   return notes.sort((a, b) => a.created_at.localeCompare(b.created_at));
 }

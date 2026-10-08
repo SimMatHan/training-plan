@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import type { PlanVersionMeta } from '../../shared/records.schema';
+import { AccountSection, MonitoringSection, SecuritySection, SharingSection, UsersSection } from '../components/AccountSections';
 import { CalendarSection } from '../components/CalendarSection';
 import { ClaudeSection } from '../components/ClaudeSection';
 import { Screen, Section } from '../components/Screen';
 import { usePlan } from '../data/plan';
-import { api } from '../lib/api';
+import { athleteApi } from '../lib/api';
+import { useMe } from '../lib/auth';
 import { formatWithYear } from '../lib/dates';
 import { BUILD, useAppUpdate } from '../lib/appUpdate';
 import { exportData } from '../lib/export';
-import { setToken } from '../lib/token';
 
 const sourceLabel: Record<PlanVersionMeta['source'], string> = {
   seed: 'fra Excel',
@@ -17,7 +18,8 @@ const sourceLabel: Record<PlanVersionMeta['source'], string> = {
 };
 
 export function SettingsPage() {
-  const { active, offline, refresh } = usePlan();
+  const { slug, active, offline, refresh } = usePlan();
+  const me = useMe();
   const [versions, setVersions] = useState<PlanVersionMeta[]>();
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState<number>();
@@ -25,7 +27,7 @@ export function SettingsPage() {
   const [exportMsg, setExportMsg] = useState<string>();
 
   const load = () =>
-    api<PlanVersionMeta[]>('/plan/versions')
+    athleteApi<PlanVersionMeta[]>(slug, '/plan/versions')
       .then(setVersions)
       .catch((e: Error) => setError(e.message));
 
@@ -37,7 +39,7 @@ export function SettingsPage() {
     if (!confirm(`Skift til planversion ${v.version}? Loghistorikken bevares.`)) return;
     setBusy(v.version);
     try {
-      await api(`/plan/versions/${v.version}/activate`, { method: 'POST' });
+      await athleteApi(slug, `/plan/versions/${v.version}/activate`, { method: 'POST' });
       await Promise.all([load(), refresh()]);
     } catch (e) {
       setError((e as Error).message);
@@ -50,7 +52,7 @@ export function SettingsPage() {
     setExporting(true);
     setExportMsg(undefined);
     try {
-      const source = await exportData();
+      const source = await exportData(slug);
       setExportMsg(source === 'lokal' ? 'Offline: eksporterede den lokale kopi. Eksportér igen med net for den fulde version fra serveren.' : 'Eksporteret fra serveren.');
     } catch (e) {
       setExportMsg(`Eksport fejlede: ${(e as Error).message}`);
@@ -63,6 +65,8 @@ export function SettingsPage() {
 
   return (
     <Screen title="Indstillinger">
+      <AccountSection />
+
       <Section title="Plan">
         {meta ? (
           <p className="mb-3">
@@ -109,12 +113,20 @@ export function SettingsPage() {
         )}
       </Section>
 
+      <MonitoringSection />
+
+      <SharingSection />
+
       <CalendarSection />
 
       <ClaudeSection />
 
+      <SecuritySection />
+
+      {me.user.isAdmin && <UsersSection />}
+
       <Section title="Data">
-        <p className="mb-3 text-sm text-muted">Alle træninger, sæt, noter, lyske- og ankelmålinger samt planversioner som én JSON-fil.</p>
+        <p className="mb-3 text-sm text-muted">Alle dine træninger, sæt, noter, smerte- og mobilitetsmålinger samt planversioner som én JSON-fil.</p>
         <button
           type="button"
           onClick={() => void runExport()}
@@ -132,15 +144,6 @@ export function SettingsPage() {
 
       <AppSection />
 
-      <Section title="Enhed">
-        <button
-          type="button"
-          onClick={() => confirm('Glem API-tokenet på denne enhed?') && setToken(null)}
-          className="min-h-12 rounded-lg border border-line px-4 font-medium"
-        >
-          Glem token
-        </button>
-      </Section>
     </Screen>
   );
 }

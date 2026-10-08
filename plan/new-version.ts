@@ -1,8 +1,8 @@
 // Laver SQL til en ny planversion ud fra et rettet Excel-ark eller en plan-JSON.
 //
-//   npm run plan:version -- <fil.xlsx|fil.json> --note "Hvad er ændret" [--activate]
+//   npm run plan:version -- <fil.xlsx|fil.json> --note "Hvad er ændret" [--activate] [--athlete simon]
 //
-// Skriver plan/ny-version.sql. Versionsnummeret bliver højeste eksisterende + 1,
+// Skriver plan/ny-version.sql for atleten (standard simon). Versionsnummeret bliver atletens højeste + 1,
 // source = 'manual', based_on_version = den aktive version. Uden --activate
 // indsættes versionen inaktiv og aktiveres under Indstillinger i appen.
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -22,7 +22,13 @@ function args() {
     console.error('Brug: npm run plan:version -- <fil.xlsx|fil.json> --note "Hvad er ændret" [--activate]');
     process.exit(1);
   }
-  return { file, note, activate: argv.includes('--activate') };
+  const athleteIndex = argv.indexOf('--athlete');
+  const athlete = athleteIndex >= 0 ? argv[athleteIndex + 1] : 'simon';
+  if (!/^[a-z][a-z0-9-]*$/.test(athlete)) {
+    console.error(`Ugyldig atlet: ${athlete}`);
+    process.exit(1);
+  }
+  return { file, note, activate: argv.includes('--activate'), athlete };
 }
 
 async function loadPlan(file: string): Promise<Plan> {
@@ -30,7 +36,7 @@ async function loadPlan(file: string): Promise<Plan> {
   return PlanSchema.parse(JSON.parse(readFileSync(file, 'utf8')));
 }
 
-const { file, note, activate } = args();
+const { file, note, activate, athlete } = args();
 const plan = await loadPlan(file);
 
 // Loghistorik hænger på exerciseId. Advar hvis et id fra version 1 er forsvundet.
@@ -41,18 +47,19 @@ if (missing.length)
   console.warn(`Advarsel: disse exerciseId'er findes ikke længere: ${missing.join(', ')}. Deres historik bevares, men vises ikke under planens øvelser.`);
 
 const now = `strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`;
+const athleteId = `(SELECT id FROM athletes WHERE slug = ${sql(athlete)})`;
 const insert =
-  `INSERT INTO plan_versions (version, created_at, source, note, plan_json, is_active, based_on_version)\n` +
-  `SELECT COALESCE(MAX(version), 0) + 1, ${now}, 'manual', ${sql(note)}, ${sql(JSON.stringify(plan))}, 0,\n` +
-  `  (SELECT version FROM plan_versions WHERE is_active = 1) FROM plan_versions;`;
+  `INSERT INTO plan_versions (athlete_id, version, created_at, source, note, plan_json, is_active, based_on_version)\n` +
+  `SELECT ${athleteId}, COALESCE(MAX(version), 0) + 1, ${now}, 'manual', ${sql(note)}, ${sql(JSON.stringify(plan))}, 0,\n` +
+  `  (SELECT version FROM plan_versions WHERE athlete_id = ${athleteId} AND is_active = 1) FROM plan_versions WHERE athlete_id = ${athleteId};`;
 assertStatementSize(insert);
 
 const lines = [`-- Genereret af plan/new-version.ts fra ${path.basename(file)}.`, insert];
 if (activate)
   lines.push(
-    `UPDATE plan_versions SET is_active = 0 WHERE is_active = 1;`,
-    `UPDATE plan_versions SET is_active = 1, activated_at = ${now} WHERE version = (SELECT MAX(version) FROM plan_versions);`,
+    `UPDATE plan_versions SET is_active = 0 WHERE athlete_id = ${athleteId} AND is_active = 1;`,
+    `UPDATE plan_versions SET is_active = 1, activated_at = ${now} WHERE athlete_id = ${athleteId} AND version = (SELECT MAX(version) FROM plan_versions WHERE athlete_id = ${athleteId});`,
   );
 const out = path.join(here, 'ny-version.sql');
 writeFileSync(out, lines.join('\n') + '\n');
-console.log(`Skrev ${path.relative(process.cwd(), out)} (${plan.weeks.length} uger, ${plan.exercises.length} øvelser${activate ? ', aktiveres' : ', indsættes inaktiv'}).`);
+console.log(`Skrev ${path.relative(process.cwd(), out)} for ${athlete} (${plan.weeks.length} uger, ${plan.exercises.length} øvelser${activate ? ', aktiveres' : ', indsættes inaktiv'}).`);

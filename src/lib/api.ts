@@ -1,4 +1,4 @@
-import { getToken, setToken } from './token';
+import { markLoggedOut } from './auth';
 
 export class ApiError extends Error {
   constructor(
@@ -14,20 +14,18 @@ export class OfflineError extends Error {}
 
 interface ApiInit extends Omit<RequestInit, 'body'> {
   json?: unknown;
-  token?: string;
+  /** Et 401 her betyder ikke "logget ud" (fx under login). */
+  anonymous?: boolean;
 }
 
-export async function api<T>(path: string, { json, token, headers, ...init }: ApiInit = {}): Promise<T> {
-  const auth = token ?? getToken();
+/** Kald til /api med session-cookien. Et 401 viser login-skærmen; lokale data og udbakken bevares. */
+export async function api<T>(path: string, { json, anonymous, headers, ...init }: ApiInit = {}): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`/api${path}`, {
       ...init,
-      headers: {
-        ...(auth && { Authorization: `Bearer ${auth}` }),
-        ...(json !== undefined && { 'Content-Type': 'application/json' }),
-        ...headers,
-      },
+      credentials: 'same-origin',
+      headers: { ...(json !== undefined && { 'Content-Type': 'application/json' }), ...headers },
       ...(json !== undefined && { body: JSON.stringify(json) }),
     });
   } catch {
@@ -40,9 +38,11 @@ export async function api<T>(path: string, { json, token, headers, ...init }: Ap
     } catch {
       // Ikke JSON.
     }
-    // Et afvist token (ikke et der testes i login-skærmen) logger ud.
-    if (res.status === 401 && !token) setToken(null);
+    if (res.status === 401 && !anonymous) markLoggedOut();
     throw new ApiError(res.status, message);
   }
   return (await res.json()) as T;
 }
+
+/** Kald for én atlet: /api/a/<slug>/… */
+export const athleteApi = <T>(slug: string, path: string, init?: ApiInit) => api<T>(`/a/${encodeURIComponent(slug)}${path}`, init);

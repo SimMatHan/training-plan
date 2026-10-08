@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 import { BottomNav } from './components/BottomNav';
-import { TokenScreen } from './components/TokenScreen';
 import { UpdateBanner } from './components/UpdateBanner';
+import { openUserDb } from './data/db';
 import { PlanProvider } from './data/plan';
-import { startSync } from './data/sync';
-import { useToken } from './lib/token';
-import { AnklePage } from './pages/AnklePage';
+import { startUserSession } from './data/session';
+import { loadMe, ownAthlete, useAuth } from './lib/auth';
+import { InvitePage, LoginPage, OnboardingPage, Splash } from './pages/AuthPages';
 import { ExerciseHistoryPage } from './pages/ExerciseHistoryPage';
 import { HistoryPage } from './pages/HistoryPage';
+import { MobilityPage } from './pages/MobilityPage';
 import { ProposalPage, ProposalsPage } from './pages/ProposalPage';
 import { SessionRoute } from './pages/SessionLinkPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -16,20 +17,41 @@ import { TodayPage } from './pages/TodayPage';
 import { WeekPage } from './pages/WeekPage';
 
 export function App() {
-  const token = useToken();
+  const auth = useAuth();
   const [location] = useLocation();
+  const userId = auth.status === 'in' ? auth.me.user.id : undefined;
+
+  // Brugeren og adgangene hentes ved start og igen, når appen får fokus (fx en ny trænerrolle).
+  useEffect(() => {
+    void loadMe();
+    const onVisible = () => document.visibilityState === 'visible' && navigator.onLine && void loadMe();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
 
   useEffect(() => {
-    if (token) startSync();
-  }, [token]);
+    if (auth.status === 'in') startUserSession(auth.me);
+    // Kun når brugeren skifter, ikke ved hver opdatering af /api/me.
+  }, [userId]);
 
-  if (!token) return <TokenScreen />;
+  // /invite/<token> virker, uanset om nogen er logget ind.
+  const invite = location.match(/^\/invite\/([^/?#]+)/);
+  if (invite) return <InvitePage token={decodeURIComponent(invite[1])} />;
+  if (auth.status === 'loading') return <Splash />;
+  if (auth.status === 'out' || location === '/login') return <LoginPage />;
+  if (!auth.me.user.onboarded) return <OnboardingPage me={auth.me} />;
+  const own = ownAthlete(auth.me);
+  if (!own) return <Splash />;
+
+  // Den lokale database skal være åben, før skærmene læser fra den.
+  openUserDb(auth.me.user.id);
 
   return (
-    <PlanProvider>
+    <PlanProvider key={own.slug} slug={own.slug}>
       <Switch>
         <Route path="/session/:id" component={SessionRoute} />
-        <Route path="/ankel" component={AnklePage} />
+        <Route path="/mobilitet" component={MobilityPage} />
+        <Route path="/ankel" component={MobilityPage} />
         <Route path="/uge" component={WeekPage} />
         <Route path="/historik/oevelse/:id" component={ExerciseHistoryPage} />
         <Route path="/historik" component={HistoryPage} />

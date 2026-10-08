@@ -120,8 +120,8 @@ DESCRIPTION:Uge 2 af 14 — Rehab\n✓ Lavet mandag 5/10\n\nMobilitetsblok
  PE 6\, 90 s\nAdduktorklem — 3 × 30 sek\, 45 s\nHofteflexor-march\, elas
  tik — 3 × 10/side\, RPE 6\, 45 s\nEnbens tåhæv\, stående — HØJRE 
  FØRST — 3 × 12 H / 3 × 10 V\, RPE 6\, 60 s\n\nResultat:\nEnbens RDL: 
- 24 kg × 8\nRPE 6\nLyske: 2/10 under\, 0/10 næste morgen\n\nÅbn i appen:
-  https://traeningsnav.example.workers.dev/session/rehab-a?uge=2
+ 24 kg × 8\nRPE 6\nVenstre lyske: 2/10 under\, 0/10 næste morgen\n\nÅbn 
+ i appen: https://traeningsnav.example.workers.dev/session/rehab-a?uge=2
 URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-a?uge=
  2
 CATEGORIES:Styrke
@@ -162,9 +162,9 @@ DESCRIPTION:Uge 2 af 14 — Rehab\n✓ Lavet fredag 9/10 (planlagt torsdag)
  s\nSideplanke — 3 × 30 sek/side\, 45 s\nBiceps curl — 3 × 10\, RPE 7
  \, 60 s\nTriceps pushdown — 3 × 12\, RPE 7\, 60 s\nSiddende tåhæv (b
  øjet knæ) — 3 × 15\, RPE 7\, 60 s\n\nResultat:\nKabelrows eller hånd
- vægtsrows: 30 kg × 10\nNordic hamstring curl: 5 reps\nLyske: 1/10 under\
- n\nÅbn i appen: https://traeningsnav.example.workers.dev/session/rehab-b?
- uge=2
+ vægtsrows: 30 kg × 10\nNordic hamstring curl: 5 reps\nVenstre lyske: 1/1
+ 0 under\n\nÅbn i appen: https://traeningsnav.example.workers.dev/session/
+ rehab-b?uge=2
 URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rehab-b?uge=
  2
 CATEGORIES:Styrke
@@ -223,9 +223,9 @@ DESCRIPTION:Uge 3 af 14 — Rehab\n✓ Lavet tirsdag 13/10\n\nRH · Rehab-l
  øb\nUgeplan: RH (6 km)\nHovedsæt: 5–7 km roligt\, flad rute\, blødt u
  nderlag\nFart: 5:30/km eller langsommere\nI alt: 5–7 km\nFormål: Ugens 
  test af lysken. Snurren under løbet: gå hjem. Strides i uge 4 kun ved gr
- ønt trafiklys.\n\nResultat:\n6\,2 km · 34:06 · 5:30/km · puls 141\nLys
- ke: 0/10 under\n\nÅbn i appen: https://traeningsnav.example.workers.dev/s
- ession/rh?uge=3
+ ønt trafiklys.\n\nResultat:\n6\,2 km · 34:06 · 5:30/km · puls 141\nVen
+ stre lyske: 0/10 under\n\nÅbn i appen: https://traeningsnav.example.worke
+ rs.dev/session/rh?uge=3
 URL;VALUE=URI:https://traeningsnav.example.workers.dev/session/rh?uge=3
 CATEGORIES:Løb
 TRANSP:OPAQUE

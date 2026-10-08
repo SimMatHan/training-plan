@@ -1,6 +1,8 @@
 // Sync mellem klientens IndexedDB og D1.
 //   push: klienten sender hele poster; last-write-wins pr. post på updated_at.
 //   pull: serveren sender alle poster ændret siden en cursor (server_updated_at).
+// Fase 5: alt er pr. atlet. Hver post gemmes med athlete_id fra ruten (aldrig fra klienten), og en
+// eksisterende post med samme uuid men en anden atlet overskrives aldrig.
 import { z } from 'zod';
 import { IsoTimestamp, SyncTables, type SyncTable } from '../../shared/records.schema';
 import { ValidationError } from './errors';
@@ -24,12 +26,22 @@ export type Changes = Partial<Record<SyncTable, SyncRecord[]>>;
 
 const toDb = (v: unknown) => (typeof v === 'boolean' ? (v ? 1 : 0) : (v ?? null));
 
+/** Id'erne (monitors eller mobilitetstests) skal tilhøre atleten. */
+async function assertOwnIds(db: D1Database, athleteId: number, table: 'monitors' | 'mobility_tests', ids: Set<number>, what: string) {
+  if (!ids.size) return;
+  const { results } = await db.prepare(`SELECT id FROM ${table} WHERE athlete_id = ?`).bind(athleteId).all<{ id: number }>();
+  const own = new Set(results.map((r) => r.id));
+  for (const id of ids) if (!own.has(id)) throw new ValidationError(`Ukendt ${what}: ${id}`);
+}
+
 /**
- * Gemmer poster. En post overskrives kun hvis den indkomne updated_at er nyere,
+ * Gemmer poster for en atlet. En post overskrives kun hvis den indkomne updated_at er nyere,
  * så gentagne push er idempotente og en gammel enhed ikke overskriver nyere data.
  */
-export async function pushChanges(db: D1Database, changes: Partial<Record<SyncTable, unknown[]>>, now = new Date().toISOString()) {
+export async function pushChanges(db: D1Database, athleteId: number, changes: Partial<Record<SyncTable, unknown[]>>, now = new Date().toISOString()) {
   const statements: D1PreparedStatement[] = [];
+  const monitorIds = new Set<number>();
+  const testIds = new Set<number>();
   let received = 0;
   for (const table of TABLES) {
     const rows = changes[table];
@@ -38,17 +50,21 @@ export async function pushChanges(db: D1Database, changes: Partial<Record<SyncTa
     const cols = columnsOf(table);
     const updates = cols.filter((c) => c !== 'uuid').map((c) => `${c} = excluded.${c}`);
     const sql =
-      `INSERT INTO ${table} (${cols.join(', ')}, server_updated_at) VALUES (${cols.map(() => '?').join(', ')}, ?) ` +
+      `INSERT INTO ${table} (${cols.join(', ')}, athlete_id, server_updated_at) VALUES (${cols.map(() => '?').join(', ')}, ?, ?) ` +
       `ON CONFLICT (uuid) DO UPDATE SET ${updates.join(', ')}, server_updated_at = excluded.server_updated_at ` +
-      `WHERE excluded.updated_at > ${table}.updated_at`;
+      `WHERE excluded.updated_at > ${table}.updated_at AND ${table}.athlete_id = excluded.athlete_id`;
     for (const raw of rows) {
       const parsed = schema.safeParse(raw);
       if (!parsed.success) throw new ValidationError(`Ugyldig post i ${table}: ${parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`);
       const row = parsed.data as Record<string, unknown>;
-      statements.push(db.prepare(sql).bind(...cols.map((c) => toDb(row[c])), now));
+      if (table === 'pain_scores') monitorIds.add(row.monitor_id as number);
+      if (table === 'mobility_measurements') testIds.add(row.test_id as number);
+      statements.push(db.prepare(sql).bind(...cols.map((c) => toDb(row[c])), athleteId, now));
       received++;
     }
   }
+  await assertOwnIds(db, athleteId, 'monitors', monitorIds, 'monitor');
+  await assertOwnIds(db, athleteId, 'mobility_tests', testIds, 'mobilitetstest');
   if (statements.length) await db.batch(statements);
   return { received, serverTime: now };
 }
@@ -56,16 +72,16 @@ export async function pushChanges(db: D1Database, changes: Partial<Record<SyncTa
 /** Hvor langt tilbage cursoren altid holdes, så samtidige skrivninger i samme millisekund ikke tabes. */
 const CURSOR_LAG_MS = 2000;
 
-/** Alle poster ændret efter `since` (null = alt). Slettede poster (tombstones) kommer med. */
-export async function pullChanges(db: D1Database, since: string | null, now = new Date()) {
+/** Atletens poster ændret efter `since` (null = alt). Slettede poster (tombstones) kommer med. */
+export async function pullChanges(db: D1Database, athleteId: number, since: string | null, now = new Date()) {
   if (since !== null && !IsoTimestamp.safeParse(since).success) throw new ValidationError(`Ugyldig cursor: ${since}`);
   const changes: Changes = {};
   let max = since ?? '';
   for (const table of TABLES) {
     const cols = columnsOf(table);
     const { results } = await db
-      .prepare(`SELECT ${cols.join(', ')}, server_updated_at FROM ${table} WHERE server_updated_at > ? ORDER BY server_updated_at`)
-      .bind(since ?? '')
+      .prepare(`SELECT ${cols.join(', ')}, server_updated_at FROM ${table} WHERE athlete_id = ? AND server_updated_at > ? ORDER BY server_updated_at`)
+      .bind(athleteId, since ?? '')
       .all<Record<string, unknown>>();
     if (!results.length) continue;
     const bools = BOOLEAN_COLUMNS[table] ?? [];

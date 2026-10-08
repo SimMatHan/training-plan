@@ -1,12 +1,12 @@
-// Sync-motor: push udbakken, pull ændringer siden sidste cursor.
-// Kører efter hver lokal ændring (debounced), når nettet kommer tilbage,
-// når appen får fokus, og periodisk.
+// Sync-motor: push udbakken, pull ændringer siden sidste cursor — for brugerens egen atlet.
+// Kører efter hver lokal ændring (debounced), når nettet kommer tilbage, når appen får fokus,
+// og periodisk. Uden gyldig session venter udbakken, til der er logget ind igen.
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useSyncExternalStore } from 'react';
 import type { SyncTable } from '../../shared/records.schema';
 import { SYNC_TABLES } from '../../shared/tables';
-import { api, ApiError, OfflineError } from '../lib/api';
-import { getToken } from '../lib/token';
+import { api, ApiError, athleteApi, OfflineError } from '../lib/api';
+import { getAuth, ownSlug } from '../lib/auth';
 import { db, kvGet, kvSet, recordTable, type OutboxRow } from './db';
 
 const TABLES: readonly SyncTable[] = SYNC_TABLES;
@@ -36,7 +36,8 @@ export function scheduleSync(delayMs = 800) {
 }
 
 export async function runSync(): Promise<void> {
-  if (!getToken()) return;
+  const slug = ownSlug();
+  if (getAuth().status !== 'in' || !slug || !db) return;
   if (running) {
     again = true;
     return;
@@ -45,7 +46,7 @@ export async function runSync(): Promise<void> {
   setState({ phase: 'syncing' });
   try {
     await push();
-    await pull();
+    await pull(slug);
     setState({ phase: 'idle', lastSyncAt: new Date().toISOString(), error: undefined });
   } catch (e) {
     if (e instanceof OfflineError) setState({ phase: 'offline' });
@@ -63,14 +64,18 @@ async function push() {
   for (;;) {
     const pending = await db.outbox.orderBy('queuedAt').limit(PUSH_BATCH).toArray();
     if (!pending.length) return;
-    const changes: Partial<Record<SyncTable, unknown[]>> = {};
-    for (const table of TABLES) {
-      const uuids = pending.filter((p) => p.table === table).map((p) => p.uuid);
-      if (!uuids.length) continue;
-      changes[table] = (await recordTable(table).bulkGet(uuids)).filter(Boolean);
+    // Posterne sendes til den atlet, de blev logget for.
+    for (const slug of new Set(pending.map((p) => p.athleteSlug))) {
+      const group = pending.filter((p) => p.athleteSlug === slug);
+      const changes: Partial<Record<SyncTable, unknown[]>> = {};
+      for (const table of TABLES) {
+        const uuids = group.filter((p) => p.table === table).map((p) => p.uuid);
+        if (!uuids.length) continue;
+        changes[table] = (await recordTable(table).bulkGet(uuids)).filter(Boolean);
+      }
+      await athleteApi(slug, '/sync/push', { method: 'POST', json: { changes } });
+      await clearSent(group);
     }
-    await api('/sync/push', { method: 'POST', json: { changes } });
-    await clearSent(pending);
     if (pending.length < PUSH_BATCH) return;
   }
 }
@@ -85,9 +90,10 @@ async function clearSent(sent: OutboxRow[]) {
   });
 }
 
-async function pull() {
+async function pull(slug: string) {
   const since = await kvGet<string>(CURSOR_KEY);
-  const res = await api<{ changes: Partial<Record<SyncTable, { uuid: string; updated_at: string }[]>>; cursor: string | null }>(
+  const res = await athleteApi<{ changes: Partial<Record<SyncTable, { uuid: string; updated_at: string }[]>>; cursor: string | null }>(
+    slug,
     `/sync/pull${since ? `?since=${encodeURIComponent(since)}` : ''}`,
   );
   const tables = TABLES.map((t) => recordTable(t));
@@ -96,7 +102,7 @@ async function pull() {
       const rows = res.changes[table];
       if (!rows?.length) continue;
       const t = recordTable(table);
-      const local = await t.bulkGet(rows.map((r) => r.uuid));
+      const local = (await t.bulkGet(rows.map((r) => r.uuid))) as ({ updated_at: string } | undefined)[];
       // Last-write-wins: en lokal post der er nyere (eller lige så ny) beholdes.
       const incoming = rows.filter((r, i) => !local[i] || local[i]!.updated_at < r.updated_at);
       if (incoming.length) await t.bulkPut(incoming as never[]);
@@ -105,16 +111,37 @@ async function pull() {
   });
 }
 
-let started = false;
+let interval: ReturnType<typeof setInterval> | undefined;
+const onOnline = () => scheduleSync(0);
+const onVisible = () => document.visibilityState === 'visible' && scheduleSync(0);
 
-/** Starter baggrundssync. Kaldes én gang når appen har et token. */
+/** Starter baggrundssync. Kaldes når brugeren er logget ind og databasen er åben. */
 export function startSync() {
-  if (started) return;
-  started = true;
-  window.addEventListener('online', () => scheduleSync(0));
-  document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && scheduleSync(0));
-  setInterval(() => scheduleSync(0), 60_000);
+  if (interval) return scheduleSync(0);
+  window.addEventListener('online', onOnline);
+  document.addEventListener('visibilitychange', onVisible);
+  interval = setInterval(() => scheduleSync(0), 60_000);
   scheduleSync(0);
+}
+
+/** Stopper sync (ved log ud). */
+export function stopSync() {
+  clearInterval(interval);
+  clearTimeout(timer);
+  interval = undefined;
+  window.removeEventListener('online', onOnline);
+  document.removeEventListener('visibilitychange', onVisible);
+  setState({ phase: 'idle', lastSyncAt: undefined, error: undefined });
+}
+
+/** Logger ud: sletter sessionen på serveren og den lokale database på enheden. */
+export async function logout(): Promise<void> {
+  stopSync();
+  try {
+    await api('/auth/logout', { method: 'POST', anonymous: true });
+  } catch {
+    // Offline: cookien udløber af sig selv; den lokale database slettes alligevel.
+  }
 }
 
 /** pending er undefined indtil udbakken er læst. */

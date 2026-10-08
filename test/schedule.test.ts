@@ -3,10 +3,16 @@ import planJson from '../plan/plan.v1.json';
 import { PlanSchema } from '../shared/plan.schema';
 import { ScheduleOverride } from '../shared/records.schema';
 import { effectiveSessions } from '../shared/schedule';
-import { getWeeklySummary } from '../worker/services/history';
-import { getWeek } from '../worker/services/plan';
-import { pullChanges, pushChanges } from '../worker/services/sync';
+import { getWeeklySummary as summary } from '../worker/services/history';
+import { getWeek as week } from '../worker/services/plan';
+import { pullChanges as pull, pushChanges as push } from '../worker/services/sync';
 import { createSeededD1 } from './d1';
+
+// Atleten simon (id 1).
+const pushChanges = (d: D1Database, changes: Parameters<typeof push>[2]) => push(d, 1, changes);
+const pullChanges = (d: D1Database, since: string | null, now?: Date) => pull(d, 1, since, now);
+const getWeeklySummary = (d: D1Database, weekNo: number, asOf?: string) => summary(d, 1, weekNo, asOf);
+const getWeek = (d: D1Database, weekNo: number) => week(d, 1, weekNo);
 
 const plan = PlanSchema.parse(planJson);
 const week2 = plan.weeks.find((w) => w.weekNo === 2)!;
@@ -66,7 +72,6 @@ describe('flytning og aktiviteter i D1', () => {
           type: 'cardio',
           rpe: 7,
           note: null,
-          groin_during: 4,
           source: 'app',
           external_id: null,
           distance_km: null,
@@ -76,6 +81,7 @@ describe('flytning og aktiviteter i D1', () => {
           updated_at: ts,
         },
       ],
+      pain_scores: [{ uuid: '50000000-0000-4000-8000-0000000000ab', monitor_id: 1, workout_uuid: '50000000-0000-4000-8000-0000000000aa', date: '2026-10-09', kind: 'under', score: 4, updated_at: ts }],
     });
     const w = await getWeeklySummary(db, 2, '2026-10-12');
     expect(w.extras).toEqual([{ workoutUuid: '50000000-0000-4000-8000-0000000000aa', date: '2026-10-09', name: 'Padel', durationSec: 5400, light: 'gul' }]);
@@ -102,7 +108,6 @@ describe('sprunget over', () => {
           type: 'styrke',
           rpe: null,
           note: 'Lysken stram efter løbet',
-          groin_during: null,
           source: 'app',
           external_id: null,
           distance_km: null,

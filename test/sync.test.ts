@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { app } from '../worker/index';
-import { pullChanges, pushChanges } from '../worker/services/sync';
-import { createSeededD1 } from './d1';
+import { pullChanges, pushChanges as push } from '../worker/services/sync';
+import { call, createWorld, type World } from './world';
 
+let w: World;
 let db: D1Database;
+const pushChanges = (d: D1Database, changes: Parameters<typeof push>[2], now?: string) => push(d, 1, changes, now);
 beforeEach(async () => {
-  db = await createSeededD1();
+  w = await createWorld();
+  db = w.db;
   // Seed stempler baseline-målingen med "nu"; flyt den bagud, så testenes faste tider giver mening.
   await db.prepare(`UPDATE mobility_measurements SET server_updated_at = '2026-09-27T00:00:00.000Z'`).run();
 });
@@ -24,7 +26,6 @@ const workout = (updated_at: string, extra: Record<string, unknown> = {}) => ({
   type: 'styrke',
   rpe: null,
   note: null,
-  groin_during: null,
   source: 'app',
   external_id: null,
   distance_km: null,
@@ -52,12 +53,12 @@ const setLog = (updated_at: string, extra: Record<string, unknown> = {}) => ({
 describe('sync-service', () => {
   it('gemmer og henter poster, med booleans intakte', async () => {
     await pushChanges(db, { workouts: [workout('2026-10-05T16:00:00.000Z')], set_logs: [setLog('2026-10-05T16:05:00.000Z')] }, '2026-10-05T16:05:01.000Z');
-    const { changes, cursor } = await pullChanges(db, null, new Date('2026-10-06T00:00:00Z'));
+    const { changes, cursor } = await pullChanges(db, 1, null, new Date('2026-10-06T00:00:00Z'));
     expect(changes.workouts).toHaveLength(1);
     expect(changes.set_logs![0]).toMatchObject({ weight_kg: 12.5, done: true, side: 'H', deleted_at: null });
     expect(cursor).toBe('2026-10-05T16:05:01.000Z');
     // Baseline-målingen fra seed kommer også med ved første pull.
-    expect(changes.mobility_measurements![0]).toMatchObject({ knee_to_wall_right_cm: 5 });
+    expect(changes.mobility_measurements![0]).toMatchObject({ value_right: 5, value_left: 7 });
   });
 
   it('last-write-wins: ældre version overskriver ikke nyere', async () => {
@@ -71,16 +72,16 @@ describe('sync-service', () => {
 
   it('pull efter cursor giver kun nye ændringer, inkl. tombstones', async () => {
     await pushChanges(db, { set_logs: [setLog('2026-10-05T16:05:00.000Z')] }, '2026-10-05T16:05:01.000Z');
-    const first = await pullChanges(db, null, new Date('2026-10-06T00:00:00Z'));
+    const first = await pullChanges(db, 1, null, new Date('2026-10-06T00:00:00Z'));
     await pushChanges(db, { set_logs: [setLog('2026-10-06T08:00:00.000Z', { deleted_at: '2026-10-06T08:00:00.000Z' })] }, '2026-10-06T08:00:01.000Z');
-    const second = await pullChanges(db, first.cursor, new Date('2026-10-07T00:00:00Z'));
+    const second = await pullChanges(db, 1, first.cursor, new Date('2026-10-07T00:00:00Z'));
     expect(Object.keys(second.changes)).toEqual(['set_logs']);
     expect(second.changes.set_logs![0].deleted_at).toBe('2026-10-06T08:00:00.000Z');
   });
 
   it('holder cursoren lidt bagud, så netop skrevne poster hentes igen', async () => {
     await pushChanges(db, { set_logs: [setLog('2026-10-05T16:05:00.000Z')] }, '2026-10-05T16:05:01.000Z');
-    const { cursor } = await pullChanges(db, null, new Date('2026-10-05T16:05:01.500Z'));
+    const { cursor } = await pullChanges(db, 1, null, new Date('2026-10-05T16:05:01.500Z'));
     expect(cursor! < '2026-10-05T16:05:01.000Z').toBe(true);
   });
 
@@ -90,21 +91,22 @@ describe('sync-service', () => {
 });
 
 describe('sync-API', () => {
-  const env = () => ({ DB: db, API_TOKEN: 't', ASSETS: {} as Fetcher });
-  const headers = { Authorization: 'Bearer t', 'Content-Type': 'application/json' };
-
   it('push og pull over HTTP', async () => {
-    const push = await app.request('/api/sync/push', { method: 'POST', headers, body: JSON.stringify({ changes: { workouts: [workout('2026-10-05T16:00:00.000Z')] } }) }, env());
-    expect(push.status).toBe(200);
-    expect(await push.json()).toMatchObject({ received: 1 });
-    const pull = await app.request('/api/sync/pull', { headers }, env());
+    const res = await call(w, w.simon, '/api/a/simon/sync/push', { method: 'POST', json: { changes: { workouts: [workout('2026-10-05T16:00:00.000Z')] } } });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ received: 1 });
+    const pull = await call(w, w.simon, '/api/a/simon/sync/pull');
     const body = (await pull.json()) as { changes: { workouts: unknown[] } };
     expect(body.changes.workouts).toHaveLength(1);
   });
 
-  it('afviser ukendt tabel og ugyldig cursor', async () => {
-    const bad = await app.request('/api/sync/push', { method: 'POST', headers, body: JSON.stringify({ changes: { users: [] } }) }, env());
+  it('afviser ukendt tabel, ugyldig cursor og fremmede monitors', async () => {
+    const bad = await call(w, w.simon, '/api/a/simon/sync/push', { method: 'POST', json: { changes: { users: [] } } });
     expect(bad.status).toBe(400);
-    expect((await app.request('/api/sync/pull?since=igår', { headers }, env())).status).toBe(400);
+    expect((await call(w, w.simon, '/api/a/simon/sync/pull?since=igår')).status).toBe(400);
+    const pain = { uuid: '22222222-2222-4222-8222-000000000009', monitor_id: 999, workout_uuid: W, date: '2026-10-05', kind: 'under', score: 2, updated_at: '2026-10-05T16:00:00.000Z' };
+    const res = await call(w, w.simon, '/api/a/simon/sync/push', { method: 'POST', json: { changes: { pain_scores: [pain] } } });
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toContain('Ukendt monitor');
   });
 });

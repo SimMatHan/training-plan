@@ -1,43 +1,79 @@
-// Udskiftelig auth. requireAuth() tager en liste af strategier og accepterer
-// den første der genkender kalderen. Fase 3 tilføjer en OAuth-strategi til
-// MCP-connectoren ved siden af bearer-tokenet, uden at røre routes.
+// Login og adgang. Appen bruger en session-cookie (passkey-login, worker/routes/auth.ts);
+// al adgang til en atlets data går gennem requireAccess.
 import type { Context } from 'hono';
+import { getCookie } from 'hono/cookie';
 import { createMiddleware } from 'hono/factory';
-import type { AppEnv } from './env';
+import type { Role } from '../shared/athletes';
+import type { AppEnv, Env } from './env';
+import { resolveAccess, type Access } from './services/athletes';
+import { ForbiddenError } from './services/errors';
+import { getSessionUser, SESSION_TTL_MS } from './services/users';
 
-export type Principal = { kind: 'token' } | { kind: 'oauth'; clientId: string; scopes: string[] };
+export const SESSION_COOKIE = '__Host-tn_session';
 
-export type AuthStrategy = (c: Context<AppEnv>) => Promise<Principal | null>;
+/** Appens origin: APP_ORIGIN hvis sat, ellers den adresse kaldet kom ind på. */
+export const appOrigin = (env: Pick<Env, 'APP_ORIGIN'>, url: string) => (env.APP_ORIGIN ? new URL(env.APP_ORIGIN).origin : new URL(url).origin);
 
-async function sha256(s: string): Promise<Uint8Array> {
-  return new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)));
+/** rpID for passkeys = appens værtsnavn. */
+export const rpId = (env: Pick<Env, 'APP_ORIGIN'>, url: string) => new URL(appOrigin(env, url)).hostname;
+
+export const clientIp = (c: Context<AppEnv>) => c.req.header('CF-Connecting-IP') ?? c.req.header('X-Forwarded-For')?.split(',')[0].trim() ?? 'ukendt';
+
+export function sessionCookie(id: string): string {
+  return `${SESSION_COOKIE}=${id}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_TTL_MS / 1000}`;
 }
 
-/** Konstant-tids sammenligning. Hasher først, så længden ikke lækker. */
-export async function safeEqual(a: string, b: string): Promise<boolean> {
-  const [x, y] = await Promise.all([sha256(a), sha256(b)]);
-  let diff = 0;
-  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
-  return diff === 0;
+export const clearSessionCookie = () => `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+
+/** Session-id'et fra cookien i en almindelig Request (bruges også af /authorize). */
+export function sessionIdFrom(request: Request): string | null {
+  const cookie = request.headers.get('Cookie') ?? '';
+  const m = cookie.match(new RegExp(`(?:^|;\\s*)${SESSION_COOKIE.replace(/[-]/g, '\\-')}=([^;]+)`));
+  return m ? m[1] : null;
 }
 
-/** Lang bearer-token fra Worker secret API_TOKEN. Mangler secret'en, afvises alt. */
-export const bearerToken = (): AuthStrategy => async (c) => {
-  const expected = c.env.API_TOKEN;
-  const header = c.req.header('Authorization') ?? '';
-  const match = header.match(/^Bearer\s+(.+)$/i);
-  if (!expected || !match) return null;
-  return (await safeEqual(match[1].trim(), expected)) ? { kind: 'token' } : null;
-};
+/**
+ * Mutationer (alt andet end GET/HEAD/OPTIONS) kræver, at Origin er appens eget domæne.
+ * Sammen med SameSite=Lax stopper det CSRF.
+ */
+export const requireSameOrigin = createMiddleware<AppEnv>(async (c, next) => {
+  if (['GET', 'HEAD', 'OPTIONS'].includes(c.req.method)) return next();
+  const origin = c.req.header('Origin');
+  if (!origin || origin !== appOrigin(c.env, c.req.url)) return c.json({ error: 'Forkert oprindelse' }, 403);
+  return next();
+});
 
-export const requireAuth = (...strategies: AuthStrategy[]) =>
-  createMiddleware<AppEnv>(async (c, next) => {
-    for (const strategy of strategies) {
-      const principal = await strategy(c);
-      if (principal) {
-        c.set('principal', principal);
-        return next();
-      }
-    }
-    return c.json({ error: 'Ikke autoriseret' }, 401, { 'WWW-Authenticate': 'Bearer' });
-  });
+/** Kræver en gyldig session. Sætter c.var.user. */
+export const requireSession = createMiddleware<AppEnv>(async (c, next) => {
+  const id = getCookie(c, SESSION_COOKIE);
+  const user = id ? await getSessionUser(c.env.DB, id) : null;
+  if (!user) return c.json({ error: 'Ikke logget ind' }, 401);
+  c.set('user', user);
+  return next();
+});
+
+export const requireAdmin = createMiddleware<AppEnv>(async (c, next) => {
+  if (!c.var.user.isAdmin) return c.json({ error: 'Kun for admin' }, 403);
+  return next();
+});
+
+/**
+ * Den eneste vej til en atlets data: brugerens adgang til atleten `athleteSlug` med mindst
+ * `minRole`. Ingen adgang (eller ukendt atlet) giver 404, for lav rolle 403.
+ */
+export function requireAccess(c: Context<AppEnv>, athleteSlug: string, minRole: Role): Promise<Access> {
+  return resolveAccess(c.env.DB, c.var.user.id, athleteSlug, minRole);
+}
+
+/** Middleware til /api/a/:slug: mindst træner. Sætter c.var.access. */
+export const athleteAccess = createMiddleware<AppEnv>(async (c, next) => {
+  c.set('access', await requireAccess(c, c.req.param('slug') ?? '', 'traener'));
+  return next();
+});
+
+/** Kun atleten selv (ejer). Kaldes i handlere der ændrer noget. */
+export function ownerOnly(c: Context<AppEnv>): Access {
+  const access = c.var.access;
+  if (access.role !== 'ejer') throw new ForbiddenError('Kun atleten selv kan gøre det');
+  return access;
+}

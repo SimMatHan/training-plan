@@ -1,4 +1,4 @@
-/** Skala 0–10 til lyskesmerte. 11 knapper i to rækker, så hver er mindst 48 px. */
+/** Skala 0–10 til smerte. 11 knapper i to rækker, så hver er mindst 48 px. */
 export function ScoreScale({ value, onChange, label, hint }: { value: number | null; onChange: (v: number) => void; label: string; hint?: string }) {
   return (
     <fieldset>
