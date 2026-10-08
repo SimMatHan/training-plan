@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useRoute, useSearch } from 'wouter';
+import { useLocation, useRoute, useSearch } from 'wouter';
 import type { Proposal, ProposalKind, ProposalStatus } from '../../shared/proposals';
-import { Screen, Section } from '../components/Screen';
+import { PrimaryButton, SecondaryButton } from '../ui/Button';
+import { Card, Group, InsetList, InsetRow, RowText } from '../ui/InsetList';
+import { ErrorText, Muted, Screen } from '../ui/Screen';
 import { usePlan } from '../data/plan';
 import { decideProposal, fetchProposal, fetchProposals } from '../data/proposals';
 import { OfflineError } from '../lib/api';
@@ -20,10 +22,10 @@ function useProposalAthlete() {
 }
 
 const STATUS: Record<ProposalStatus, { label: string; className: string }> = {
-  afventer: { label: 'Venter på dig', className: 'text-b-ink' },
-  godkendt: { label: 'Godkendt', className: 'text-mob-ink' },
-  afvist: { label: 'Afvist', className: 'text-muted' },
-  forældet: { label: 'Forældet', className: 'text-muted' },
+  afventer: { label: 'Venter på dig', className: 'text-ink' },
+  godkendt: { label: 'Godkendt', className: 'text-ink' },
+  afvist: { label: 'Afvist', className: 'text-ink-2' },
+  forældet: { label: 'Forældet', className: 'text-ink-2' },
 };
 
 const errorText = (e: unknown) => (e instanceof OfflineError ? 'Ingen forbindelse. Forslag kan kun ses og godkendes med net.' : (e as Error).message);
@@ -70,64 +72,50 @@ export function ProposalPage() {
   }
 
   return (
-    <Screen title="Forslag fra Claude" eyebrow={<Link href={who.readOnly ? `/forslag${who.query}` : '/'}>{who.readOnly ? '← Forslag' : '← I dag'}</Link>}>
+    <Screen title="Forslag fra Claude" back={who.readOnly ? { href: `/forslag${who.query}`, label: 'Forslag' } : { href: '/', label: 'I dag' }}>
       {who.readOnly && <ReadOnlyNote name={who.name} />}
-      {error && (
-        <p role="alert" className="mb-4 text-a-ink">
-          {error}
-        </p>
-      )}
-      {!proposal && !error && <p className="text-muted">Henter …</p>}
+      <ErrorText className="mb-4">{error}</ErrorText>
+      {!proposal && !error && <Muted>Henter …</Muted>}
       {proposal && (
         <>
-          <p className={`mb-1 text-sm font-semibold ${STATUS[proposal.status].className}`}>
+          <p className={`mb-1 px-1 text-footnote font-semibold ${STATUS[proposal.status].className}`}>
             {STATUS[proposal.status].label}
-            <span className="font-normal text-muted">
+            <span className="font-normal text-ink-2">
               {' '}
               · {KIND[proposal.kind]} · {formatWithYear(proposal.createdAt)}
               {proposal.baseVersion > 0 && proposal.kind === 'patch' && ` · mod version ${proposal.baseVersion}`}
               {proposal.resultVersion && ` · blev version ${proposal.resultVersion}`}
             </span>
           </p>
-          <h2 className="mb-5 text-2xl">{proposal.summary}</h2>
+          <h2 className="mb-6 px-1 text-title">{proposal.summary}</h2>
 
-          <Section title="Ændringer">
-            <ul className="divide-y divide-line border-y border-line">
+          <Group title="Ændringer">
+            <ul className="inset-list overflow-hidden rounded-card bg-surface">
               {proposal.diff.map((line, i) => (
-                <li key={i} className="num py-2.5">
+                <li key={i} className="num px-4 py-3 text-secondary">
                   {line}
                 </li>
               ))}
             </ul>
-          </Section>
+          </Group>
 
-          <Section title="Hvorfor">
-            <p className="whitespace-pre-line">{proposal.rationale}</p>
-          </Section>
+          <Group title="Hvorfor">
+            <Card className="whitespace-pre-line text-body">{proposal.rationale}</Card>
+          </Group>
 
-          {proposal.status === 'afventer' && who.readOnly && <p className="text-sm text-muted">Venter på, at {who.name} godkender eller afviser.</p>}
+          {proposal.status === 'afventer' && who.readOnly && <Muted className="px-1">Venter på, at {who.name} godkender eller afviser.</Muted>}
           {proposal.status === 'afventer' && !who.readOnly && (
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => void decide('reject')}
-                disabled={busy !== undefined}
-                className="min-h-14 flex-1 rounded-lg border border-line font-medium disabled:opacity-40"
-              >
+              <SecondaryButton onClick={() => void decide('reject')} disabled={busy !== undefined}>
                 {busy === 'reject' ? 'Afviser …' : 'Afvis'}
-              </button>
-              <button
-                type="button"
-                onClick={() => void decide('approve')}
-                disabled={busy !== undefined}
-                className="min-h-14 flex-1 rounded-lg bg-fg text-lg font-semibold text-bg disabled:opacity-40"
-              >
+              </SecondaryButton>
+              <PrimaryButton onClick={() => void decide('approve')} disabled={busy !== undefined}>
                 {busy === 'approve' ? 'Godkender …' : 'Godkend'}
-              </button>
+              </PrimaryButton>
             </div>
           )}
           {proposal.status === 'forældet' && (
-            <p className="text-sm text-muted">Planen er ændret, siden forslaget blev lavet. Bed Claude om et nyt forslag mod den aktive plan.</p>
+            <p className="px-1 text-secondary text-ink-2">Planen er ændret, siden forslaget blev lavet. Bed Claude om et nyt forslag mod den aktive plan.</p>
           )}
         </>
       )}
@@ -146,33 +134,26 @@ export function ProposalsPage() {
   }, [who.slug]);
 
   return (
-    <Screen title="Forslag fra Claude" eyebrow={<Link href={who.readOnly ? `/uge${who.query}` : '/'}>{who.readOnly ? '← Uge' : '← I dag'}</Link>}>
+    <Screen title="Forslag fra Claude" back={who.readOnly ? { href: `/uge${who.query}`, label: 'Uge' } : { href: '/', label: 'I dag' }}>
       {who.readOnly && <ReadOnlyNote name={who.name} />}
-      {error && (
-        <p role="alert" className="mb-4 text-a-ink">
-          {error}
-        </p>
-      )}
-      {list && list.length === 0 && <p className="text-muted">Ingen forslag endnu.</p>}
+      <ErrorText className="mb-4">{error}</ErrorText>
+      {list && list.length === 0 && <Muted>Ingen forslag endnu.</Muted>}
       {list && list.length > 0 && (
-        <ul className="divide-y divide-line border-y border-line">
+        <InsetList>
           {list.map((p) => (
-            <li key={p.id}>
-              <Link href={`/forslag/${p.id}${who.query}`} className="flex min-h-16 items-center gap-3 py-2.5">
-                <span className="min-w-0 flex-1">
-                  <span className="block font-medium">{p.summary}</span>
-                  <span className="block text-sm text-muted">
+            <InsetRow key={p.id} href={`/forslag/${p.id}${who.query}`}>
+              <RowText
+                title={p.summary}
+                detail={
+                  <>
                     <span className={STATUS[p.status].className}>{who.readOnly && p.status === 'afventer' ? 'Venter' : STATUS[p.status].label}</span> · {KIND[p.kind]} ·{' '}
                     {formatWithYear(p.createdAt)}
-                  </span>
-                </span>
-                <span aria-hidden="true" className="text-xl text-muted">
-                  ›
-                </span>
-              </Link>
-            </li>
+                  </>
+                }
+              />
+            </InsetRow>
           ))}
-        </ul>
+        </InsetList>
       )}
     </Screen>
   );
@@ -181,7 +162,7 @@ export function ProposalsPage() {
 /** Trænervisning: tydeligt markeret med atletens navn og skrivebeskyttet. */
 export function ReadOnlyNote({ name }: { name: string }) {
   return (
-    <p className="mb-5 rounded-lg border-2 border-b px-3 py-2 text-sm font-medium">
+    <p className="mb-5 rounded-card bg-surface px-4 py-3 text-secondary font-medium ring-1 ring-separator ring-inset">
       Trænervisning · {name} · skrivebeskyttet
     </p>
   );

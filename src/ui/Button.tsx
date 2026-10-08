@@ -46,7 +46,7 @@ export function TextButton({ danger = false, className = '', type = 'button', ..
   return (
     <button
       type={type}
-      className={`inline-flex min-h-11 items-center rounded-lg px-2 text-body font-medium disabled:opacity-30 ${danger ? 'text-danger' : 'text-ink-2'} ${className}`}
+      className={`inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-body font-medium whitespace-nowrap disabled:opacity-30 ${danger ? 'text-danger' : 'text-ink-2'} ${className}`}
       {...rest}
     />
   );

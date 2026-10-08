@@ -59,6 +59,33 @@ const scenarios: Scenario[] = [
       for (let i = 0; i < 7; i++) await p.getByRole('button', { name: /Til øvelserne|Næste øvelse|Til afslutning/ }).click();
       await p.getByRole('heading', { name: 'Afslut' }).waitFor();
     } },
+  {
+    // Definition of done: en hel Styrke A logget med talhjul og ✓, uden at tastaturet åbnes.
+    name: '13-hel-styrke-a',
+    run: async (p) => {
+      await startSession(p);
+      await p.evaluate(`window.__keyboard = 0; addEventListener('focusin', (e) => { if (e.target.matches('input, textarea')) window.__keyboard++; });`);
+      for (const box of await p.getByRole('checkbox').all()) await box.check({ force: true });
+      await p.getByRole('button', { name: 'Til øvelserne' }).click();
+      for (let step = 0; step < 6; step++) {
+        const skip = p.getByRole('button', { name: 'Spring over' });
+        for (;;) {
+          const open = p.locator('button[aria-label$="færdigt"][aria-pressed="false"]');
+          if ((await open.count()) === 0) break;
+          await open.first().click();
+          if (await skip.isVisible()) await skip.click();
+        }
+        await p.getByRole('button', { name: /Næste øvelse|Til afslutning/ }).click();
+      }
+      await p.getByRole('group', { name: /Venstre lyske under/ }).getByRole('button', { name: '1', exact: true }).click();
+      await p.getByRole('button', { name: 'Afslut session' }).click();
+      await p.waitForURL((u) => u.pathname === '/');
+      await p.getByRole('button', { name: 'Vis session' }).waitFor();
+      const keyboard = await p.evaluate('window.__keyboard');
+      if (keyboard !== 0) throw new Error(`tastaturet blev åbnet ${keyboard} gange`);
+      console.log('  hel Styrke A logget uden tastatur');
+    },
+  },
   { name: '6-i-dag', run: (p) => p.goto('/').then(() => p.getByRole('button', { name: /Start session/ }).waitFor()) },
   { name: '6-i-dag-hele', full: true, run: (p) => p.goto('/').then(() => p.getByRole('button', { name: /Start session/ }).waitFor()) },
   { name: '7-historik', run: (p) => p.goto('/historik').then(() => p.getByText('Rumænsk dødløft (RDL)').first().waitFor()) },

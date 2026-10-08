@@ -84,12 +84,27 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
 }
 
 /** En sektion med overskrift (titel 22/700) og valgfri fodnote under. */
-export function Group({ title, footer, children, className = '', action }: { title?: ReactNode; footer?: ReactNode; children: ReactNode; className?: string; action?: ReactNode }) {
+export function Group({
+  title,
+  footer,
+  children,
+  className = '',
+  action,
+  small = false,
+}: {
+  title?: ReactNode;
+  footer?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  action?: ReactNode;
+  /** Underafsnit: overskrift i 17/600 i stedet for titel. */
+  small?: boolean;
+}) {
   return (
     <section className={`mb-8 ${className}`}>
       {(title || action) && (
         <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
-          {title && <h2 className="text-title">{title}</h2>}
+          {title && (small ? <h3 className="text-headline">{title}</h3> : <h2 className="text-title">{title}</h2>)}
           {action}
         </div>
       )}
