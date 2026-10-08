@@ -17,9 +17,9 @@ export const LIGHT_TEXT: Record<PainLight, string> = {
 };
 
 /** Trafiklys: lille prik + tekst. Farven står aldrig alene; brand-gradienten bruges aldrig her. */
-export function StatusLight({ light, compact = false, label = 'Smerte' }: { light: PainLight; compact?: boolean; label?: string }) {
+export function StatusLight({ light, compact = false, small = false, label = 'Smerte' }: { light: PainLight; compact?: boolean; small?: boolean; label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-secondary text-ink" title={`${label}: ${LIGHT_TEXT[light]}`}>
+    <span className={`inline-flex items-center gap-1.5 text-ink ${small ? 'text-footnote' : 'text-secondary'}`} title={`${label}: ${LIGHT_TEXT[light]}`}>
       <StatusDot light={light} />
       <span className={compact ? 'sr-only' : ''}>{compact ? `${label}: ${LIGHT_TEXT[light]}` : LIGHT_TEXT[light]}</span>
     </span>
