@@ -14,6 +14,6 @@ export function isAllowedRedirect(uri: string, allowLocalhost: boolean): boolean
   }
 }
 
-/** Stier OAuthProvider håndterer (resten af Worker'en kender den ikke). */
+/** Stier OAuth- og MCP-laget håndterer (/mcp/<slug>, /authorize, /oauth/*, metadata). */
 export const isOAuthPath = (pathname: string) =>
   pathname === '/mcp' || pathname.startsWith('/mcp/') || pathname === '/authorize' || pathname.startsWith('/oauth/') || pathname.startsWith('/.well-known/oauth-');

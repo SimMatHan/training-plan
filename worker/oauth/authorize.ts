@@ -1,10 +1,14 @@
-// /authorize: "Giv Claude adgang til Træningsnav?" med et kodeordsfelt.
-// Kodeordet er Worker secret OWNER_PASSWORD. Højst 5 forkerte forsøg pr. 15 min (samlet),
-// og kun claude.ai's callback-URL'er accepteres som redirect_uri.
-import { AuthorizationError, CimdFetchError } from '@cloudflare/workers-oauth-provider';
-import { safeEqual } from '../auth';
+// /authorize: "Giv Claude adgang til Karos træningsdata?" Kræver en app-session (passkey-login);
+// uden session sendes browseren til /login og tilbage hertil bagefter. Forbindelsen gælder den
+// atlet, ressourcen peger på (/mcp/<slug>), og brugeren skal have adgang til atleten.
+// Kun claude.ai's callback-URL'er accepteres som redirect_uri.
+import { AuthorizationError, CimdFetchError, type OAuthHelpers } from '@cloudflare/workers-oauth-provider';
+import type { Role } from '../../shared/athletes';
+import { sessionIdFrom } from '../auth';
 import type { Env } from '../env';
-import { authAttemptStatus, recordAuthAttempt } from '../services/audit';
+import { getAthleteBySlug, getRole, type Athlete } from '../services/athletes';
+import { getSessionUser, type SessionUser } from '../services/users';
+import { slugFromMcpPath } from '../mcp/server';
 import { CLAUDE_REDIRECT_URIS, isAllowedRedirect } from './redirects';
 
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -27,8 +31,6 @@ const STYLE = `
   h1 { font-size:1.4rem; margin:0 0 8px; }
   p { margin:0 0 12px; color:var(--muted); font-size:.95rem; }
   strong { color:var(--fg); }
-  label { display:block; font-weight:600; margin:16px 0 6px; }
-  input[type=password] { width:100%; min-height:48px; font:inherit; padding:8px 12px; border-radius:10px; border:1px solid var(--line); background:transparent; color:inherit; }
   .row { display:flex; gap:8px; margin-top:16px; }
   button { flex:1; min-height:48px; font:inherit; font-weight:600; border-radius:10px; border:1px solid var(--line); background:transparent; color:inherit; cursor:pointer; }
   button[value=approve] { background:var(--fg); color:var(--bg); border-color:var(--fg); }
@@ -54,72 +56,82 @@ function page(body: string, opts: { status?: number; headers?: Headers; allowLoc
 }
 
 
-function form(handle: string, opts: { clientName?: string; redirectHost?: string; error?: string }): string {
-  return `<h1>Giv Claude adgang til Træningsnav?</h1>
-<p>${opts.clientName ? `<strong>${escape(opts.clientName)}</strong> beder om adgang. ` : ''}Claude kan læse din plan og dine logs,
-foreslå planændringer (som du selv godkender i appen), logge løb og skrive noter. Claude kan ikke slette noget eller aktivere en plan.</p>
+const ROLE_TEXT: Record<Role, string> = { ejer: 'dig selv', traener: 'træner' };
+const genitive = (name: string) => (/[sxz]$/i.test(name) ? `${name}'` : `${name}s`);
+
+function form(handle: string, opts: { athlete: Athlete; user: SessionUser; role: Role; clientName?: string; redirectHost?: string }): string {
+  const whose = genitive(opts.athlete.name);
+  return `<h1>Giv Claude adgang til <strong>${escape(whose)}</strong> træningsdata?</h1>
+<p>Du logger ind som <strong>${escape(opts.user.name)}</strong> (${ROLE_TEXT[opts.role]}).</p>
+<p>${opts.clientName ? `<strong>${escape(opts.clientName)}</strong> beder om adgang. ` : ''}Forbindelsen indeholder kun ${escape(whose)} plan og logs.
+Claude kan læse dem og foreslå ændringer, som ${escape(opts.athlete.name)} selv godkender i appen${opts.role === 'ejer' ? ', og logge løb og skrive noter' : ''}.
+Claude kan ikke slette noget eller aktivere en plan.</p>
 ${opts.redirectHost ? `<p>Adgangen sendes til <strong>${escape(opts.redirectHost)}</strong>.</p>` : ''}
-${opts.error ? `<p class="err" role="alert">${escape(opts.error)}</p>` : ''}
 <form method="post" action="/authorize">
   <input type="hidden" name="handle" value="${escape(handle)}">
-  <label for="password">Kodeord</label>
-  <input id="password" name="password" type="password" autocomplete="current-password" autofocus>
   <div class="row">
     <button type="submit" name="decision" value="deny">Afvis</button>
-    <button type="submit" name="decision" value="approve">Giv adgang</button>
+    <button type="submit" name="decision" value="approve" autofocus>Giv adgang</button>
   </div>
 </form>`;
 }
 
-const clock = (iso: string) =>
-  new Intl.DateTimeFormat('da-DK', { timeZone: 'Europe/Copenhagen', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+/** Atleten som ressourcen (https://<domæne>/mcp/<slug>) peger på. */
+async function athleteOf(env: Env, resource: string | string[] | undefined): Promise<Athlete | null> {
+  const r = Array.isArray(resource) ? resource[0] : resource;
+  if (!r) return null;
+  const slug = slugFromMcpPath(new URL(r).pathname);
+  return slug ? getAthleteBySlug(env.DB, slug) : null;
+}
 
-export async function handleAuthorize(request: Request, env: Env): Promise<Response> {
-  const oauth = env.OAUTH_PROVIDER;
-  if (!oauth) throw new Error('OAUTH_PROVIDER mangler; /authorize skal kaldes gennem OAuthProvider');
+export async function handleAuthorize(request: Request, env: Env, oauth: OAuthHelpers): Promise<Response> {
   const allowLocalhost = env.OAUTH_ALLOW_LOCALHOST === 'true';
   const show = (body: string, status = 200, headers?: Headers) => page(body, { status, headers, allowLocalhost });
   const message = (title: string, text: string, status: number) => show(`<h1>${escape(title)}</h1><p>${escape(text)}</p>`, status);
-  if (!env.OWNER_PASSWORD) return message('Ikke sat op', 'OWNER_PASSWORD mangler på Worker’en (se README).', 503);
+  const notAllowed = () => message('Ikke tilladt', 'Kun Claude (claude.ai) kan forbindes til Træningsnav.', 400);
+  // Ingen adgang og ukendt atlet ser ens ud, så andre atleters eksistens ikke afsløres.
+  const noAccess = (user: SessionUser) => message('Ingen adgang', `${user.name} har ikke adgang til denne forbindelse.`, 403);
+
+  const sessionId = sessionIdFrom(request);
+  const user = sessionId ? await getSessionUser(env.DB, sessionId) : null;
 
   try {
     if (request.method === 'GET') {
       const authRequest = await oauth.parseAuthRequest(request);
-      if (!isAllowedRedirect(authRequest.redirectUri, allowLocalhost))
-        return message('Ikke tilladt', 'Kun Claude (claude.ai) kan forbindes til Træningsnav.', 400);
+      if (!isAllowedRedirect(authRequest.redirectUri, allowLocalhost)) return notAllowed();
+      if (!user) {
+        // Log ind med passkey i appen og kom tilbage til samtykket.
+        const url = new URL(request.url);
+        return new Response(null, { status: 302, headers: { Location: `/login?next=${encodeURIComponent(url.pathname + url.search)}`, 'Cache-Control': 'no-store' } });
+      }
+      const athlete = await athleteOf(env, authRequest.resource);
+      const role = athlete ? await getRole(env.DB, user.id, athlete.id) : null;
+      if (!athlete || !role) return noAccess(user);
       const details = await oauth.describeConsent(authRequest);
       const consent = await oauth.beginConsent(authRequest);
-      return show(form(consent.handle, { clientName: details.clientName, redirectHost: details.redirectHost }), 200, consent.headers);
+      return show(form(consent.handle, { athlete, user, role, clientName: details.clientName, redirectHost: details.redirectHost }), 200, consent.headers);
     }
 
     if (request.method === 'POST') {
       const data = await request.formData();
       const handle = String(data.get('handle') ?? '');
-      if (data.get('decision') !== 'approve') {
+      if (data.get('decision') !== 'approve' || !user) {
         const denied = await oauth.denyConsent(request, handle);
         return new Response(null, { status: 302, headers: denied.headers });
       }
-
-      const now = new Date();
-      const limit = await authAttemptStatus(env.DB, now);
-      if (!limit.allowed)
-        return show(form(handle, { error: `For mange forkerte forsøg. Prøv igen efter kl. ${clock(limit.retryAt!)}.` }), 429);
-
-      const password = String(data.get('password') ?? '');
-      const ok = password.length > 0 && (await safeEqual(password, env.OWNER_PASSWORD));
-      await recordAuthAttempt(env.DB, ok, now);
-      if (!ok) return show(form(handle, { error: 'Forkert kodeord.' }), 401);
-
       const approved = await oauth.approveConsent(request, handle);
       // Anmodningen kommer fra lageret, ikke fra formularen; tjek alligevel igen.
-      if (!isAllowedRedirect(approved.request.redirectUri, allowLocalhost))
-        return message('Ikke tilladt', 'Kun Claude (claude.ai) kan forbindes til Træningsnav.', 400);
+      if (!isAllowedRedirect(approved.request.redirectUri, allowLocalhost)) return notAllowed();
+      const athlete = await athleteOf(env, approved.request.resource);
+      const role = athlete ? await getRole(env.DB, user.id, athlete.id) : null;
+      if (!athlete || !role) return noAccess(user);
       const { redirectTo } = await oauth.completeAuthorization({
         request: approved.request,
-        userId: 'ejer',
-        metadata: { grantedAt: now.toISOString() },
+        userId: String(user.id),
+        metadata: { grantedAt: new Date().toISOString(), athlete: athlete.slug },
         scope: approved.request.scope,
-        props: { owner: true },
+        // MCP-handleren tjekker ved hvert kald, at stiens atlet er denne, og slår adgangen op live.
+        props: { userId: user.id, athleteId: athlete.id, athleteSlug: athlete.slug },
       });
       approved.headers.set('Location', redirectTo);
       return new Response(null, { status: 302, headers: approved.headers });
@@ -128,8 +140,7 @@ export async function handleAuthorize(request: Request, env: Env): Promise<Respo
     return new Response('Metoden er ikke tilladt', { status: 405, headers: { Allow: 'GET, POST' } });
   } catch (e) {
     if (e instanceof AuthorizationError && e.redirectTo && request.method === 'GET') return Response.redirect(e.redirectTo, 302);
-    if (e instanceof AuthorizationError)
-      return message('Kan ikke fortsætte', `${e.description} Start forbindelsen forfra fra Claude.`, 400);
+    if (e instanceof AuthorizationError) return message('Kan ikke fortsætte', `${e.description} Start forbindelsen forfra fra Claude.`, 400);
     if (e instanceof CimdFetchError) return message('Ukendt klient', 'Klienten kunne ikke verificeres.', 400);
     throw e;
   }

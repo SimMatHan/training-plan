@@ -37,7 +37,7 @@ export const defaultSetting = (session_type: WorkoutType): CalendarSetting => ({
 });
 
 export interface CalendarInfo {
-  /** Abonnements-URL (https). Null hvis CAL_TOKEN ikke er sat på Worker'en. */
-  feedUrl: string | null;
+  /** Om atleten har et abonnementslink. URL'en vises kun, når linket laves (tokenet gemmes hashet). */
+  hasFeed: boolean;
   settings: CalendarSetting[];
 }

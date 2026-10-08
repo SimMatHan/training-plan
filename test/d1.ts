@@ -38,8 +38,7 @@ class Statement {
   }
 }
 
-export function createTestD1(): D1Database {
-  const db = new DatabaseSync(':memory:');
+export function createTestD1(db = new DatabaseSync(':memory:')): D1Database {
   const d1 = {
     prepare: (sql: string) => new Statement(db, sql),
     async batch(statements: Statement[]) {
@@ -63,11 +62,20 @@ export function createTestD1(): D1Database {
 
 const root = path.resolve(import.meta.dirname, '..');
 
-/** Database med alle migrationer og seed (planversion 1 + baseline-måling). */
-export async function createSeededD1(): Promise<D1Database> {
+export const migrationFiles = (dir = 'migrations') =>
+  readdirSync(path.join(root, dir))
+    .filter((f) => f.endsWith('.sql'))
+    .sort()
+    .map((f) => ({ name: f, sql: readFileSync(path.join(root, dir, f), 'utf8') }));
+
+/**
+ * Database med alle migrationer og seed (atleten simon med planversion 1 og baseline-måling).
+ * `cleanup` kører også migrations-pending/ (fase 5-oprydningen), så koden testes i begge tilstande.
+ */
+export async function createSeededD1(opts: { cleanup?: boolean } = {}): Promise<D1Database> {
   const d1 = createTestD1();
-  const dir = path.join(root, 'migrations');
-  for (const file of readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()) await d1.exec(readFileSync(path.join(dir, file), 'utf8'));
+  for (const m of migrationFiles()) await d1.exec(m.sql);
   await d1.exec(readFileSync(path.join(root, 'plan/seed.sql'), 'utf8'));
+  if (opts.cleanup) for (const m of migrationFiles('migrations-pending')) await d1.exec(m.sql);
   return d1;
 }

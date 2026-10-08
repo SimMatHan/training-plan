@@ -7,7 +7,7 @@ export const SYNC_TABLES = [
   'workouts',
   'set_logs',
   'exercise_notes',
-  'groin_checks',
+  'pain_scores',
   'mobility_measurements',
   'mobility_checks',
   'schedule_overrides',

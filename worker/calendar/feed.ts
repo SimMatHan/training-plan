@@ -7,14 +7,14 @@
 //
 // UID er stabilt pr. session og uge, så kalenderen opdaterer eventet i stedet for at lave
 // dubletter. SEQUENCE og LAST-MODIFIED afledes af det seneste tidsstempel blandt alt, der
-// påvirker eventet (planskift, træning, sæt, lyske, flytning, indstilling), så de stiger
+// påvirker eventet (planskift, træning, sæt, smerte, flytning, indstilling), så de stiger
 // ved hver ændring uden at noget skal gemmes.
 import { defaultSetting, type CalendarSetting } from '../../shared/calendar';
-import { assessGroin, nextDay, type GroinAssessment } from '../../shared/groin';
+import { assessAllPain, nextDay, type PainAssessment } from '../../shared/pain';
 import { countedSets } from '../../shared/history';
 import { formatDuration, formatPace } from '../../shared/pace';
 import type { Plan, RunSession, ScheduledSession, Session, StrengthSession, Week } from '../../shared/plan.schema';
-import type { GroinCheck, ScheduleOverride, SetLog, Workout } from '../../shared/records.schema';
+import type { PainScore, ScheduleOverride, SetLog, Workout } from '../../shared/records.schema';
 import { dateOfDay, formatDose, formatIntensity, formatNumber, formatRange, getExercise, getSession, resolveStrengthSession } from '../../shared/resolve';
 import { effectiveSessions } from '../../shared/schedule';
 import { copenhagenDate, copenhagenMidnight, copenhagenTimezone, icalDate, icalLocal, icalUtc, serialize, text, TZID, type Component, type Prop } from './ical';
@@ -28,7 +28,10 @@ export interface FeedInput {
   workouts: Workout[];
   /** Sæt til træningerne, inklusive tombstones. */
   sets: SetLog[];
-  groinChecks: GroinCheck[];
+  /** Smertescorer, inklusive tombstones (de tæller med i SEQUENCE). */
+  painScores: PainScore[];
+  /** Aktive monitors (fx "Venstre lyske"), i visningsrækkefølge. */
+  monitors: { id: number; label: string }[];
   /** Flytninger, inklusive tombstones (en tombstone flytter sessionen tilbage). */
   overrides: ScheduleOverride[];
   settings: CalendarSetting[];
@@ -129,8 +132,15 @@ function runLines(session: RunSession, s: ScheduledSession): string[] {
   return lines;
 }
 
-/** Resultat for en lavet session: topvægt pr. øvelse (eller reps/tid), løbetal, RPE og lyske. */
-function resultLines(plan: Plan, session: Session, weekNo: number, w: Workout, sets: SetLog[], groin: GroinAssessment | undefined): string[] {
+/** Resultat for en lavet session: topvægt pr. øvelse (eller reps/tid), løbetal, RPE og smerte pr. monitor. */
+function resultLines(
+  plan: Plan,
+  session: Session,
+  weekNo: number,
+  w: Workout,
+  sets: SetLog[],
+  pain: { label: string; assessment: PainAssessment }[],
+): string[] {
   const lines: string[] = [];
   if (session.kind === 'styrke') {
     // Planens rækkefølge og visningsnavne for ugen; øvelser uden for planen til sidst.
@@ -164,7 +174,7 @@ function resultLines(plan: Plan, session: Session, weekNo: number, w: Workout, s
     if (parts.length) lines.push(parts.join(' · '));
   }
   if (w.rpe != null) lines.push(`RPE ${formatNumber(w.rpe)}`);
-  if (groin) lines.push(`Lyske: ${groin.during}/10 under${groin.morning != null ? `, ${groin.morning}/10 næste morgen` : ''}`);
+  for (const { label, assessment: a } of pain) lines.push(`${label}: ${a.during}/10 under${a.morning != null ? `, ${a.morning}/10 næste morgen` : ''}`);
   if (w.note) lines.push(`Note: ${w.note}`);
   return lines;
 }
@@ -194,7 +204,12 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
   const setsByWorkout = new Map<string, SetLog[]>();
   for (const s of input.sets) setsByWorkout.set(s.workout_uuid, [...(setsByWorkout.get(s.workout_uuid) ?? []), s]);
   const liveWorkouts = input.workouts.filter(alive);
-  const groin = new Map(assessGroin(liveWorkouts, input.groinChecks, today).map((g) => [g.workoutUuid, g]));
+  const assessments = assessAllPain(liveWorkouts, input.painScores, input.monitors.map((m) => m.id), today);
+  const painOf = (workoutUuid: string) =>
+    input.monitors.flatMap((m) => {
+      const assessment = assessments.find((a) => a.workoutUuid === workoutUuid && a.monitorId === m.id);
+      return assessment ? [{ label: m.label, assessment }] : [];
+    });
 
   const events: CalendarEvent[] = [];
   for (const week of plan.weeks) {
@@ -222,8 +237,8 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
       for (const w of all) {
         stamps.push(ts(w.updated_at));
         for (const s of setsByWorkout.get(w.uuid) ?? []) stamps.push(ts(s.updated_at));
-        for (const c of input.groinChecks)
-          if (c.workout_uuid === w.uuid || (!c.workout_uuid && c.date === nextDay(w.date))) stamps.push(ts(c.updated_at));
+        for (const p of input.painScores)
+          if (p.workout_uuid === w.uuid || (p.kind === 'morgen' && !p.workout_uuid && p.date === nextDay(w.date))) stamps.push(ts(p.updated_at));
       }
       if (state === 'misset') stamps.push(copenhagenMidnight(nextDay(weekEnd)));
       const lastModified = Math.max(...stamps);
@@ -241,7 +256,7 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
       if (session.kind === 'styrke') lines.push(...strengthLines(plan, session, week.weekNo));
       else if (session.kind === 'løb' || session.kind === 'cardio') lines.push(...runLines(session, scheduled));
       if (workout && (state === 'lavet' || state === 'i-gang')) {
-        const result = resultLines(plan, session, week.weekNo, workout, (setsByWorkout.get(workout.uuid) ?? []).filter(alive), groin.get(workout.uuid));
+        const result = resultLines(plan, session, week.weekNo, workout, (setsByWorkout.get(workout.uuid) ?? []).filter(alive), painOf(workout.uuid));
         if (result.length) lines.push('', 'Resultat:', ...result);
       } else if (state === 'sprunget-over' && workout!.note) {
         lines.push('', `Note: ${workout!.note}`);
@@ -338,20 +353,27 @@ function vevent(e: CalendarEvent): Component {
   };
 }
 
+const calendarProps = (desc: string): Prop[] => [
+  ['VERSION', '2.0'],
+  ['PRODID', '-//Traeningsnav//Kalenderfeed//DA'],
+  ['CALSCALE', 'GREGORIAN'],
+  ['X-WR-CALNAME', text('Træningsplan')],
+  ['X-WR-CALDESC', text(desc)],
+  ['X-WR-TIMEZONE', TZID],
+  ['REFRESH-INTERVAL', 'PT6H', { VALUE: 'DURATION' }],
+  ['X-PUBLISHED-TTL', 'PT6H'],
+];
+
+/** Feed uden events, til en atlet der endnu ikke har en plan. */
+export function renderEmptyFeed(): string {
+  return serialize({ name: 'VCALENDAR', props: calendarProps('Ingen plan endnu'), components: [copenhagenTimezone] });
+}
+
 /** Hele feedet som iCalendar-tekst. */
 export function renderFeed(input: FeedInput): string {
   return serialize({
     name: 'VCALENDAR',
-    props: [
-      ['VERSION', '2.0'],
-      ['PRODID', '-//Traeningsnav//Kalenderfeed//DA'],
-      ['CALSCALE', 'GREGORIAN'],
-      ['X-WR-CALNAME', text('Træningsplan')],
-      ['X-WR-CALDESC', text(`${input.plan.title} · planversion ${input.planVersion}`)],
-      ['X-WR-TIMEZONE', TZID],
-      ['REFRESH-INTERVAL', 'PT6H', { VALUE: 'DURATION' }],
-      ['X-PUBLISHED-TTL', 'PT6H'],
-    ],
+    props: calendarProps(`${input.plan.title} · planversion ${input.planVersion}`),
     components: [copenhagenTimezone, ...buildEvents(input).map(vevent)],
   });
 }

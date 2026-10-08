@@ -1,12 +1,31 @@
 import ICAL from 'ical.js';
 import { beforeEach, describe, expect, it } from 'vitest';
-import worker, { app } from '../worker/index';
 import { buildEvents } from '../worker/calendar/feed';
 import { copenhagenDate, copenhagenMidnight, copenhagenOffsetMin, foldLine, serialize, text } from '../worker/calendar/ical';
-import { buildCalendarFeed, setCalendarSetting } from '../worker/services/calendar';
-import { activatePlanVersion, getActivePlan } from '../worker/services/plan';
-import { pushChanges } from '../worker/services/sync';
+import { buildCalendarFeed as feedFor, setCalendarSetting as settingFor } from '../worker/services/calendar';
+import { activatePlanVersion as activate, getActivePlan as active } from '../worker/services/plan';
+import { pushChanges as push } from '../worker/services/sync';
 import { createSeededD1 } from './d1';
+import { call, createWorld, fetchWorker, type World } from './world';
+
+// Feedet testes for atleten simon (id 1).
+const SIMON = 1;
+const buildCalendarFeed = (d: D1Database, opts: { origin: string; now?: Date }) => feedFor(d, SIMON, opts);
+const setCalendarSetting = (d: D1Database, ...rest: [Parameters<typeof settingFor>[2], Parameters<typeof settingFor>[3], string?]) => settingFor(d, SIMON, ...rest);
+const activatePlanVersion = (d: D1Database, version: number, now?: string) => activate(d, SIMON, version, now);
+const getActivePlan = (d: D1Database) => active(d, SIMON);
+const pushChanges = (d: D1Database, changes: Parameters<typeof push>[2]) => push(d, SIMON, changes);
+/** Simons monitor "Venstre lyske" fra migrationen. */
+const LYSKE = 1;
+const under = (n: number, workoutN: number, date: string, score: number, updated_at: string) => ({
+  uuid: uuid(4000 + n),
+  monitor_id: LYSKE,
+  workout_uuid: uuid(workoutN),
+  date,
+  kind: 'under',
+  score,
+  updated_at,
+});
 
 // ─── Serializer ─────────────────────────────────────────────────────────────
 
@@ -65,7 +84,6 @@ function workout(n: number, fields: Record<string, unknown>) {
     type: 'styrke',
     rpe: null,
     note: null,
-    groin_during: null,
     source: 'app',
     external_id: null,
     distance_km: null,
@@ -113,7 +131,6 @@ async function seedLogs() {
         started_at: T('10-05T16:30:00'),
         finished_at: T('10-05T17:40:00'),
         rpe: 6,
-        groin_during: 2,
         updated_at: T('10-05T17:40:00'),
       }),
       // Rehab B står torsdag, men logges fredag.
@@ -123,7 +140,6 @@ async function seedLogs() {
         date: '2026-10-09',
         started_at: T('10-09T16:00:00'),
         finished_at: T('10-09T17:00:00'),
-        groin_during: 1,
         updated_at: T('10-09T17:00:00'),
       }),
       // RH sprunget over med årsag.
@@ -148,7 +164,6 @@ async function seedLogs() {
         distance_km: 6.2,
         duration_sec: 2046,
         avg_hr: 141,
-        groin_during: 0,
         updated_at: T('10-13T05:45:00'),
       }),
     ],
@@ -161,7 +176,12 @@ async function seedLogs() {
       set(6, 2, 'rows', 1, null, 30, 10),
       set(7, 2, 'nordic-hamstring-curl', 1, null, null, 5),
     ],
-    groin_checks: [{ uuid: uuid(3001), date: '2026-10-06', morning_score: 0, workout_uuid: uuid(1), updated_at: T('10-06T07:00:00') }],
+    pain_scores: [
+      under(1, 1, '2026-10-05', 2, T('10-05T17:40:00')),
+      under(2, 2, '2026-10-09', 1, T('10-09T17:00:00')),
+      under(3, 4, '2026-10-13', 0, T('10-13T05:45:00')),
+      { uuid: uuid(3001), monitor_id: LYSKE, workout_uuid: uuid(1), date: '2026-10-06', kind: 'morgen', score: 0, updated_at: T('10-06T07:00:00') },
+    ],
     schedule_overrides: [override(1, 3, 'rh', 2, T('10-12T19:00:00'))],
   });
   // Løb med fast tidspunkt; styrke og crosstrainer er heldag (standard).
@@ -213,7 +233,7 @@ describe('kalenderfeed', () => {
     expect(rehabA.description).toContain('Uge 2 af 14 — Rehab');
     expect(rehabA.description).toContain('Enbens RDL — 3 × 8/side, RPE 6, 75 s');
     expect(rehabA.description).toContain('Enbens RDL: 24 kg × 8');
-    expect(rehabA.description).toContain('Lyske: 2/10 under, 0/10 næste morgen');
+    expect(rehabA.description).toContain('Venstre lyske: 2/10 under, 0/10 næste morgen');
     expect(rehabA.description).toContain(`${ORIGIN}/session/rehab-a?uge=2`);
 
     // Torsdagens session logget fredag: står fredag med ✓, og torsdag er tom.
@@ -301,7 +321,7 @@ describe('kalenderfeed', () => {
     expect(rdl.exerciseId).toBe('rdl');
     rdl.dose.sets = 4;
     await db
-      .prepare(`INSERT INTO plan_versions (version, created_at, source, note, plan_json, is_active, based_on_version) VALUES (2, ?, 'manual', 'test', ?, 0, 1)`)
+      .prepare(`INSERT INTO plan_versions (athlete_id, version, created_at, source, note, plan_json, is_active, based_on_version) VALUES (1, 2, ?, 'manual', 'test', ?, 0, 1)`)
       .bind(T('10-14T08:00:00'), JSON.stringify(plan2))
       .run();
     await activatePlanVersion(db, 2, T('10-14T09:00:00'));
@@ -331,7 +351,8 @@ describe('kalenderfeed', () => {
       planChangedAt: T('09-27T12:00:00'),
       workouts: [],
       sets: [],
-      groinChecks: [],
+      painScores: [],
+      monitors: [],
       overrides: [],
       settings: [],
       origin: ORIGIN,
@@ -347,47 +368,61 @@ describe('kalenderfeed', () => {
 
 // ─── Endpoint og indstillinger ──────────────────────────────────────────────
 
-describe('GET /cal/:token.ics', () => {
+describe('GET /cal/:slug/:token.ics', () => {
+  let w: World;
   beforeEach(async () => {
-    db = await createSeededD1();
+    w = await createWorld();
+    db = w.db;
   });
 
-  const env = (extra: Record<string, unknown> = {}) => ({ DB: db, ASSETS: { fetch: async () => new Response('app') } as unknown as Fetcher, ...extra });
-  const ctx = {} as ExecutionContext;
-  const get = (path: string, e = env({ CAL_TOKEN: 'kal-token' })) => worker.fetch(new Request(`${ORIGIN}${path}`), e, ctx);
+  const newLink = async () => ((await (await call(w, w.simon, '/api/a/simon/calendar/token', { method: 'POST' })).json()) as { feedUrl: string }).feedUrl;
 
-  it('serverer feedet med korrekt token', async () => {
-    const res = await get('/cal/kal-token.ics');
+  it('serverer feedet med et nyt link, og det gamle link holder op med at virke', async () => {
+    const url = await newLink();
+    expect(url).toMatch(/^https:\/\/traeningsnav\.test\/cal\/simon\/[A-Za-z0-9_-]{43}\.ics$/);
+    const res = await fetchWorker(w, url);
     expect(res.status).toBe(200);
     expect(res.headers.get('Content-Type')).toBe('text/calendar; charset=utf-8');
     expect(res.headers.get('Cache-Control')).toBe('max-age=900');
     const body = await res.text();
     expect(body.startsWith('BEGIN:VCALENDAR\r\n')).toBe(true);
-    expect(body.replace(/\r\n /g, '')).toContain(`URL;VALUE=URI:${ORIGIN}/session/rehab-a?uge=1`);
+    expect(body.replace(/\r\n /g, '')).toContain('URL;VALUE=URI:https://traeningsnav.test/session/rehab-a?uge=1');
+    const again = await newLink();
+    expect((await fetchWorker(w, url)).status).toBe(404);
+    expect((await fetchWorker(w, again)).status).toBe(200);
+    // Tokenet gemmes kun hashet.
+    const stored = await db.prepare("SELECT cal_token_hash FROM athletes WHERE slug = 'simon'").first<string>('cal_token_hash');
+    expect(again).not.toContain(stored!);
   });
 
-  it('giver 404 (ikke 401) ved forkert eller manglende token', async () => {
-    expect((await get('/cal/forkert.ics')).status).toBe(404);
-    expect((await get('/cal/kal-token')).status).toBe(404);
-    expect((await get('/cal/kal-token.ics', env())).status).toBe(404);
-    // API-tokenet virker ikke som kalendertoken.
-    expect((await get('/cal/api-token.ics', env({ API_TOKEN: 'api-token' }))).status).toBe(404);
+  it('giver 404 ved forkert token, forkert atlet og det gamle format', async () => {
+    const url = await newLink();
+    const token = url.split('/').pop()!;
+    expect((await fetchWorker(w, '/cal/simon/forkert.ics')).status).toBe(404);
+    expect((await fetchWorker(w, url.replace('.ics', ''))).status).toBe(404);
+    expect((await fetchWorker(w, `/cal/karo/${token}`)).status).toBe(404);
+    expect((await fetchWorker(w, `/cal/${token}`)).status).toBe(404);
+    // Karo uden link har intet feed.
+    expect((await fetchWorker(w, '/cal/karo/x.ics')).status).toBe(404);
   });
 
-  it('API: viser abonnements-URL og gemmer indstillinger', async () => {
-    const e = env({ API_TOKEN: 'api', CAL_TOKEN: 'kal-token' });
-    const call = (path: string, init: RequestInit = {}) =>
-      app.request(path, { ...init, headers: { Authorization: 'Bearer api', 'Content-Type': 'application/json' } }, e);
+  it('en atlet uden plan får et tomt feed', async () => {
+    const res = await call(w, w.karo, '/api/a/karo/calendar/token', { method: 'POST' });
+    const { feedUrl } = (await res.json()) as { feedUrl: string };
+    const ics = await (await fetchWorker(w, feedUrl)).text();
+    expect(parse(ics)).toHaveLength(0);
+  });
 
-    const info = (await (await call(`${ORIGIN}/api/calendar`)).json()) as { feedUrl: string; settings: { session_type: string; all_day: boolean }[] };
-    expect(info.feedUrl).toBe(`${ORIGIN}/cal/kal-token.ics`);
+  it('API: viser indstillinger og gemmer dem (kun atleten selv)', async () => {
+    const info = (await (await call(w, w.simon, '/api/a/simon/calendar')).json()) as { hasFeed: boolean; settings: { session_type: string; all_day: boolean }[] };
+    expect(info.hasFeed).toBe(false);
     expect(info.settings.map((s) => [s.session_type, s.all_day])).toEqual([
       ['styrke', true],
       ['løb', true],
       ['cardio', true],
     ]);
 
-    const put = (type: string, body: unknown) => call(`${ORIGIN}/api/calendar/settings/${encodeURIComponent(type)}`, { method: 'PUT', body: JSON.stringify(body) });
+    const put = (type: string, body: unknown) => call(w, w.simon, `/api/a/simon/calendar/settings/${encodeURIComponent(type)}`, { method: 'PUT', json: body });
     expect((await put('styrke', { all_day: false, start_time: '17:30', duration_min: 75 })).status).toBe(200);
     expect((await put('styrke', { all_day: false })).status).toBe(400);
     expect((await put('styrke', { all_day: false, start_time: '25:00', duration_min: 60 })).status).toBe(400);
@@ -397,6 +432,7 @@ describe('GET /cal/:token.ics', () => {
     const a = byUid(events, 'rehab-a-uge3@traeningsnav');
     expect(a.startDate.toString()).toBe('2026-10-12T17:30:00');
     expect(a.duration.toString()).toBe('PT75M');
-    expect((await app.request(`${ORIGIN}/api/calendar`, {}, e)).status).toBe(401);
+    expect((await call(w, null, '/api/a/simon/calendar')).status).toBe(401);
+    expect((await call(w, w.karo, '/api/a/simon/calendar')).status).toBe(404);
   });
 });

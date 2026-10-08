@@ -35,8 +35,7 @@ export const Workout = z.object({
   type: WorkoutType,
   rpe: Rpe.nullable(),
   note: z.string().nullable(),
-  /** Smerte i venstre lyske under træning, 0–10. */
-  groin_during: Score.nullable(),
+  // Fase 5: smerte under træningen ligger i pain_scores (pr. monitor), ikke her.
   source: WorkoutSource,
   external_id: z.string().nullable(),
   // Løb og cardio
@@ -76,22 +75,28 @@ export const ExerciseNote = z.object({
 });
 export type ExerciseNote = z.infer<typeof ExerciseNote>;
 
-/** Morgenspørgsmålet: "Hvordan er lysken i morges?" */
-export const GroinCheck = z.object({
+/**
+ * Smertescore 0–10 for én monitor (fx "Venstre lyske"): under en træning (kind 'under',
+ * knyttet til træningen) eller morgenen efter (kind 'morgen', dateret morgenen).
+ */
+export const PainScore = z.object({
   ...SyncFields,
-  /** Morgenens dato. */
-  date: IsoDate,
-  morning_score: Score,
-  /** Træningen dagen før, som scoren hører til. */
+  monitor_id: z.int().min(1),
   workout_uuid: z.uuid().nullable(),
+  date: IsoDate,
+  kind: z.enum(['under', 'morgen']),
+  score: Score,
 });
-export type GroinCheck = z.infer<typeof GroinCheck>;
+export type PainScore = z.infer<typeof PainScore>;
 
+/** En måling i en mobilitetstest: højre og venstre for tests pr. side, ellers value. */
 export const MobilityMeasurement = z.object({
   ...SyncFields,
+  test_id: z.int().min(1),
   date: IsoDate,
-  knee_to_wall_right_cm: z.number().min(0).max(30).nullable(),
-  knee_to_wall_left_cm: z.number().min(0).max(30).nullable(),
+  value_right: z.number().min(-1000).max(10000).nullable().default(null),
+  value_left: z.number().min(-1000).max(10000).nullable().default(null),
+  value: z.number().min(-1000).max(10000).nullable().default(null),
   note: z.string().nullable(),
 });
 export type MobilityMeasurement = z.infer<typeof MobilityMeasurement>;
@@ -132,7 +137,7 @@ export const SyncTables = {
   workouts: Workout,
   set_logs: SetLog,
   exercise_notes: ExerciseNote,
-  groin_checks: GroinCheck,
+  pain_scores: PainScore,
   mobility_measurements: MobilityMeasurement,
   mobility_checks: MobilityCheck,
   schedule_overrides: ScheduleOverride,

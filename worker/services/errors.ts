@@ -11,3 +11,8 @@ export class ValidationError extends Error {
 export class ConflictError extends Error {
   readonly status = 409;
 }
+
+/** Brugeren har adgang til atleten, men ikke med den rolle handlingen kræver (fx en træner der vil godkende). */
+export class ForbiddenError extends Error {
+  readonly status = 403;
+}
