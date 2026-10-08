@@ -5,7 +5,8 @@
 //
 // Starter Vite i dev-tilstand og svarer selv på /api med data fra fixtures.ts (Simon, mandag i uge 6),
 // så der hverken skal bruges Worker, D1 eller passkey. Uret står fast på fixtures.NOW.
-// På Linux findes SF Pro ikke; Inter bruges som stedfortræder, hvis den er installeret.
+// På Linux findes SF Pro ikke; Inter bruges som stedfortræder, hvis den er installeret. Safe-area efterlignes
+// som på en iPhone i 390 × 844 (47 px top, 34 px bund), så luften over titlerne ligner telefonen.
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { chromium, type Page, type Route } from 'playwright';
@@ -89,6 +90,15 @@ const scenarios: Scenario[] = [
   { name: '6-i-dag', run: (p) => p.goto('/').then(() => p.getByRole('button', { name: /Start session/ }).waitFor()) },
   { name: '6-i-dag-hele', full: true, run: (p) => p.goto('/').then(() => p.getByRole('button', { name: /Start session/ }).waitFor()) },
   { name: '7-historik', run: (p) => p.goto('/historik').then(() => p.getByText('Rumænsk dødløft (RDL)').first().waitFor()) },
+  {
+    name: '7-historik-uger',
+    run: async (p) => {
+      await p.goto('/historik');
+      await p.getByRole('button', { name: 'Uger' }).click();
+      await p.getByRole('button', { name: /^Uge 2/ }).click();
+      await p.getByText(/Sprunget over · Kalender\/tid/).evaluate((e) => e.scrollIntoView({ block: 'center' }));
+    },
+  },
   { name: '8-historik-oevelse', run: (p) => p.goto('/historik/oevelse/enbens-rdl').then(() => p.getByText('Bedste resultat').waitFor()) },
   { name: '8-historik-oevelse-hele', full: true, run: (p) => p.goto('/historik/oevelse/enbens-rdl').then(() => p.getByText('Bedste resultat').waitFor()) },
   { name: '9-uge', run: (p) => p.goto('/uge').then(() => p.getByText('Styrke A').first().waitFor()) },
@@ -153,7 +163,7 @@ try {
       await context.addInitScript({
         content: `addEventListener('DOMContentLoaded', () => {
           const style = document.createElement('style');
-          style.textContent = ':root { --font-sans: Inter, sans-serif !important; } * { caret-color: transparent; }';
+          style.textContent = ':root { --font-sans: Inter, sans-serif !important; } * { caret-color: transparent; } .pt-safe { padding-top: 47px !important; } .pb-safe { padding-bottom: 34px !important; } .pb-tabbar { padding-bottom: calc(34px + 6rem) !important; }';
           document.head.append(style);
         });`,
       });

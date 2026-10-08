@@ -44,14 +44,21 @@ export function LargeTitle({ title, subtitle, accessory, back }: { title: string
           <p className="pointer-events-none absolute inset-x-16 truncate text-center text-headline">{title}</p>
         </div>
       </div>
-      <header className="pt-3 pb-5">
-        <div className="flex min-h-11 items-center justify-between gap-3">
-          <div>{back && <BackLink back={back} />}</div>
-          {accessory && <div className="flex items-center gap-3">{accessory}</div>}
+      {/* Kun en række over titlen, når der er et tilbage-link; ellers står tilbehøret (avatar,
+          ugepile) på titlens linje som i Apples egne apps, så der ikke er luft til ingenting. */}
+      <header className={back ? 'pt-1 pb-5' : 'pt-4 pb-5'}>
+        {back && (
+          <div className="flex min-h-11 items-center justify-between gap-3">
+            <BackLink back={back} />
+            {accessory && <div className="flex items-center gap-3">{accessory}</div>}
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-3">
+          <h1 ref={sentinel} className="min-w-0 text-large-title break-words">
+            {title}
+          </h1>
+          {!back && accessory && <div className="flex shrink-0 items-center gap-3">{accessory}</div>}
         </div>
-        <h1 ref={sentinel} className="text-large-title break-words">
-          {title}
-        </h1>
         {subtitle && <p className="mt-0.5 text-secondary text-ink-2">{subtitle}</p>}
       </header>
     </>

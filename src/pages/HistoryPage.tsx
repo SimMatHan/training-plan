@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Link, useSearch } from 'wouter';
 import type { Plan } from '../../shared/plan.schema';
 import { getSession, weekForDate } from '../../shared/resolve';
@@ -164,6 +164,9 @@ function CoachHistory({ slug, tab }: { slug: string; tab: Tab }) {
   );
 }
 
+/** Separatorerne i ugekortet starter ved navnet, efter ugedagen (w-9 + gap-3). */
+const ROW_INSET = { '--sep-inset': '48px' } as CSSProperties;
+
 /** Én uges opsummering. `readOnly` (trænervisning): ingen links til atletens træninger, som kun findes på hendes telefon. */
 export function WeekCard({ week, isCurrent, plan, readOnly = false }: { week: WeeklySummary; isCurrent: boolean; plan: Plan; readOnly?: boolean }) {
   const [open, setOpen] = useState(isCurrent);
@@ -208,43 +211,51 @@ export function WeekCard({ week, isCurrent, plan, readOnly = false }: { week: We
         </button>
         {open && (
           <div className="border-t-[0.5px] border-separator px-4 pt-1 pb-3">
-            <ul className="inset-list">
+            <ul className="inset-list" style={ROW_INSET}>
               {week.sessions.map((s) => (
-                <li key={s.sessionId} className="flex min-h-11 items-center gap-3 text-secondary">
-                  <span className="w-9 text-ink-2">{WEEKDAYS_SHORT[s.day]}</span>
+                <li key={s.sessionId} className="flex items-start gap-3 py-2.5">
+                  <span className="w-9 shrink-0 text-secondary text-ink-2">{WEEKDAYS_SHORT[s.day]}</span>
                   <span className="min-w-0 flex-1">
-                    {s.workoutUuid ? link(`/session/${s.workoutUuid}`, title(s.sessionId, s.name)) : title(s.sessionId, s.name)}
-                    {s.optional && <span className="text-ink-2"> · valgfri</span>}
-                    {s.day !== s.plannedDay && <span className="text-ink-2"> · flyttet fra {WEEKDAYS_SHORT[s.plannedDay]}</span>}
-                  </span>
-                  {s.light && <StatusLight light={s.light} />}
-                  <span className={`inline-flex items-center gap-1 ${s.status === 'lavet' ? 'font-medium' : 'text-ink-2'}`}>
-                    {s.status === 'lavet' && <Check size={14} weight="bold" className="text-status-green" aria-hidden="true" />}
-                    {s.status === 'lavet'
-                      ? 'Lavet'
-                      : s.status === 'sprunget-over'
-                        ? `Sprunget over${s.skipReason ? ` · ${s.skipReason}` : ''}`
-                        : s.status === 'i-gang'
-                          ? 'I gang'
-                          : !s.optional && dayState(addDays(week.startDate, s.day - 1), todayIso()) === 'past'
-                            ? 'Misset'
-                            : '–'}
+                    <span className="block text-body">
+                      {s.workoutUuid ? link(`/session/${s.workoutUuid}`, title(s.sessionId, s.name)) : title(s.sessionId, s.name)}
+                    </span>
+                    <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-footnote text-ink-2">
+                      <span className={`inline-flex items-center gap-1 ${s.status === 'lavet' ? 'font-medium text-ink' : ''}`}>
+                        {s.status === 'lavet' && <Check size={13} weight="bold" className="text-status-green" aria-hidden="true" />}
+                        {s.status === 'lavet'
+                          ? 'Lavet'
+                          : s.status === 'sprunget-over'
+                            ? `Sprunget over${s.skipReason ? ` · ${s.skipReason}` : ''}`
+                            : s.status === 'i-gang'
+                              ? 'I gang'
+                              : !s.optional && dayState(addDays(week.startDate, s.day - 1), todayIso()) === 'past'
+                                ? 'Misset'
+                                : 'Ikke lavet'}
+                      </span>
+                      {s.light && <StatusLight small light={s.light} />}
+                      {s.optional && <span>Valgfri</span>}
+                      {s.day !== s.plannedDay && <span>Flyttet fra {WEEKDAYS_SHORT[s.plannedDay]}</span>}
+                    </span>
                   </span>
                 </li>
               ))}
             </ul>
             {week.extras.length > 0 && (
               <>
-                <h3 className="mt-3 mb-1 text-footnote font-semibold text-ink-2">Andre aktiviteter</h3>
-                <ul className="inset-list">
+                <h3 className="mt-4 mb-1 text-footnote font-semibold text-ink-2">Andre aktiviteter</h3>
+                <ul className="inset-list" style={ROW_INSET}>
                   {week.extras.map((x) => (
-                    <li key={x.workoutUuid} className="flex min-h-11 items-center gap-3 text-secondary">
-                      <span className="w-9 text-ink-2">{WEEKDAYS_SHORT[weekday(x.date)]}</span>
+                    <li key={x.workoutUuid} className="flex items-start gap-3 py-2.5">
+                      <span className="w-9 shrink-0 text-secondary text-ink-2">{WEEKDAYS_SHORT[weekday(x.date)]}</span>
                       <span className="min-w-0 flex-1">
-                        {link(`/session/${x.workoutUuid}`, x.name)}
-                        {x.durationSec != null && <span className="num text-ink-2"> · {formatDuration(x.durationSec)}</span>}
+                        <span className="block text-body">{link(`/session/${x.workoutUuid}`, x.name)}</span>
+                        {(x.durationSec != null || x.light) && (
+                          <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-footnote text-ink-2">
+                            {x.durationSec != null && <span className="num">{formatDuration(x.durationSec)}</span>}
+                            {x.light && <StatusLight small light={x.light} />}
+                          </span>
+                        )}
                       </span>
-                      {x.light && <StatusLight light={x.light} />}
                     </li>
                   ))}
                 </ul>
@@ -252,16 +263,16 @@ export function WeekCard({ week, isCurrent, plan, readOnly = false }: { week: We
             )}
             {week.volume.length > 0 && (
               <>
-                <h3 className="mt-3 mb-1 text-footnote font-semibold text-ink-2">Volumen pr. øvelse</h3>
+                <h3 className="mt-4 mb-1 text-footnote font-semibold text-ink-2">Volumen pr. øvelse</h3>
                 <table className="num w-full text-footnote">
                   <tbody>
                     {week.volume.map((v) => (
                       <tr key={v.exerciseId}>
                         <td className="py-0.5 pr-2">{v.name}</td>
-                        <td className="py-0.5 text-right text-ink-2">
-                          {v.sets} sæt · {v.reps} reps
+                        <td className="py-0.5 text-right whitespace-nowrap text-ink-2">
+                          {v.sets} sæt{v.reps > 0 && ` · ${v.reps} reps`}
                         </td>
-                        <td className="py-0.5 pl-2 text-right">{v.volumeKg > 0 ? `${formatDecimal(v.volumeKg)} kg` : ''}</td>
+                        {week.volume.some((x) => x.volumeKg > 0) && <td className="py-0.5 pl-3 text-right whitespace-nowrap">{v.volumeKg > 0 ? `${formatDecimal(v.volumeKg)} kg` : ''}</td>}
                       </tr>
                     ))}
                   </tbody>

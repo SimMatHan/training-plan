@@ -72,13 +72,18 @@ const workout = (w: Partial<Workout> & Pick<Workout, 'date' | 'type'>): Workout 
   ...w,
 });
 
-// Uge 1–5: alt lavet, undtagen den valgfri løbetur i uge 5. Lysken er grøn, én gul.
+// Uge 1–5: alt lavet, undtagen den valgfri løbetur i uge 5 og sidste session i uge 2. Lysken er grøn, én gul.
 for (const week of plan.weeks.filter((w) => w.weekNo <= 5)) {
   for (const s of week.sessions) {
     if (week.weekNo === 5 && s.optional) continue;
     const session = plan.sessions.find((x) => x.id === s.sessionId)!;
     const date = dateOfDay(week, s.day);
     const kind = session.kind;
+    // Uge 2: sidste session sprunget over (som i virkeligheden), så ugekortet viser det.
+    if (week.weekNo === 2 && s === week.sessions.at(-1)) {
+      workouts.push(workout({ date, type: kind, planned_session_id: session.id, week_no: 2, started_at: null, finished_at: null, rpe: null, skipped_at: ts(date, 7), skip_reason: 'Kalender/tid' }));
+      continue;
+    }
     const w = workout({
       date,
       type: kind,
