@@ -3,7 +3,11 @@ import { CALENDAR_TYPE_LABELS, CALENDAR_TYPES, DEFAULT_TIMED, type CalendarInfo,
 import { kvGet, kvSet } from '../data/db';
 import { usePlan } from '../data/plan';
 import { athleteApi, OfflineError } from '../lib/api';
-import { Section } from './Screen';
+import { PrimaryButton, SecondaryButton, smallButton } from '../ui/Button';
+import { TextField } from '../ui/Field';
+import { Group } from '../ui/InsetList';
+import { ErrorText, Muted } from '../ui/Screen';
+import { Segmented } from '../ui/Segmented';
 
 const URL_KEY = 'calendarUrl';
 
@@ -66,58 +70,54 @@ export function CalendarSection() {
   }
 
   return (
-    <Section title="Kalender">
-      <p className="mb-3 text-sm text-muted">
+    <Group title="Kalender">
+      <Muted className="mb-3 px-1">
         Abonnér på træningsplanen i din kalender. Den opdaterer sig selv, når planen ændres, når du logger en session, og når du flytter en.
-      </p>
-      {error && (
-        <p role="alert" className="mb-3 text-sm text-a-ink">
-          {error}
-        </p>
-      )}
+      </Muted>
+      <ErrorText className="mb-3">{error}</ErrorText>
       {info && !feedUrl && (
-        <p className="mb-3 text-sm text-muted">
+        <Muted className="mb-3 px-1">
           {info.hasFeed
             ? 'Der er et abonnementslink, men det vises kun på enheden, hvor det blev lavet. Lav et nyt link for at se det her (det gamle holder så op med at virke).'
             : 'Der er ikke lavet et abonnementslink endnu.'}
-        </p>
+        </Muted>
       )}
-      {info && (
-        <button
-          type="button"
-          onClick={() => void newLink()}
-          disabled={busy}
-          className={`mb-3 min-h-12 w-full rounded-lg px-4 font-semibold disabled:opacity-40 ${feedUrl ? 'border border-line' : 'bg-fg text-bg'}`}
-        >
-          {busy ? 'Laver link …' : 'Lav nyt link'}
-        </button>
-      )}
+      {info &&
+        (feedUrl ? (
+          <SecondaryButton onClick={() => void newLink()} disabled={busy} className="mb-3">
+            {busy ? 'Laver link …' : 'Lav nyt link'}
+          </SecondaryButton>
+        ) : (
+          <PrimaryButton onClick={() => void newLink()} disabled={busy} className="mb-3">
+            {busy ? 'Laver link …' : 'Lav nyt link'}
+          </PrimaryButton>
+        ))}
       {feedUrl && (
         <>
-          <p className="num mb-2 rounded-lg border border-line bg-surface p-3 text-sm break-all select-all">{feedUrl}</p>
-          <div className="mb-3 flex gap-2">
-            <button type="button" onClick={() => void copy(feedUrl)} className="min-h-12 flex-1 rounded-lg bg-fg px-4 font-semibold text-bg">
+          <p className="num mb-2 rounded-card bg-surface p-4 text-secondary break-all select-all">{feedUrl}</p>
+          <div className="mb-4 flex gap-2">
+            <button type="button" onClick={() => void copy(feedUrl)} className={smallButton('secondary', 'flex-1')}>
               {copied ? 'Kopieret ✓' : 'Kopiér adresse'}
             </button>
-            <a href={feedUrl.replace(/^https?:/, 'webcal:')} className="flex min-h-12 flex-1 items-center justify-center rounded-lg border border-line px-4 font-medium">
+            <a href={feedUrl.replace(/^https?:/, 'webcal:')} className={smallButton('secondary', 'flex-1')}>
               Abonnér
             </a>
           </div>
-          <ol className="mb-4 list-decimal space-y-1 pl-5 text-sm text-muted">
+          <ol className="mb-4 list-decimal space-y-1 pl-5 text-footnote text-ink-2">
             <li>Kopiér adressen.</li>
             <li>
-              På iPhone: <span className="text-fg">Indstillinger → Kalender → Konti → Tilføj konto → Andet → Tilføj kalender-abonnement</span>.
+              På iPhone: <span className="text-ink">Indstillinger → Kalender → Konti → Tilføj konto → Andet → Tilføj kalender-abonnement</span>.
             </li>
             <li>Indsæt adressen og tryk Næste → Gem.</li>
           </ol>
-          <p className="mb-4 text-sm text-muted">
+          <p className="mb-4 px-1 text-footnote text-ink-2">
             Adressen er hemmelig: alle med den kan se planen. Kalenderen henter ændringer et par gange i døgnet. Lavede sessioner står på den dag, de blev
             lavet, med ✓.
           </p>
         </>
       )}
       {info && (
-        <ul className="divide-y divide-line border-y border-line">
+        <ul className="inset-list overflow-hidden rounded-card bg-surface">
           {info.settings
             .filter((s): s is CalendarSetting & { session_type: CalendarType } => (CALENDAR_TYPES as readonly string[]).includes(s.session_type))
             .map((s) => (
@@ -125,7 +125,7 @@ export function CalendarSection() {
             ))}
         </ul>
       )}
-    </Section>
+    </Group>
   );
 }
 
@@ -149,52 +149,39 @@ function SettingRow({
   };
 
   return (
-    <li className="py-3">
+    <li className="px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="font-medium">{CALENDAR_TYPE_LABELS[type]}</span>
-        <div role="group" aria-label={`${CALENDAR_TYPE_LABELS[type]}: tidspunkt`} className="grid grid-cols-2 gap-1.5">
-          <button
-            type="button"
-            aria-pressed={setting.all_day}
-            onClick={() => !setting.all_day && void onSave({ all_day: true, start_time: setting.start_time, duration_min: setting.duration_min })}
-            className={`min-h-12 rounded-lg px-3 text-sm font-medium ${setting.all_day ? 'bg-fg text-bg' : 'border border-line'}`}
-          >
-            Heldag
-          </button>
-          <button
-            type="button"
-            aria-pressed={!setting.all_day}
-            onClick={() => setting.all_day && timed()}
-            className={`min-h-12 rounded-lg px-3 text-sm font-medium ${!setting.all_day ? 'bg-fg text-bg' : 'border border-line'}`}
-          >
-            Tidspunkt
-          </button>
-        </div>
+        <span className="text-row">{CALENDAR_TYPE_LABELS[type]}</span>
+        <Segmented
+          className="w-48"
+          label={`${CALENDAR_TYPE_LABELS[type]}: tidspunkt`}
+          value={setting.all_day ? 'heldag' : 'tid'}
+          onChange={(v) => {
+            if (v === 'heldag' && !setting.all_day) void onSave({ all_day: true, start_time: setting.start_time, duration_min: setting.duration_min });
+            if (v === 'tid' && setting.all_day) timed();
+          }}
+          options={[
+            { value: 'heldag', label: 'Heldag' },
+            { value: 'tid', label: 'Tidspunkt' },
+          ]}
+        />
       </div>
       {!setting.all_day && (
-        <div className="mt-2 flex gap-3">
-          <label className="flex flex-1 flex-col gap-1 text-sm text-muted">
-            Start
-            <input
-              type="time"
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              onBlur={() => timed()}
-              className="num min-h-12 rounded-lg border border-line bg-raised px-3 text-base text-fg"
-            />
-          </label>
-          <label className="flex flex-1 flex-col gap-1 text-sm text-muted">
-            Varighed (min)
-            <input
+        <div className="mt-3 flex gap-3">
+          <div className="flex-1">
+            <TextField label="Start" type="time" value={start} onChange={(e) => setStart(e.target.value)} onBlur={() => timed()} />
+          </div>
+          <div className="flex-1">
+            <TextField
+              label="Varighed (min)"
               type="text"
               inputMode="numeric"
               enterKeyHint="done"
               value={duration}
               onChange={(e) => setDuration(e.target.value.replace(/\D/g, '').slice(0, 3))}
               onBlur={() => timed()}
-              className="num min-h-12 rounded-lg border border-line bg-raised px-3 text-base text-fg"
             />
-          </label>
+          </div>
         </div>
       )}
     </li>

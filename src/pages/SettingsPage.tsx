@@ -3,7 +3,9 @@ import type { PlanVersionMeta } from '../../shared/records.schema';
 import { AccountSection, MonitoringSection, SecuritySection, SharingSection, UsersSection } from '../components/AccountSections';
 import { CalendarSection } from '../components/CalendarSection';
 import { ClaudeSection } from '../components/ClaudeSection';
-import { Screen, Section } from '../components/Screen';
+import { PrimaryButton, SecondaryButton, smallButton } from '../ui/Button';
+import { Card, Group } from '../ui/InsetList';
+import { ErrorText, Muted, Screen } from '../ui/Screen';
 import { usePlan } from '../data/plan';
 import { athleteApi } from '../lib/api';
 import { useMe } from '../lib/auth';
@@ -67,43 +69,36 @@ export function SettingsPage() {
     <Screen title="Indstillinger">
       <AccountSection />
 
-      <Section title="Plan">
-        {meta ? (
-          <p className="mb-3">
-            Aktiv: <span className="num font-semibold">version {meta.version}</span>{' '}
-            <span className="text-muted">
-              · {sourceLabel[meta.source]} · {formatWithYear(meta.created_at)}
-            </span>
-          </p>
-        ) : (
-          <p className="mb-3 text-muted">Ingen plan hentet endnu.</p>
-        )}
-        {offline && <p className="mb-3 text-sm text-muted">Offline — versioner kan skiftes, når der er net.</p>}
-        {error && (
-          <p role="alert" className="mb-3 text-sm text-a-ink">
-            {error}
-          </p>
-        )}
+      <Group title="Plan">
+        <Card className="mb-3">
+          {meta ? (
+            <p className="text-body">
+              Aktiv: <span className="num font-semibold">version {meta.version}</span>{' '}
+              <span className="text-ink-2">
+                · {sourceLabel[meta.source]} · {formatWithYear(meta.created_at)}
+              </span>
+            </p>
+          ) : (
+            <Muted>Ingen plan hentet endnu.</Muted>
+          )}
+        </Card>
+        {offline && <Muted className="mb-3 px-1">Offline — versioner kan skiftes, når der er net.</Muted>}
+        <ErrorText className="mb-3">{error}</ErrorText>
         {versions && versions.length > 0 && (
-          <ul className="divide-y divide-line border-y border-line">
+          <ul className="inset-list overflow-hidden rounded-card bg-surface">
             {versions.map((v) => (
-              <li key={v.version} className="flex min-h-14 items-center gap-3 py-2">
+              <li key={v.version} className="flex min-h-14 items-center gap-3 px-4 py-2">
                 <div className="flex-1">
-                  <div className="num font-semibold">Version {v.version}</div>
-                  <div className="text-sm text-muted">
+                  <div className="num text-row">Version {v.version}</div>
+                  <div className="text-footnote text-ink-2">
                     {sourceLabel[v.source]} · {formatWithYear(v.created_at)}
                     {v.note && ` · ${v.note}`}
                   </div>
                 </div>
                 {v.is_active ? (
-                  <span className="text-sm font-medium text-mob-ink">Aktiv</span>
+                  <span className="text-secondary font-medium text-ink-2">Aktiv</span>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => void activate(v)}
-                    disabled={busy !== undefined}
-                    className="min-h-12 rounded-lg border border-line px-4 text-sm font-medium disabled:opacity-40"
-                  >
+                  <button type="button" onClick={() => void activate(v)} disabled={busy !== undefined} className={smallButton('secondary')}>
                     {busy === v.version ? 'Skifter …' : 'Brug denne'}
                   </button>
                 )}
@@ -111,7 +106,7 @@ export function SettingsPage() {
             ))}
           </ul>
         )}
-      </Section>
+      </Group>
 
       <MonitoringSection />
 
@@ -125,22 +120,17 @@ export function SettingsPage() {
 
       {me.user.isAdmin && <UsersSection />}
 
-      <Section title="Data">
-        <p className="mb-3 text-sm text-muted">Alle dine træninger, sæt, noter, smerte- og mobilitetsmålinger samt planversioner som én JSON-fil.</p>
-        <button
-          type="button"
-          onClick={() => void runExport()}
-          disabled={exporting}
-          className="min-h-12 rounded-lg border border-line px-4 font-medium disabled:opacity-40"
-        >
+      <Group title="Data">
+        <Muted className="mb-3 px-1">Alle dine træninger, sæt, noter, smerte- og mobilitetsmålinger samt planversioner som én JSON-fil.</Muted>
+        <SecondaryButton onClick={() => void runExport()} disabled={exporting}>
           {exporting ? 'Eksporterer …' : 'Eksportér alle data (JSON)'}
-        </button>
+        </SecondaryButton>
         {exportMsg && (
-          <p role="status" className="mt-2 text-sm text-muted">
+          <p role="status" className="mt-2 px-1 text-footnote text-ink-2">
             {exportMsg}
           </p>
         )}
-      </Section>
+      </Group>
 
       <AppSection />
 
@@ -160,34 +150,27 @@ function AppSection() {
   }
 
   return (
-    <Section title="App">
-      <p className="mb-3 text-sm text-muted">
-        Version <span className="num font-medium text-fg">{BUILD.id}</span> · bygget {formatWithYear(BUILD.time)}
-      </p>
+    <Group title="App">
+      <Muted className="mb-3 px-1">
+        Version <span className="num font-medium text-ink">{BUILD.id}</span> · bygget {formatWithYear(BUILD.time)}
+      </Muted>
       {ready ? (
-        <button type="button" onClick={apply} className="min-h-12 rounded-lg bg-fg px-4 font-semibold text-bg">
-          Opdater til ny version
-        </button>
+        <PrimaryButton onClick={apply}>Opdater til ny version</PrimaryButton>
       ) : (
-        <button
-          type="button"
-          onClick={() => void search()}
-          disabled={state === 'checking'}
-          className="min-h-12 rounded-lg border border-line px-4 font-medium disabled:opacity-40"
-        >
+        <SecondaryButton onClick={() => void search()} disabled={state === 'checking'}>
           {state === 'checking' ? 'Søger …' : 'Søg efter opdatering'}
-        </button>
+        </SecondaryButton>
       )}
       {!ready && state === 'none' && (
-        <p role="status" className="mt-2 text-sm text-muted">
+        <p role="status" className="mt-2 px-1 text-footnote text-ink-2">
           Du har den nyeste version.
         </p>
       )}
       {!ready && state === 'offline' && (
-        <p role="status" className="mt-2 text-sm text-muted">
+        <p role="status" className="mt-2 px-1 text-footnote text-ink-2">
           Ingen forbindelse. Prøv igen med net.
         </p>
       )}
-    </Section>
+    </Group>
   );
 }

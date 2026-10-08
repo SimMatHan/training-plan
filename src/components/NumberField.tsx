@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { formatDecimal, parseDecimal, parseWhole, sanitizeDecimal, sanitizeWhole } from '../logic/numbers';
+import { fieldClass } from '../ui/Field';
 
 /**
- * Stort talfelt. Gemmer ved hver ændring (onValue), viser komma som decimaltegn
+ * Talfelt (løb, målinger). Gemmer ved hver ændring (onValue), viser komma som decimaltegn
  * og sidste gangs tal som dæmpet pladsholder.
  */
 export function NumberField({
@@ -21,7 +22,7 @@ export function NumberField({
   const [text, setText] = useState(formatDecimal(value));
   const focused = useRef(false);
 
-  // Opdater fra databasen (fx "Samme som sidst" eller sync), men aldrig mens der tastes.
+  // Opdater fra databasen (fx sync), men aldrig mens der tastes.
   useEffect(() => {
     if (!focused.current) setText(formatDecimal(value));
   }, [value]);
@@ -49,7 +50,7 @@ export function NumberField({
         const parsed = decimal ? parseDecimal(s) : parseWhole(s);
         if (parsed !== value) onValue(parsed);
       }}
-      className="num h-14 w-full min-w-0 rounded-lg border border-line bg-raised text-center text-3xl font-semibold text-fg"
+      className={`${fieldClass} h-14 text-center text-title`}
     />
   );
 }

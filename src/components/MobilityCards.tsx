@@ -1,11 +1,13 @@
-import { Link } from 'wouter';
 import { DEFAULT_REMINDER_DAYS, measurementDue, type MobilityPoint } from '../../shared/mobility';
 import type { MobilityTest } from '../../shared/athletes';
 import { useMobilityTrends } from '../data/health';
 import { useMobilityTests, usePlan } from '../data/plan';
 import { formatShort, todayIso } from '../lib/dates';
 import { formatDecimal } from '../logic/numbers';
-import { TrendChart } from './TrendChart';
+import { TILE_INSET } from '../ui/ExerciseRow';
+import { IconTile } from '../ui/IconTile';
+import { InsetList, InsetRow, RowText, RowValue } from '../ui/InsetList';
+import { LineChart } from '../ui/LineChart';
 
 /** Påmindelsen gælder pr. test: planens antal dage, ellers 14. */
 export function useReminderDays(): number {
@@ -22,40 +24,30 @@ export function MobilityCards() {
   const tests = useMobilityTests();
   const trends = useMobilityTrends(tests);
   const reminderDays = useReminderDays();
-  if (!trends) return null;
+  if (!trends?.length) return null;
   return (
-    <>
+    <InsetList inset={TILE_INSET} className="mb-8">
       {trends.map(({ test, points }) => {
         const { due, days, last } = measurementDue(points, todayIso(), reminderDays);
         return (
-          <Link
-            key={test.id}
-            href={`/mobilitet#test-${test.id}`}
-            className={`mb-7 flex min-h-14 items-center gap-3 rounded-lg p-4 ${due ? 'border-2 border-mob' : 'bg-surface'}`}
-          >
-            <span aria-hidden="true" className="inline-block h-10 w-1.5 shrink-0 rounded-full bg-mob" />
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold">{due ? `Tid til ${test.name.toLowerCase()}-måling` : test.name}</span>
-              <span className="num block text-sm text-muted">
-                {last
-                  ? `${latestText(test, last)} · målt ${formatShort(last.date)}${days === 0 ? ' (i dag)' : days === 1 ? ' (i går)' : days != null ? ` (${days} dage siden)` : ''}`
-                  : 'Ingen målinger endnu'}
-              </span>
-            </span>
-            <span aria-hidden="true" className="text-xl text-muted">
-              ›
-            </span>
-          </Link>
+          <InsetRow key={test.id} href={`/mobilitet#test-${test.id}`}>
+            <IconTile category="mobility" />
+            <RowText
+              title={due ? `Tid til ${test.name.toLowerCase()}-måling` : test.name}
+              detail={last ? `Målt ${formatShort(last.date)}${days === 0 ? ' (i dag)' : days === 1 ? ' (i går)' : days != null ? ` · ${days} dage siden` : ''}` : 'Ingen målinger endnu'}
+            />
+            {last && <RowValue primary={latestText(test, last)} />}
+          </InsetRow>
         );
       })}
-    </>
+    </InsetList>
   );
 }
 
 /** Udviklingen i én test: forskellen mellem siderne (mål 0) eller værdien. */
 export function MobilityChart({ test, points }: { test: MobilityTest; points: MobilityPoint[] }) {
   return test.per_side ? (
-    <TrendChart
+    <LineChart
       label={`${test.name}: forskel mellem siderne`}
       unit={test.unit}
       goal={0}
@@ -67,6 +59,6 @@ export function MobilityChart({ test, points }: { test: MobilityTest; points: Mo
       }))}
     />
   ) : (
-    <TrendChart label={test.name} unit={test.unit} points={points.map((p) => ({ key: p.uuid, date: p.date, value: p.value! }))} />
+    <LineChart label={test.name} unit={test.unit} points={points.map((p) => ({ key: p.uuid, date: p.date, value: p.value! }))} />
   );
 }

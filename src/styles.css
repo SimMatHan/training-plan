@@ -1,100 +1,119 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/archivo/wdth.css';
+@import './styles/tokens.css';
 
-/* Farver fra vægtskiver. Brugt funktionelt: A = rød, B = blå, løb = gul, mobilitet/grøn = grøn. */
+/*
+ * Tailwind ser kun designtokens: standardfarverne er slået fra, så en komponent ikke kan
+ * bruge en farve uden for tokens.css.
+ */
 @theme {
-  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+  --color-*: initial;
+  --font-*: initial;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
 
-  --color-kridt: #eef0ef;
-  --color-gummigulv: #23262a;
-  --color-skive-roed: #c8322b;
-  --color-skive-blaa: #1f5aa6;
-  --color-skive-gul: #e2b007;
-  --color-skive-groen: #2e8b57;
-}
+  /* Typografi (iOS-roller). */
+  --text-large-title: 34px;
+  --text-large-title--line-height: 41px;
+  --text-large-title--letter-spacing: -0.02em;
+  --text-large-title--font-weight: 700;
+  --text-title: 22px;
+  --text-title--line-height: 28px;
+  --text-title--letter-spacing: -0.01em;
+  --text-title--font-weight: 700;
+  --text-hero: 64px;
+  --text-hero--line-height: 1;
+  --text-hero--letter-spacing: -0.03em;
+  --text-hero--font-weight: 700;
+  --text-unit: 20px;
+  --text-unit--line-height: 1;
+  --text-unit--font-weight: 600;
+  --text-headline: 17px;
+  --text-headline--line-height: 22px;
+  --text-headline--font-weight: 600;
+  --text-body: 17px;
+  --text-body--line-height: 22px;
+  --text-row: 17px;
+  --text-row--line-height: 22px;
+  --text-row--font-weight: 500;
+  --text-secondary: 15px;
+  --text-secondary--line-height: 20px;
+  --text-footnote: 13px;
+  --text-footnote--line-height: 18px;
+  --text-caption: 11px;
+  --text-caption--line-height: 13px;
+  --text-tab: 10px;
+  --text-tab--line-height: 12px;
+  --text-tab--font-weight: 500;
 
-/* Semantiske tokens. Komponenter bruger kun disse, så lys/mørk er ét sted. */
-:root {
-  --bg: var(--color-kridt);
-  --fg: var(--color-gummigulv);
-  --surface: #f8f9f8;
-  --raised: #ffffff;
-  --line: rgb(35 38 42 / 0.14);
-  --muted: #5b6066;
-  --ghost: rgb(35 38 42 / 0.32);
+  --radius-card: 16px;
+  --radius-button: 14px;
+  --radius-tile: 10px;
 
-  --a: var(--color-skive-roed);
-  --b: var(--color-skive-blaa);
-  --run: var(--color-skive-gul);
-  --mob: var(--color-skive-groen);
-  /* Tekstfarver med nok kontrast på baggrunden. Gul bruges aldrig som tekst. */
-  --a-ink: #b02a24;
-  --b-ink: #1f5aa6;
-  --mob-ink: #23764a;
-  --yellow-ink: #8a6a00;
-  /* Diagramlinje; valideret mod baggrunden i hver tilstand. */
-  --chart-line: #2e8b57;
-
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: var(--color-gummigulv);
-    --fg: var(--color-kridt);
-    --surface: #2b2f34;
-    --raised: #33383e;
-    --line: rgb(238 240 239 / 0.14);
-    --muted: #a7adb2;
-    --ghost: rgb(238 240 239 / 0.34);
-
-    --a-ink: #f07a72;
-    --b-ink: #86aeea;
-    --mob-ink: #6cc496;
-    --yellow-ink: #e2b007;
-    --chart-line: #3fa56c;
-
-    color-scheme: dark;
-  }
+  --ease-ios: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @theme inline {
   --color-bg: var(--bg);
-  --color-fg: var(--fg);
   --color-surface: var(--surface);
-  --color-raised: var(--raised);
-  --color-line: var(--line);
-  --color-muted: var(--muted);
-  --color-ghost: var(--ghost);
-  --color-a: var(--a);
-  --color-b: var(--b);
-  --color-run: var(--run);
-  --color-mob: var(--mob);
-  --color-a-ink: var(--a-ink);
-  --color-b-ink: var(--b-ink);
-  --color-mob-ink: var(--mob-ink);
-  --color-yellow-ink: var(--yellow-ink);
-  --color-chart-line: var(--chart-line);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-separator: var(--separator);
+  --color-chrome: var(--chrome);
+  --color-scrim: var(--scrim);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-red: var(--brand-red);
+  --color-on-brand: var(--on-brand);
+  --color-danger: var(--danger-ink);
+  --color-status-green: var(--status-green);
+  --color-status-yellow: var(--status-yellow);
+  --color-status-red: var(--status-red);
+  --color-cat-legs: var(--cat-legs);
+  --color-cat-back: var(--cat-back);
+  --color-cat-arms: var(--cat-arms);
+  --color-cat-core: var(--cat-core);
+  --color-cat-calf: var(--cat-calf);
+  --color-cat-mobility: var(--cat-mobility);
+  --color-cat-cardio: var(--cat-cardio);
+  --shadow-float: var(--shadow-float);
+  --shadow-pill: var(--shadow-pill);
+  --shadow-glow: var(--glow);
 }
 
-/* Smal bredde til tal og overskrifter. */
-@utility narrow {
-  font-stretch: 75%;
-}
-
-/* Tal er hovedpersonen: smalle, tabulære cifre. */
+/* Tal står altid med tabulære cifre. */
 @utility num {
-  font-stretch: 75%;
   font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
+}
+
+/* Heltetal og logo: gradient som tekstfarve. */
+@utility text-gradient {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bg-brand {
+  background: var(--brand-gradient);
 }
 
 @utility pt-safe {
-  padding-top: max(env(safe-area-inset-top), 0.75rem);
+  padding-top: env(safe-area-inset-top);
 }
 
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Plads til fanebjælken nederst. */
+@utility pb-tabbar {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 6rem);
+}
+
+@utility blur-chrome {
+  background: var(--chrome);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
 }
 
 @layer base {
@@ -106,40 +125,114 @@
   body {
     min-height: 100dvh;
     background: var(--bg);
-    color: var(--fg);
+    color: var(--ink);
     font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 22px;
     font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
-  }
-
-  h1,
-  h2,
-  h3 {
-    font-stretch: 75%;
-    font-weight: 700;
-    line-height: 1.1;
+    overflow-x: hidden;
   }
 
   :focus-visible {
-    outline: 3px solid var(--fg);
+    outline: 2px solid var(--brand-red);
     outline-offset: 2px;
-    border-radius: 4px;
   }
 
-  input::placeholder {
-    color: var(--ghost);
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ink-3);
     opacity: 1;
   }
 }
 
+@layer components {
+  /* InsetList: hårfine separatorer der starter efter ikonflisen (--sep-inset). */
+  .inset-list > li {
+    position: relative;
+  }
+  .inset-list > li + li::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: var(--sep-inset, 16px);
+    border-top: 0.5px solid var(--separator);
+    pointer-events: none;
+  }
+
+  /* Talhjul: lodret scroll-snap, uden synlig scrollbar. */
+  .wheel {
+    scroll-snap-type: y mandatory;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .wheel::-webkit-scrollbar {
+    display: none;
+  }
+  .wheel > * {
+    scroll-snap-align: center;
+  }
+}
+
+/* ─── Bevægelse ─────────────────────────────────────────────────────────────
+   Kun som svar på handlinger, 200–280 ms. Med reduceret bevægelse: kun opacitet. */
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes roll-in {
+  from {
+    transform: translateY(0.6em);
+    opacity: 0;
+  }
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+}
+
+@utility animate-sheet {
+  animation: sheet-up 240ms var(--ease);
+}
+@utility animate-fade {
+  animation: fade-in 200ms var(--ease);
+}
+@utility animate-roll {
+  animation: roll-in 200ms var(--ease);
+}
+@utility animate-pop {
+  animation: pop 220ms var(--ease);
+}
+
+dialog[open]::backdrop {
+  animation: fade-in 240ms var(--ease);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .animate-sheet,
+  .animate-roll,
+  .animate-pop {
+    animation: fade-in 200ms var(--ease);
+  }
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+    transition-property: opacity !important;
   }
 }

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'wouter';
 import type { McpAuditEntry } from '../../shared/proposals';
 import { usePlan } from '../data/plan';
 import { athleteApi, OfflineError } from '../lib/api';
 import { useMe } from '../lib/auth';
-import { Section } from './Screen';
+import { ButtonLink, smallButton } from '../ui/Button';
+import { Group } from '../ui/InsetList';
+import { ErrorText, Muted } from '../ui/Screen';
 
 const TIME = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
@@ -42,23 +43,23 @@ export function ClaudeSection() {
   }
 
   return (
-    <Section title="Claude">
-      <p className="mb-3 text-sm text-muted">
+    <Group title="Claude">
+      <Muted className="mb-3 px-1">
         Én forbindelse pr. atlet, så Claude aldrig blander jeres data. Tilføj adressen i claude.ai (Indstillinger → Connectors → Tilføj brugerdefineret
         connector, i en browser) og log ind med din passkey, når claude.ai beder om det.
-      </p>
+      </Muted>
       <ul className="mb-4 flex flex-col gap-3">
         {me.athletes.map((a) => {
           const url = `${location.origin}/mcp/${a.slug}`;
           return (
             <li key={a.slug}>
-              <p className="mb-1 text-sm font-medium">
+              <p className="mb-1.5 px-1 text-footnote text-ink-2">
                 Træningsnav – {a.name}
-                {a.role === 'traener' && <span className="font-normal text-muted"> (du er træner)</span>}
+                {a.role === 'traener' && <span> (du er træner)</span>}
               </p>
               <div className="flex gap-2">
-                <p className="num min-w-0 flex-1 rounded-lg border border-line bg-surface p-3 text-sm break-all select-all">{url}</p>
-                <button type="button" onClick={() => void copy(url)} className="min-h-12 shrink-0 rounded-lg border border-line px-3 text-sm font-medium">
+                <p className="num min-w-0 flex-1 rounded-card bg-surface p-3 text-secondary break-all select-all">{url}</p>
+                <button type="button" onClick={() => void copy(url)} className={smallButton('secondary', 'shrink-0 self-center')}>
                   {copied === url ? 'Kopieret ✓' : 'Kopiér'}
                 </button>
               </div>
@@ -66,30 +67,26 @@ export function ClaudeSection() {
           );
         })}
       </ul>
-      <Link href="/forslag" className="mb-4 flex min-h-12 items-center justify-center rounded-lg border border-line px-4 font-medium">
+      <ButtonLink href="/forslag" className="mb-6">
         Alle forslag
-      </Link>
-      <h3 className="mb-1 text-sm font-semibold text-muted">Seneste kald fra Claude på din træning</h3>
-      {error && (
-        <p role="alert" className="text-sm text-a-ink">
-          {error}
-        </p>
-      )}
-      {audit && audit.length === 0 && <p className="text-sm text-muted">Ingen kald endnu.</p>}
+      </ButtonLink>
+      <h3 className="mb-1.5 px-1 text-footnote text-ink-2">Seneste kald fra Claude på din træning</h3>
+      <ErrorText>{error}</ErrorText>
+      {audit && audit.length === 0 && <Muted className="px-1">Ingen kald endnu.</Muted>}
       {audit && audit.length > 0 && (
-        <ul className="divide-y divide-line border-y border-line text-sm">
+        <ul className="inset-list overflow-hidden rounded-card bg-surface text-footnote">
           {audit.map((a, i) => (
-            <li key={i} className="flex min-h-10 items-center gap-3 py-1.5">
-              <span className="num w-28 shrink-0 text-muted">{TIME.format(new Date(a.at))}</span>
+            <li key={i} className="flex min-h-11 items-center gap-3 px-4 py-1.5">
+              <span className="num w-28 shrink-0 text-ink-2">{TIME.format(new Date(a.at))}</span>
               <span className="min-w-0 flex-1 font-mono text-xs break-all">
                 {a.tool}
-                {a.user && a.user !== me.user.name && <span className="font-sans text-muted"> · {a.user}</span>}
+                {a.user && a.user !== me.user.name && <span className="font-sans text-ink-2"> · {a.user}</span>}
               </span>
-              <span className={a.ok ? 'text-mob-ink' : 'text-a-ink'}>{a.ok ? 'ok' : a.error ? ERRORS[a.error] : 'fejl'}</span>
+              <span className={a.ok ? 'text-ink' : 'text-danger'}>{a.ok ? 'ok' : a.error ? ERRORS[a.error] : 'fejl'}</span>
             </li>
           ))}
         </ul>
       )}
-    </Section>
+    </Group>
   );
 }
