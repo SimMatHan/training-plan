@@ -73,7 +73,7 @@ export function TodayCard({
 
   return (
     <>
-      <Card className="mb-8">
+      <Card className="mb-10">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-title">{sessionTitle(session)}</h2>
           {about(session.durationMin) && <span className="shrink-0 text-secondary text-ink-2">{about(session.durationMin)}</span>}

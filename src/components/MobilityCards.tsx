@@ -26,7 +26,7 @@ export function MobilityCards() {
   const reminderDays = useReminderDays();
   if (!trends?.length) return null;
   return (
-    <InsetList inset={TILE_INSET} className="mb-8">
+    <InsetList inset={TILE_INSET} className="mb-10">
       {trends.map(({ test, points }) => {
         const { due, days, last } = measurementDue(points, todayIso(), reminderDays);
         return (

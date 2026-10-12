@@ -4,7 +4,8 @@ import { AccountSection, MonitoringSection, SecuritySection, SharingSection, Use
 import { CalendarSection } from '../components/CalendarSection';
 import { ClaudeSection } from '../components/ClaudeSection';
 import { PrimaryButton, SecondaryButton, smallButton } from '../ui/Button';
-import { Card, Group } from '../ui/InsetList';
+import { Card, Group, SectionIcon, Subheading } from '../ui/InsetList';
+import { groupProps, SECTIONS } from '../components/settingsSections';
 import { ErrorText, Muted, Screen } from '../ui/Screen';
 import { usePlan } from '../data/plan';
 import { athleteApi } from '../lib/api';
@@ -67,9 +68,11 @@ export function SettingsPage() {
 
   return (
     <Screen title="Indstillinger">
+      <Overview admin={me.user.isAdmin} />
+
       <AccountSection />
 
-      <Group title="Plan">
+      <Group {...groupProps(SECTIONS.plan)}>
         <Card className="mb-3">
           {meta ? (
             <p className="text-body">
@@ -84,6 +87,7 @@ export function SettingsPage() {
         </Card>
         {offline && <Muted className="mb-3 px-1">Offline — versioner kan skiftes, når der er net.</Muted>}
         <ErrorText className="mb-3">{error}</ErrorText>
+        {versions && versions.length > 0 && <Subheading>Versioner</Subheading>}
         {versions && versions.length > 0 && (
           <ul className="inset-list overflow-hidden rounded-card bg-surface">
             {versions.map((v) => (
@@ -120,8 +124,7 @@ export function SettingsPage() {
 
       {me.user.isAdmin && <UsersSection />}
 
-      <Group title="Data">
-        <Muted className="mb-3 px-1">Alle dine træninger, sæt, noter, smerte- og mobilitetsmålinger samt planversioner som én JSON-fil.</Muted>
+      <Group {...groupProps(SECTIONS.data)}>
         <SecondaryButton onClick={() => void runExport()} disabled={exporting}>
           {exporting ? 'Eksporterer …' : 'Eksportér alle data (JSON)'}
         </SecondaryButton>
@@ -138,6 +141,28 @@ export function SettingsPage() {
   );
 }
 
+/** Oversigt øverst: et tryk springer til sektionen, så de mange indstillinger er lette at finde. */
+function Overview({ admin }: { admin: boolean }) {
+  const sections = Object.values(SECTIONS).filter((s) => admin || s.id !== 'brugere');
+  const jump = (id: string) =>
+    document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  return (
+    <nav aria-label="Sektioner" className="mb-12 grid grid-cols-2 gap-2">
+      {sections.map((s) => (
+        <button
+          key={s.id}
+          type="button"
+          onClick={() => jump(s.id)}
+          className="flex min-h-12 items-center gap-2.5 rounded-[12px] bg-surface px-3 text-left text-row transition-colors duration-150 active:bg-surface-2"
+        >
+          <SectionIcon icon={s.icon} size={28} />
+          <span className="truncate">{s.title}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 /** Version og manuel søgning efter opdateringer. */
 function AppSection() {
   const { ready, apply, check } = useAppUpdate();
@@ -150,7 +175,7 @@ function AppSection() {
   }
 
   return (
-    <Group title="App">
+    <Group {...groupProps(SECTIONS.app)}>
       <Muted className="mb-3 px-1">
         Version <span className="num font-medium text-ink">{BUILD.id}</span> · bygget {formatWithYear(BUILD.time)}
       </Muted>

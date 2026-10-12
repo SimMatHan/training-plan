@@ -20,7 +20,7 @@ export function GateBox({ plan, week }: { plan: Plan; week: Week }) {
   const green = relevant.filter((a) => a.light === 'grøn').length;
 
   return (
-    <section aria-labelledby="gate" className="mb-8">
+    <section aria-labelledby="gate" className="mb-10">
       <Card>
         <h2 id="gate" className="text-title">
           Port til uge {gate.toWeek}

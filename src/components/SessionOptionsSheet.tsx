@@ -96,7 +96,7 @@ export function SessionOptionsSheet({
               aria-pressed={selected}
               aria-label={`${WEEKDAYS[day]} ${formatShort(date)}${day === scheduled.plannedDay ? ', planens dag' : ''}`}
               onClick={() => void move(day)}
-              className={`flex min-h-16 flex-col items-center justify-center rounded-[10px] text-footnote ${selected ? 'bg-ink font-semibold text-surface' : 'bg-surface-2 text-ink'}`}
+              className={`flex min-h-16 flex-col items-center justify-center rounded-[10px] text-footnote ${selected ? 'bg-ink font-semibold text-surface' : 'bg-fill text-ink'}`}
             >
               <span>{WEEKDAYS_SHORT[day]}</span>
               <span className="num text-headline">{Number(date.slice(8, 10))}</span>

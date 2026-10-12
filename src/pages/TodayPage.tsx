@@ -62,7 +62,7 @@ export function TodayPage() {
       {week ? (
         <>
           {todays.length === 0 ? (
-            <Card className="mb-8">
+            <Card className="mb-10">
               <h2 className="text-title">Hviledag</h2>
               {mobility && plan.mobility && (
                 <>
@@ -142,7 +142,7 @@ function NoPlanYet() {
     <Screen title="Velkommen" subtitle={formatLong(todayIso())} accessory={<Avatar name={me.user.name} />}>
       <MorningPainCards />
       <ProposalBanner />
-      <Card className="mb-8">
+      <Card className="mb-10">
         <h2 className="mb-2 text-title">Din første plan</h2>
         <p className="mb-3 text-body text-ink-2">
           Appen venter på din første træningsplan. Bed Claude om at lave den i dit claude.ai-projekt. Planen dukker op her som et forslag, som du godkender —

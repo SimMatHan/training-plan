@@ -1,7 +1,7 @@
 import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 
-/** Fælles udseende for felter: --surface-2, radius 10, 44 px. */
-export const fieldClass = 'num min-h-11 w-full min-w-0 rounded-[10px] bg-surface-2 px-3 text-body text-ink disabled:opacity-50';
+/** Fælles udseende for felter: --fill, radius 10, 44 px. */
+export const fieldClass = 'num min-h-11 w-full min-w-0 rounded-[10px] bg-fill px-3 text-body text-ink disabled:opacity-50';
 
 export function TextField({ label, hint, className = '', ...rest }: InputHTMLAttributes<HTMLInputElement> & { label?: ReactNode; hint?: ReactNode }) {
   const id = useId();
@@ -54,7 +54,7 @@ export function Switch({ checked, onChange, label }: { checked: boolean; onChang
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200 ease-ios ${checked ? 'bg-brand-red' : 'bg-surface-2 ring-1 ring-separator ring-inset'}`}
+        className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200 ease-ios ${checked ? 'bg-brand-red' : 'bg-fill'}`}
       >
         <span
           aria-hidden="true"
@@ -83,8 +83,8 @@ export function ChoiceGrid<T extends string | number>({
 }) {
   return (
     <fieldset>
-      <legend className="mb-1.5 text-footnote text-ink-2">{label}</legend>
-      <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+      <legend className="mb-2 text-footnote text-ink-2">{label}</legend>
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
         {options.map((o) => {
           const selected = o === value;
           return (
@@ -93,7 +93,7 @@ export function ChoiceGrid<T extends string | number>({
               type="button"
               aria-pressed={selected}
               onClick={() => onChange(o)}
-              className={`num min-h-11 rounded-[10px] px-1 text-body transition-colors duration-150 ${selected ? 'bg-ink font-semibold text-surface' : 'bg-surface-2 text-ink'}`}
+              className={`num min-h-11 rounded-[10px] px-1 text-body transition-colors duration-150 ${selected ? 'bg-ink font-semibold text-surface' : 'bg-fill text-ink'}`}
             >
               {format(o)}
             </button>

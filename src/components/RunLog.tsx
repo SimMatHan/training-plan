@@ -30,7 +30,7 @@ export function RunLog({ workout, session, scheduled }: { workout: Workout; sess
   ).filter((r): r is [string, string] => !!r[1]);
 
   return (
-    <section className="mb-8">
+    <section className="mb-10">
       {scheduled?.condition && <p className="mb-3 rounded-card bg-surface px-4 py-3 text-headline">{scheduled.condition}</p>}
       {plan.length > 0 && (
         <dl className="mb-6 grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-2 rounded-card bg-surface p-4 text-secondary">

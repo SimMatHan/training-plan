@@ -1,4 +1,4 @@
-/** iOS-segmenteret kontrol på --surface-2; det valgte segment er en hvid pille med svag skygge. */
+/** iOS-segmenteret kontrol på --fill (synlig på både kort og baggrund); det valgte segment er en hvid pille med svag skygge. */
 export function Segmented<T extends string>({
   options,
   value,
@@ -13,7 +13,7 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div role="group" aria-label={label} className={`flex gap-0.5 rounded-[11px] bg-surface-2 p-0.5 ${className}`}>
+    <div role="group" aria-label={label} className={`flex gap-0.5 rounded-[11px] bg-fill p-0.5 ${className}`}>
       {options.map((o) => {
         const selected = o.value === value;
         return (
