@@ -596,6 +596,12 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
   kontakten **Forskellig vægt eller reps pr. side** viser siderne hver for sig (valget huskes pr. øvelse på telefonen). Talhjulene står på sidste gangs vægt og reps, så et sæt magen til sidst er ét
   tryk på ✓; tryk på det valgte tal åbner tastaturet. Vægttrinnet er 2,5 kg for stang, kabel og maskine og 0,5 kg ellers
   (`src/logic/wheel.ts`). Slår et sæt rekorden (vægt × reps), ruller heltetallet til det nye tal med "Ny rekord".
+- **Øvelsesillustrationer:** hver øvelse og hvert mobilitetspunkt har en tændstiksmand (`src/logic/illustrations.ts`),
+  defineret som led-vinkler for en start- og en slutstilling (`src/logic/figure.ts`). Figuren bevæger sig blødt mellem
+  dem, lemmerne bevarer deres længde, og et valgt led (fx foden) står fast. En miniature står ved heltetallet i
+  logningen, på historikken og i mobilitetslisten; tryk viser bevægelsen. Nye øvelser i en plan får en figur på id
+  eller genkendes på navnet; en test fejler, hvis en af planens øvelser mangler en. `/dev/figurer` (dev-build) viser
+  dem alle med start og slut; `?vis=rdl,sideplanke` viser udvalgte større.
 - **Logo** i `brand/` (kilde: `brand/icon.svg`); `npm run icons` laver resten.
 - **Screenshots:** `npm run screenshots` starter Vite, svarer selv på `/api` med fem ugers falsk historik
   (`scripts/screenshots/fixtures.ts`) og fotograferer skærmene mandag i uge 6. Kræver Playwrights Chromium

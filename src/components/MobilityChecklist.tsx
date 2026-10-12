@@ -3,9 +3,8 @@ import { useState } from 'react';
 import type { Plan } from '../../shared/plan.schema';
 import type { MobilityCheck } from '../../shared/records.schema';
 import { setMobilityCheck } from '../data/workouts';
-import { IconTile } from '../ui/IconTile';
 import { InsetList } from '../ui/InsetList';
-import { TILE_INSET } from '../ui/ExerciseRow';
+import { ExerciseIllustration } from './ExerciseIllustration';
 
 /** Mobilitetsblokken som tjekliste. Gemmes pr. punkt. */
 export function MobilityChecklist({ plan, workoutUuid, checks }: { plan: Plan; workoutUuid: string; checks: MobilityCheck[] }) {
@@ -17,13 +16,23 @@ export function MobilityChecklist({ plan, workoutUuid, checks }: { plan: Plan; w
   if (!block) return null;
 
   return (
-    <InsetList inset={TILE_INSET} label={block.name}>
+    <InsetList inset={84} label={block.name}>
       {block.items.map((item) => {
         const checked = isDone(item.id);
         return (
-          <li key={item.id}>
-            <label className="flex min-h-14 cursor-pointer items-center gap-3 px-4 py-2.5">
-              <IconTile category="mobility" />
+          <li key={item.id} className="flex items-center gap-3 pl-4">
+            <ExerciseIllustration
+              id={item.id}
+              name={item.name}
+              size="sm"
+              details={
+                <div className="flex flex-col gap-1 px-1">
+                  <p className="num text-body">{item.dose}</p>
+                  {item.cue && <p className="text-secondary text-ink-2">{item.cue}</p>}
+                </div>
+              }
+            />
+            <label className="flex min-h-14 min-w-0 flex-1 cursor-pointer items-center gap-3 py-2.5 pr-4">
               <span className="min-w-0 flex-1">
                 <span className={`block text-row ${checked ? 'text-ink-2' : ''}`}>{item.name}</span>
                 <span className="num block text-secondary text-ink-2">{item.dose}</span>
