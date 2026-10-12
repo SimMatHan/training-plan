@@ -217,6 +217,10 @@ app → Slet fra hjemmeskærm**, åbn adressen i Safari og **Del → Føj til hj
 for at statussen sagde **Synket** først, så intet usendt går tabt. Service workerens cache har fået et nyt navn
 (`CACHE_VERSION` i `vite.config.ts`), så installerede apps henter alle filer forfra ved opdateringen.
 
+Det samme gælder statuslinjen: appen starter nu under iOS' faste statuslinje (`apple-mobile-web-app-status-bar-style`
+er `default`). Med `black-translucent` lagde iOS 26 en Liquid Glass-blur over toppen af appen, så topbjælkens tekst blev
+sløret. iOS læser indstillingen kun, når appen føjes til hjemmeskærmen, så **fjern appen og tilføj den igen** én gang.
+
 ## Migrationer
 
 Migrationer ligger i `migrations/` og køres i rækkefølge efter filnavn.
@@ -588,7 +592,8 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
   `/dev/ui` viser dem alle i lys og mørk; siden findes kun i dev-build (`npm run dev`).
 - **Ikonfliser:** kategorien kommer fra planens fokusområde (`src/logic/category.ts`). Ikoner er
   [Phosphor](https://phosphoricons.com) (MIT).
-- **Logning** tager én øvelse ad gangen. Talhjulene står på sidste gangs vægt og reps, så et sæt magen til sidst er ét
+- **Logning** tager én øvelse ad gangen. Ensidige øvelser logges som runder (sæt 1, 2, 3) med samme tal på begge sider;
+  kontakten **Forskellig vægt eller reps pr. side** viser siderne hver for sig (valget huskes pr. øvelse på telefonen). Talhjulene står på sidste gangs vægt og reps, så et sæt magen til sidst er ét
   tryk på ✓; tryk på det valgte tal åbner tastaturet. Vægttrinnet er 2,5 kg for stang, kabel og maskine og 0,5 kg ellers
   (`src/logic/wheel.ts`). Slår et sæt rekorden (vægt × reps), ruller heltetallet til det nye tal med "Ny rekord".
 - **Logo** i `brand/` (kilde: `brand/icon.svg`); `npm run icons` laver resten.

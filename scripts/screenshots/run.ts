@@ -5,8 +5,8 @@
 //
 // Starter Vite i dev-tilstand og svarer selv på /api med data fra fixtures.ts (Simon, mandag i uge 6),
 // så der hverken skal bruges Worker, D1 eller passkey. Uret står fast på fixtures.NOW.
-// På Linux findes SF Pro ikke; Inter bruges som stedfortræder, hvis den er installeret. Safe-area efterlignes
-// som på en iPhone i 390 × 844 (47 px top, 34 px bund), så luften over titlerne ligner telefonen.
+// På Linux findes SF Pro ikke; Inter bruges som stedfortræder, hvis den er installeret. Bundens safe-area
+// efterlignes (34 px). Toppen er 0: appen starter under iOS' faste statuslinje (status-bar-style default).
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { chromium, type Page, type Route } from 'playwright';
@@ -53,6 +53,36 @@ const scenarios: Scenario[] = [
       await p.getByText('Ny rekord').waitFor();
       await p.getByRole('button', { name: 'Spring over' }).click();
       await p.evaluate('window.scrollTo(0, 0)');
+    },
+  },
+  {
+    name: '4b-logning-runder',
+    run: async (p) => {
+      await toFirstExercise(p);
+      await p.getByRole('button', { name: 'Næste øvelse' }).click();
+      await p.getByRole('heading', { name: /Bulgarian split squat/ }).waitFor();
+    },
+  },
+  {
+    name: '4c-logning-pr-side',
+    run: async (p) => {
+      await toFirstExercise(p);
+      await p.getByRole('button', { name: 'Næste øvelse' }).click();
+      await p.getByRole('switch', { name: /Forskellig vægt eller reps pr. side/ }).click();
+      await p.getByRole('button', { name: /Sæt 1 venstre/ }).first().waitFor();
+    },
+  },
+  {
+    // En runde skal logge begge sider: ✓ på sæt 1 giver 2 af 6 sæt i oversigten.
+    name: '4d-runde-logger-begge-sider',
+    run: async (p) => {
+      await toFirstExercise(p);
+      await p.getByRole('button', { name: 'Næste øvelse' }).click();
+      await p.getByRole('button', { name: /^Sæt 1 færdigt/ }).click();
+      await p.getByRole('button', { name: 'Spring over' }).click();
+      await p.getByRole('button', { name: /^Oversigt/ }).click();
+      await p.getByText('2/6 sæt').waitFor();
+      console.log('  runde logget på begge sider (2/6 sæt)');
     },
   },
   { name: '5-logning-afslut', run: async (p) => {
@@ -163,7 +193,7 @@ try {
       await context.addInitScript({
         content: `addEventListener('DOMContentLoaded', () => {
           const style = document.createElement('style');
-          style.textContent = ':root { --font-sans: Inter, sans-serif !important; } * { caret-color: transparent; } .pt-safe { padding-top: 47px !important; } .pb-safe { padding-bottom: 34px !important; } .pb-tabbar { padding-bottom: calc(34px + 6rem) !important; }';
+          style.textContent = ':root { --font-sans: Inter, sans-serif !important; } * { caret-color: transparent; } .pb-safe { padding-bottom: 34px !important; } .pb-tabbar { padding-bottom: calc(34px + 6rem) !important; }';
           document.head.append(style);
         });`,
       });
