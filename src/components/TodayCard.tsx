@@ -1,21 +1,23 @@
-import { Check } from '@phosphor-icons/react';
+import { Check, ListBullets } from '@phosphor-icons/react';
+import { useState } from 'react';
 import type { ExerciseHistoryEntry } from '../../shared/history';
 import type { PainAssessment } from '../../shared/pain';
 import type { Plan, ScheduledSession, Session, Week } from '../../shared/plan.schema';
+import { useWorkoutLogs } from '../data/workouts';
 import type { Workout } from '../../shared/records.schema';
 import { formatDose, formatIntensity, formatRange, resolveStrengthSession } from '../../shared/resolve';
 import { sessionDetail, sessionTitle } from '../lib/sessions';
 import { exerciseCategory } from '../logic/category';
 import { formatDecimal } from '../logic/numbers';
-import { PrimaryButton, SecondaryButton } from '../ui/Button';
+import { PrimaryButton, SecondaryButton, smallButton } from '../ui/Button';
 import { ExerciseRow, TILE_INSET } from '../ui/ExerciseRow';
 import { HeroNumber } from '../ui/HeroNumber';
 import { Card, Group, InsetList } from '../ui/InsetList';
 import { StatusLight } from '../ui/StatusLight';
 import { useSessionOpener } from './SessionAction';
+import { aboutMinutes, SessionOverview } from './SessionOverview';
 
-/** "ca. 40 min" fra planens interval (midten, rundet til 5). */
-const about = (d: Session['durationMin']) => (d ? `ca. ${Math.round((d.min + d.max) / 2 / 5) * 5} min` : undefined);
+const about = aboutMinutes;
 
 /** Sidste resultat som heltal + enhed og en linje under ("8 reps"). */
 export function lastResult(entry: ExerciseHistoryEntry | undefined, kind: string | undefined) {
@@ -50,6 +52,8 @@ export function TodayCard({
   last: Map<string, ExerciseHistoryEntry>;
 }) {
   const { status, workout, open, busy } = useSessionOpener(session, week, workouts);
+  const [overview, setOverview] = useState(false);
+  const logs = useWorkoutLogs(workout?.uuid);
   const strength = session.kind === 'styrke' ? resolveStrengthSession(plan, session.id, week.weekNo) : undefined;
   const exercises = strength?.slots.flatMap((s) => s.exercises) ?? [];
   const light = workout && groin.get(workout.uuid)?.light;
@@ -105,7 +109,15 @@ export function TodayCard({
       </Card>
 
       {strength && (
-        <Group title="Øvelser">
+        <Group
+          title="Øvelser"
+          action={
+            <button type="button" onClick={() => setOverview(true)} className={smallButton('secondary', 'shrink-0 gap-1.5 px-3')}>
+              <ListBullets size={16} weight="bold" aria-hidden="true" />
+              Se hele træningen
+            </button>
+          }
+        >
           <InsetList inset={TILE_INSET}>
             {exercises.map((e) => {
               const r = lastResult(last.get(e.exercise.id), e.exercise.kind);
@@ -123,6 +135,19 @@ export function TodayCard({
             })}
           </InsetList>
         </Group>
+      )}
+
+      {strength && (
+        <SessionOverview
+          open={overview}
+          onClose={() => setOverview(false)}
+          plan={plan}
+          session={session}
+          weekNo={week.weekNo}
+          workoutUuid={workout && !workout.skipped_at ? workout.uuid : undefined}
+          sets={logs?.sets}
+          mobilityChecks={logs?.mobility}
+        />
       )}
     </>
   );

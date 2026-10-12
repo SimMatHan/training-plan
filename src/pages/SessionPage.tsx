@@ -9,6 +9,7 @@ import { ExerciseBlock } from '../components/ExerciseBlock';
 import { MobilityChecklist } from '../components/MobilityChecklist';
 import { NoteField } from '../components/NoteField';
 import { RestTimer } from '../components/RestTimer';
+import { SessionOverview, STEP_FINISH, STEP_MOBILITY } from '../components/SessionOverview';
 import { RpePicker } from '../components/RpePicker';
 import { RunLog } from '../components/RunLog';
 import { ScoreScale } from '../components/ScoreScale';
@@ -22,18 +23,13 @@ import { finishWorkout, patchWorkout, useWorkout, useWorkoutLogs } from '../data
 import { formatLong } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
 import { useWakeLock } from '../lib/wakeLock';
-import { exerciseCategory } from '../logic/category';
-import { isComplete, mobilityProgress, nextIncomplete, slotProgress, type Progress } from '../logic/progress';
-import { PrimaryButton, SecondaryButton, TextButton } from '../ui/Button';
+import { mobilityProgress, nextIncomplete, slotProgress, type Progress } from '../logic/progress';
+import { PrimaryButton, SecondaryButton, smallButton, TextButton } from '../ui/Button';
 import { HeroNumber } from '../ui/HeroNumber';
-import { IconTile } from '../ui/IconTile';
-import { InsetList, InsetRow, RowText } from '../ui/InsetList';
 import { Muted } from '../ui/Screen';
-import { Sheet } from '../ui/Sheet';
-import { TILE_INSET } from '../ui/ExerciseRow';
 
-const MOBILITY = 'mobilitet';
-const FINISH = 'afslut';
+const MOBILITY = STEP_MOBILITY;
+const FINISH = STEP_FINISH;
 
 /**
  * Logning, én øvelse ad gangen: mobilitet (hvis planen siger før), hver plads i sessionen og
@@ -160,12 +156,20 @@ export function SessionPage() {
         </div>
       </header>
 
-      <p className="mt-3 mb-4 px-1 text-footnote text-ink-2">
-        {session ? sessionTitle(session) : (workout.activity ?? 'Træning')}
-        {workout.week_no && ` · uge ${workout.week_no}`} · {formatLong(workout.date)}
-        {!session && workout.activity && ' · uden for planen'}
-        {workout.finished_at && ' · afsluttet'}
-      </p>
+      <div className="mt-2 mb-3 flex items-center justify-between gap-2 px-1">
+        <p className="min-w-0 text-footnote text-ink-2">
+          {session ? sessionTitle(session) : (workout.activity ?? 'Træning')}
+          {workout.week_no && ` · uge ${workout.week_no}`} · {formatLong(workout.date)}
+          {!session && workout.activity && ' · uden for planen'}
+          {workout.finished_at && ' · afsluttet'}
+        </p>
+        {stepped && (
+          <button type="button" onClick={() => setOverview(true)} className={smallButton('secondary', 'shrink-0 gap-1.5 px-3')}>
+            <ListBullets size={16} weight="bold" aria-hidden="true" />
+            Se hele træningen
+          </button>
+        )}
+      </div>
 
       {index <= 0 && <CoachNotes notes={weekNotes.filter((n) => n.session_id === workout.planned_session_id && n.session_id)} plan={plan} showSession={false} />}
 
@@ -218,32 +222,29 @@ export function SessionPage() {
         </PrimaryButton>
       )}
 
-      {stepped && (
-        <Sheet open={overview} onClose={() => setOverview(false)} title={session ? sessionTitle(session) : 'Session'}>
-          <InsetList inset={TILE_INSET} className="mb-4">
-            {steps.map((id) => {
-              const s = slots.find((x) => x.slotId === id);
-              const p = progress[id];
-              return (
-                <InsetRow key={id} onClick={() => go(id)} current={id === current}>
-                  <IconTile category={id === MOBILITY ? 'mobility' : s ? exerciseCategory(plan, s.exercises[0].exercise.id) : 'legs'} />
-                  <RowText
-                    title={id === MOBILITY ? plan.mobility!.name : id === FINISH ? 'Afslut' : s!.exercises.map((e) => e.label).join(' + ')}
-                    detail={p && (isComplete(p) ? `Færdig · ${p.done}/${p.total}` : `${p.done}/${p.total} sæt`)}
-                  />
-                </InsetRow>
-              );
-            })}
-          </InsetList>
-          <div className="flex items-center justify-between">
-            <SyncBadge />
-            {!workout.finished_at && (
-              <TextButton danger onClick={() => void remove('annuller')}>
-                Annuller session
-              </TextButton>
-            )}
-          </div>
-        </Sheet>
+      {stepped && session && workout.week_no && (
+        <SessionOverview
+          open={overview}
+          onClose={() => setOverview(false)}
+          plan={plan}
+          session={session}
+          weekNo={workout.week_no}
+          workoutUuid={workout.uuid}
+          sets={logs.sets}
+          mobilityChecks={logs.mobility}
+          current={current}
+          onPick={go}
+          footer={
+            <div className="flex items-center justify-between">
+              <SyncBadge />
+              {!workout.finished_at && (
+                <TextButton danger onClick={() => void remove('annuller')}>
+                  Annuller session
+                </TextButton>
+              )}
+            </div>
+          }
+        />
       )}
 
       {timerFor && <RestTimer compact={timerCompact} onToggle={() => setTimerCompact((c) => !c)} />}

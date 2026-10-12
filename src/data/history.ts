@@ -58,3 +58,26 @@ export function useWeeklySummaries(plan: Plan | undefined, untilWeek: number): W
       .reverse();
   }, [plan, untilWeek, today, key]);
 }
+
+/**
+ * Seneste gang for hver af øvelserne, uden den aktuelle træning (så "sidst" ikke er i dag).
+ * Ét opslag for hele sessionen, til oversigten over hele træningen.
+ */
+export function useLastEntries(exerciseIds: string[], excludeWorkoutUuid?: string): Map<string, ExerciseHistoryEntry> | undefined {
+  const key = exerciseIds.join(',');
+  return useLiveQuery(async () => {
+    if (!exerciseIds.length) return new Map<string, ExerciseHistoryEntry>();
+    const [sets, notes] = await Promise.all([
+      db.set_logs.where('exercise_id').anyOf(exerciseIds).toArray(),
+      db.exercise_notes.where('exercise_id').anyOf(exerciseIds).toArray(),
+    ]);
+    const others = sets.filter((s) => s.workout_uuid !== excludeWorkoutUuid);
+    const workouts = (await db.workouts.bulkGet([...new Set(others.map((s) => s.workout_uuid))])).filter((w) => !!w);
+    const out = new Map<string, ExerciseHistoryEntry>();
+    for (const id of exerciseIds) {
+      const latest = exerciseHistory(id, workouts, others, notes)[0];
+      if (latest) out.set(id, latest);
+    }
+    return out;
+  }, [key, excludeWorkoutUuid]);
+}
