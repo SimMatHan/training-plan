@@ -43,6 +43,7 @@ export function SetRow({
   onActivate,
   onPatch,
   onDone,
+  targetText,
 }: {
   row: Row;
   kind: ExerciseKind;
@@ -55,6 +56,8 @@ export function SetRow({
   onPatch: (p: Patch) => void;
   /** ✓: gemmer de viste tal sammen med done. */
   onDone: (done: boolean, values: SetValues) => void;
+  /** Målet som tekst, fx "12 H / 10 V reps" for en runde med begge sider. */
+  targetText?: string;
 }) {
   const [values, setValues] = useState(() => initial(log, ghost, row));
   // Optimistisk ✓, så to hurtige tryk ikke læser en forældet værdi.
@@ -65,7 +68,7 @@ export function SetRow({
 
   const name = `Sæt ${row.setNo}${row.side ? ` ${sideName(row.side).toLowerCase()}` : ''}`;
   const timed = kind === 'time';
-  const target = timed ? formatRange(row.seconds, ' sek') : formatRange(row.reps, ' reps');
+  const target = targetText ?? (timed ? formatRange(row.seconds, ' sek') : formatRange(row.reps, ' reps'));
   const change = (p: Partial<SetValues>) => {
     setValues((v) => ({ ...v, ...p }));
     onPatch(p);

@@ -2,7 +2,9 @@
 import { describe, expect, it } from 'vitest';
 import planJson from '../plan/plan.v1.json';
 import { PlanSchema } from '../shared/plan.schema';
+import { resolveStrengthSession } from '../shared/resolve';
 import { categoryOf, exerciseCategory, sessionCategory } from '../src/logic/category';
+import { roundTarget, sidesDiffer, toRounds } from '../src/logic/rounds';
 import { bestScore, nearestIndex, setScore, weightStep, wheelValues } from '../src/logic/wheel';
 
 const plan = PlanSchema.parse(planJson);
@@ -78,5 +80,32 @@ describe('rekorder', () => {
         'weight_reps',
       ),
     ).toBe(128);
+  });
+});
+
+describe('runder for ensidige øvelser', () => {
+  const tahaev = resolveStrengthSession(plan, 'styrke-a', 6).slots.flatMap((s) => s.exercises).find((e) => e.exercise.id === 'enbens-tahaev')!;
+
+  it('samler højre og venstre i én runde pr. sæt', () => {
+    const rounds = toRounds(tahaev.rows);
+    expect(tahaev.rows).toHaveLength(6);
+    expect(rounds.map((r) => r.setNo)).toEqual([1, 2, 3]);
+    expect(rounds[0].rows.map((r) => r.side)).toEqual(['H', 'V']);
+  });
+
+  it('viser forskellige mål pr. side', () => {
+    expect(roundTarget(toRounds(tahaev.rows)[0], 'weight_reps')).toBe('12 H / 10 V reps');
+    const same = toRounds([
+      { setNo: 1, side: 'H', reps: { min: 8, max: 8 }, optional: false },
+      { setNo: 1, side: 'V', reps: { min: 8, max: 8 }, optional: false },
+    ]);
+    expect(roundTarget(same[0], 'weight_reps')).toBe('8 reps');
+  });
+
+  it('opdager forskellige tal på siderne', () => {
+    const log = (side: 'H' | 'V', weight_kg: number) => ({ set_no: 1, side, weight_kg, reps: 8, seconds: null });
+    expect(sidesDiffer([log('H', 10), log('V', 10)])).toBe(false);
+    expect(sidesDiffer([log('H', 10), log('V', 12)])).toBe(true);
+    expect(sidesDiffer([log('H', 10)])).toBe(false);
   });
 });

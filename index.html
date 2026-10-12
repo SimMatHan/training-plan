@@ -11,7 +11,9 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Træning" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- default (ikke black-translucent): appen starter under en fast statuslinje. Med black-translucent
+         lægger iOS 26 en Liquid Glass-blur over toppen af siden, så topbjælkens tekst sløres. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="format-detection" content="telephone=no" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />

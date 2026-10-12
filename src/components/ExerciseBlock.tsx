@@ -17,6 +17,9 @@ import { GradientPill, HeroNumber } from '../ui/HeroNumber';
 import { InsetList } from '../ui/InsetList';
 import { NoteField } from './NoteField';
 import { RpePicker } from './RpePicker';
+import { usePerSidePref } from '../data/sidePrefs';
+import { roundTarget, sidesDiffer, toRounds, type Round } from '../logic/rounds';
+import { Switch } from '../ui/Field';
 import { SetRow } from './SetRow';
 
 type Values = Pick<SetLog, 'weight_kg' | 'reps' | 'seconds'>;
@@ -68,7 +71,20 @@ export function ExerciseBlock({
 
   const logFor = (side: string | null, setNo: number) => mine.find((s) => s.side === side && s.set_no === setNo);
   const key = (side: SetLog['side'], setNo: number) => ({ workoutUuid, exerciseId: exercise.id, side, setNo });
-  const firstOpen = rows.findIndex((r) => !logFor(r.side, r.setNo)?.done);
+
+  // Ensidige øvelser logges som runder (begge sider på én gang), medmindre kontakten er slået til,
+  // eller dagens log allerede har forskellige tal på siderne.
+  const [perSidePref, setPerSidePref] = usePerSidePref(exercise.id);
+  const differs = exercise.perSide && sidesDiffer(mine);
+  const perSide = exercise.perSide && (perSidePref || differs);
+  const rounds = perSide ? rows.map((row) => ({ setNo: row.setNo, rows: [row], optional: row.optional })) : toRounds(rows);
+  /** En runde er færdig, når alle dens sider er. Tallene vises fra første side. */
+  const roundLog = (round: Round): SetLog | undefined => {
+    const logs = round.rows.map((r) => logFor(r.side, r.setNo));
+    const first = logs.find(Boolean);
+    return first && { ...first, done: logs.every((l) => l?.done) };
+  };
+  const firstOpen = rounds.findIndex((r) => !roundLog(r)?.done);
   const active = picked ?? firstOpen;
 
   // "Klar til mere vægt": sidste gang ramte alle sæt toppen af intervallet ved RPE ≤ planens mål.
@@ -124,27 +140,48 @@ export function ExerciseBlock({
         )}
       </div>
 
-      <InsetList label={`Sæt, ${label}`}>
-        {rows.map((row, i) => (
-          <SetRow
-            key={`${exercise.id}-${row.side}-${row.setNo}`}
-            row={row}
-            kind={exercise.kind}
-            step={weightStep(exercise)}
-            log={logFor(row.side, row.setNo)}
-            ghost={ghostFor(last, row.side, row.setNo)}
-            active={i === active}
-            onActivate={() => setPicked(i)}
-            onPatch={(p) => void upsertSet(key(row.side, row.setNo), p)}
-            onDone={(done, values) => {
-              void upsertSet(key(row.side, row.setNo), { ...values, done });
-              if (picked === i) setPicked(null);
-              if (!done) return;
-              const rest = restAfter(rows, i, dose, { supersetFirst });
-              if (rest > 0) startTimer(rest, label, workoutUuid);
+      {exercise.perSide && (
+        <div className="mb-2 px-1">
+          <Switch
+            label="Forskellig vægt eller reps pr. side"
+            checked={perSide}
+            onChange={(on) => {
+              setPerSidePref(on);
+              setPicked(null);
             }}
           />
-        ))}
+        </div>
+      )}
+
+      <InsetList label={`Sæt, ${label}`}>
+        {rounds.map((round, i) => {
+          const row = round.rows.length > 1 ? { ...round.rows[0], side: null } : round.rows[0];
+          const write = (patch: Parameters<typeof upsertSet>[1]) => {
+            for (const r of round.rows) void upsertSet(key(r.side, r.setNo), patch);
+          };
+          return (
+            <SetRow
+              key={`${exercise.id}-${perSide ? 'side' : 'runde'}-${row.side}-${row.setNo}`}
+              row={{ ...row, optional: round.optional }}
+              kind={exercise.kind}
+              step={weightStep(exercise)}
+              log={roundLog(round)}
+              ghost={ghostFor(last, round.rows[0].side, round.setNo)}
+              active={i === active}
+              targetText={round.rows.length > 1 ? roundTarget(round, exercise.kind) : undefined}
+              onActivate={() => setPicked(i)}
+              onPatch={write}
+              onDone={(done, values) => {
+                write({ ...values, done });
+                if (picked === i) setPicked(null);
+                if (!done) return;
+                // Pr. side: ingen pause mellem siderne i samme sæt. Runder: pause efter hver runde.
+                const rest = perSide || !exercise.perSide ? restAfter(rows, rows.indexOf(round.rows[0]), dose, { supersetFirst }) : supersetFirst ? 0 : dose.restSec;
+                if (rest > 0) startTimer(rest, label, workoutUuid);
+              }}
+            />
+          );
+        })}
       </InsetList>
 
       <SecondaryButton onClick={sameAsLast} disabled={!canCopy} className="mt-3">
