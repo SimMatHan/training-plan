@@ -30,7 +30,7 @@ function MorningPainCard({ monitorId, workout }: { monitorId: number; workout: W
   const label = monitor.label.charAt(0).toLowerCase() + monitor.label.slice(1);
 
   return (
-    <section aria-labelledby={`morning-${monitorId}`} className="mb-8">
+    <section aria-labelledby={`morning-${monitorId}`} className="mb-10">
       <Card>
         <h2 id={`morning-${monitorId}`} className="text-title">
           Hvordan er {label} i morges?

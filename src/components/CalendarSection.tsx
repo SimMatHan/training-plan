@@ -5,7 +5,8 @@ import { usePlan } from '../data/plan';
 import { athleteApi, OfflineError } from '../lib/api';
 import { PrimaryButton, SecondaryButton, smallButton } from '../ui/Button';
 import { TextField } from '../ui/Field';
-import { Group } from '../ui/InsetList';
+import { Group, Subheading } from '../ui/InsetList';
+import { groupProps, SECTIONS } from './settingsSections';
 import { ErrorText, Muted } from '../ui/Screen';
 import { Segmented } from '../ui/Segmented';
 
@@ -70,10 +71,8 @@ export function CalendarSection() {
   }
 
   return (
-    <Group title="Kalender">
-      <Muted className="mb-3 px-1">
-        Abonnér på træningsplanen i din kalender. Den opdaterer sig selv, når planen ændres, når du logger en session, og når du flytter en.
-      </Muted>
+    <Group {...groupProps(SECTIONS.kalender)}>
+      <Subheading className="mt-0">Abonnementslink</Subheading>
       <ErrorText className="mb-3">{error}</ErrorText>
       {info && !feedUrl && (
         <Muted className="mb-3 px-1">
@@ -116,6 +115,7 @@ export function CalendarSection() {
           </p>
         </>
       )}
+      {info && <Subheading>Tidspunkt i kalenderen</Subheading>}
       {info && (
         <ul className="inset-list overflow-hidden rounded-card bg-surface">
           {info.settings

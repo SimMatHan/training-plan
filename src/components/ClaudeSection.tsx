@@ -4,7 +4,8 @@ import { usePlan } from '../data/plan';
 import { athleteApi, OfflineError } from '../lib/api';
 import { useMe } from '../lib/auth';
 import { ButtonLink, smallButton } from '../ui/Button';
-import { Group } from '../ui/InsetList';
+import { Group, Subheading } from '../ui/InsetList';
+import { groupProps, SECTIONS } from './settingsSections';
 import { ErrorText, Muted } from '../ui/Screen';
 
 const TIME = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -43,9 +44,10 @@ export function ClaudeSection() {
   }
 
   return (
-    <Group title="Claude">
-      <Muted className="mb-3 px-1">
-        Én forbindelse pr. atlet, så Claude aldrig blander jeres data. Tilføj adressen i claude.ai (Indstillinger → Connectors → Tilføj brugerdefineret
+    <Group {...groupProps(SECTIONS.claude)}>
+      <Subheading className="mt-0">Forbindelser</Subheading>
+      <Muted className="mb-4 px-1">
+        Tilføj adressen i claude.ai (Indstillinger → Connectors → Tilføj brugerdefineret
         connector, i en browser) og log ind med din passkey, når claude.ai beder om det.
       </Muted>
       <ul className="mb-4 flex flex-col gap-3">
@@ -67,10 +69,9 @@ export function ClaudeSection() {
           );
         })}
       </ul>
-      <ButtonLink href="/forslag" className="mb-6">
-        Alle forslag
-      </ButtonLink>
-      <h3 className="mb-1.5 px-1 text-footnote text-ink-2">Seneste kald fra Claude på din træning</h3>
+      <Subheading>Forslag</Subheading>
+      <ButtonLink href="/forslag">Alle forslag</ButtonLink>
+      <Subheading>Seneste kald fra Claude på din træning</Subheading>
       <ErrorText>{error}</ErrorText>
       {audit && audit.length === 0 && <Muted className="px-1">Ingen kald endnu.</Muted>}
       {audit && audit.length > 0 && (

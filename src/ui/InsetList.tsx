@@ -1,4 +1,4 @@
-import { CaretRight } from '@phosphor-icons/react';
+import { CaretRight, type Icon } from '@phosphor-icons/react';
 import type { CSSProperties, ReactNode } from 'react';
 import { Link } from 'wouter';
 
@@ -14,7 +14,7 @@ export function InsetList({ children, inset = 16, className = '', label }: { chi
   );
 }
 
-const rowBase = 'flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left';
+const rowBase = 'flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left';
 const pressable = 'transition-colors duration-150 active:bg-surface-2';
 
 /** Én række. Med `href` bliver hele rækken et link; med `onClick` en knap. */
@@ -80,12 +80,15 @@ export function RowValue({ primary, secondary }: { primary: ReactNode; secondary
 
 /** Flad hvid flade til indhold der ikke er en liste. */
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-card bg-surface p-4 ${className}`}>{children}</div>;
+  return <div className={`rounded-card bg-surface p-5 ${className}`}>{children}</div>;
 }
 
-/** En sektion med overskrift (titel 22/700) og valgfri fodnote under. */
+/** En sektion med overskrift (titel 22/700), evt. ikon og beskrivelse under, og valgfri fodnote. */
 export function Group({
   title,
+  description,
+  icon: Glyph,
+  id,
   footer,
   children,
   className = '',
@@ -93,6 +96,12 @@ export function Group({
   small = false,
 }: {
   title?: ReactNode;
+  /** Kort forklaring lige under overskriften. */
+  description?: ReactNode;
+  /** Ikon foran overskriften (Indstillinger), så sektionerne er lette at skelne. */
+  icon?: Icon;
+  /** Anker, fx til oversigten i Indstillinger. */
+  id?: string;
   footer?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -101,15 +110,39 @@ export function Group({
   small?: boolean;
 }) {
   return (
-    <section className={`mb-8 ${className}`}>
+    <section id={id} className={`scroll-mt-16 ${small ? 'mb-8' : 'mb-12'} ${className}`}>
       {(title || action) && (
-        <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
-          {title && (small ? <h3 className="text-headline">{title}</h3> : <h2 className="text-title">{title}</h2>)}
-          {action}
+        <div className="mb-3 px-1">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              {Glyph && <SectionIcon icon={Glyph} />}
+              {title && (small ? <h3 className="text-headline">{title}</h3> : <h2 className="text-title">{title}</h2>)}
+            </div>
+            {action}
+          </div>
+          {description && <p className="mt-1.5 text-secondary text-ink-2">{description}</p>}
         </div>
       )}
       {children}
       {footer && <p className="mt-2 px-4 text-footnote text-ink-2">{footer}</p>}
     </section>
   );
+}
+
+/** Lille rund-firkantet ikonflise til sektioner: ikonet i --brand-red på samme farve i 12 %. */
+export function SectionIcon({ icon: Glyph, size = 32 }: { icon: Icon; size?: number }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="grid shrink-0 place-items-center rounded-[9px] text-brand-red"
+      style={{ width: size, height: size, background: 'color-mix(in srgb, var(--brand-red) 12%, transparent)' }}
+    >
+      <Glyph size={Math.round(size * 0.56)} weight="fill" />
+    </span>
+  );
+}
+
+/** Overskrift inde i en sektion, fx "Smerte" og "Mobilitetstests" under Overvågning. */
+export function Subheading({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <h3 className={`mt-6 mb-2 px-1 text-headline ${className}`}>{children}</h3>;
 }

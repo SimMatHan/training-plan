@@ -42,7 +42,7 @@ export function WeekPage() {
 
 /** Forrige/næste uge som to runde knapper ved titlen. */
 function WeekNav({ plan, index, onStep }: { plan: Plan; index: number; onStep: (d: number) => void }) {
-  const btn = 'grid size-11 place-items-center rounded-full bg-surface-2 text-ink disabled:opacity-30';
+  const btn = 'grid size-11 place-items-center rounded-full bg-fill text-ink disabled:opacity-30';
   return (
     <div className="flex gap-2">
       <button type="button" onClick={() => onStep(-1)} disabled={index === 0} aria-label="Forrige uge" className={btn}>
@@ -70,7 +70,7 @@ function WeekProgress({ week }: { week: Week }) {
   const counts = (['grøn', 'gul', 'rød'] as const).map((l) => [l, lights.filter((x) => x === l).length] as const).filter(([, n]) => n > 0);
 
   return (
-    <Card className="mb-8 flex items-center gap-5">
+    <Card className="mb-10 flex items-center gap-5">
       <Ring progress={planned.length ? done / planned.length : 0} size={112} stroke={11} label={`${done} af ${planned.length} sessioner lavet`}>
         <span>
           <span className="num block text-title">

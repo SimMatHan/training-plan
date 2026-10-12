@@ -80,7 +80,7 @@ export function ExerciseHistoryPage() {
       <select
         value={months}
         onChange={(e) => setMonths(Number(e.target.value))}
-        className="min-h-9 appearance-none rounded-full bg-surface-2 pr-8 pl-3.5 text-secondary font-semibold text-ink"
+        className="min-h-9 appearance-none rounded-full bg-fill pr-8 pl-3.5 text-secondary font-semibold text-ink"
       >
         {PERIODS.map((p) => (
           <option key={p.months} value={p.months}>
@@ -124,7 +124,7 @@ export function ExerciseHistoryPage() {
           </Card>
 
           {points.length > 0 && (
-            <dl className="mb-8 grid grid-cols-3 gap-3 px-1">
+            <dl className="mb-10 grid grid-cols-3 gap-3 px-1">
               <Stat label="Start" value={formatDecimal(points[0].value)} unit={series.unit} />
               <Stat
                 label="Stigning"

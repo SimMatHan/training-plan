@@ -9,7 +9,7 @@ export function ProposalBanner() {
   const one = pending.length === 1;
 
   return (
-    <InsetList className="mb-8">
+    <InsetList className="mb-10">
       <InsetRow href={one ? `/forslag/${pending[0].id}` : '/forslag'}>
         <span className="grid size-9 shrink-0 place-items-center rounded-tile bg-surface-2 text-cat-arms" aria-hidden="true">
           <Sparkle size={20} weight="fill" />

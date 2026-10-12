@@ -11,7 +11,7 @@ import { TextButton } from '../ui/Button';
 export function CoachNotes({ notes, plan, showSession = true }: { notes: CoachNote[]; plan: Plan; showSession?: boolean }) {
   if (!notes.length) return null;
   return (
-    <section aria-label="Noter fra Claude" className="mb-8 flex flex-col gap-2">
+    <section aria-label="Noter fra Claude" className="mb-10 flex flex-col gap-2">
       {notes.map((n) => {
         const session = n.session_id ? getSession(plan, n.session_id) : undefined;
         return (

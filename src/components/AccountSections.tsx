@@ -9,8 +9,9 @@ import { formatWithYear } from '../lib/dates';
 import { addPasskey, passkeyError } from '../lib/passkeys';
 import { smallButton, TextButton } from '../ui/Button';
 import { fieldClass, Select, Switch } from '../ui/Field';
-import { Card, Group } from '../ui/InsetList';
-import { ErrorText as Err, Muted } from '../ui/Screen';
+import { Card, Group, Subheading } from '../ui/InsetList';
+import { groupProps, SECTIONS } from './settingsSections';
+import { ErrorText as Err } from '../ui/Screen';
 
 const errorText = (e: unknown) => (e instanceof OfflineError ? 'Ingen forbindelse. Prøv igen med net.' : (e as Error).message);
 const button = smallButton('secondary');
@@ -29,7 +30,7 @@ export function AccountSection() {
     await signOut();
   }
   return (
-    <Group title="Konto">
+    <Group {...groupProps(SECTIONS.konto)}>
       <Card className="flex items-center justify-between gap-3">
         <p className="text-body">
           Logget ind som <span className="font-semibold">{me.user.name}</span>
@@ -66,8 +67,7 @@ export function SecuritySection() {
   }
 
   return (
-    <Group title="Sikkerhed">
-      <Muted className="mb-3 px-1">Du logger ind med en passkey (Face ID). Passkeys fra iCloud-nøgleringen virker på alle dine Apple-enheder.</Muted>
+    <Group {...groupProps(SECTIONS.sikkerhed)}>
       <ErrorText error={error} />
       {keys && (
         <ul className={list}>
@@ -132,10 +132,7 @@ export function SharingSection() {
 
   const others = sharing?.access.filter((a) => a.userId !== me.user.id) ?? [];
   return (
-    <Group title="Deling">
-      <Muted className="mb-3 px-1">
-        En træner kan se din uge, historik og Claudes forslag og bruge Claude til at lave dit program. Kun du kan logge og godkende forslag.
-      </Muted>
+    <Group {...groupProps(SECTIONS.deling)}>
       <ErrorText error={error} />
       {sharing && others.length === 0 && <Card className="mb-3 text-body">Kun du har adgang til din træning.</Card>}
       {others.length > 0 && (
@@ -199,12 +196,9 @@ export function MonitoringSection() {
   const toggleTest = (t: MobilityTest) => act(`/mobility-tests/${t.id}`, 'PATCH', { active: !t.active });
 
   return (
-    <Group title="Overvågning">
-      <Muted className="mb-3 px-1">
-        Smerte-monitors får en score efter hver træning og et spørgsmål morgenen efter (trafiklys). Mobilitetstests minder dig om en ny måling efter 14 dage.
-      </Muted>
+    <Group {...groupProps(SECTIONS.overvaagning)}>
       <ErrorText error={error} />
-      <h3 className="mb-1.5 px-1 text-footnote text-ink-2">Smerte</h3>
+      <Subheading className="mt-0">Smerte</Subheading>
       <ul className={list}>
         {profile?.monitors.map((m) => (
           <li key={m.id} className="flex min-h-12 items-center gap-3 px-4 py-1.5">
@@ -222,7 +216,7 @@ export function MonitoringSection() {
         </button>
       </form>
 
-      <h3 className="mb-1.5 px-1 text-footnote text-ink-2">Mobilitetstests</h3>
+      <Subheading>Mobilitetstests</Subheading>
       <ul className={list}>
         {profile?.mobilityTests.map((t) => (
           <li key={t.id} className="flex min-h-12 items-center gap-3 px-4 py-1.5">
@@ -238,7 +232,7 @@ export function MonitoringSection() {
       <form onSubmit={addTest} className="flex flex-col gap-2">
         <div className="flex gap-2">
           <input value={test.name} maxLength={40} onChange={(e) => setTest({ ...test, name: e.target.value })} placeholder="Fx Knee-to-wall" aria-label="Ny test" className={`${input} min-w-0 flex-1`} />
-          <input value={test.unit} maxLength={12} onChange={(e) => setTest({ ...test, unit: e.target.value })} aria-label="Enhed" className={`${input} w-20`} />
+          <input value={test.unit} maxLength={12} onChange={(e) => setTest({ ...test, unit: e.target.value })} aria-label="Enhed" className={`${input} w-20! shrink-0`} />
         </div>
         <Switch label="Højre og venstre måles hver for sig" checked={test.perSide} onChange={(perSide) => setTest({ ...test, perSide })} />
         <button type="submit" disabled={!test.name.trim() || !test.unit.trim()} className={button}>
@@ -279,8 +273,9 @@ export function UsersSection() {
   }
 
   return (
-    <Group title="Brugere">
+    <Group {...groupProps(SECTIONS.brugere)}>
       <ErrorText error={error} />
+      <Subheading className="mt-0">Ny invitation</Subheading>
       <form onSubmit={invite} className="mb-3 flex flex-col gap-2">
         <Select
           label="Inviter"

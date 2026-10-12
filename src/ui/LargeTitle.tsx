@@ -48,7 +48,7 @@ export function LargeTitle({ title, subtitle, accessory, back }: { title: string
       </div>
       {/* Kun en række over titlen, når der er et tilbage-link; ellers står tilbehøret (avatar,
           ugepile) på titlens linje som i Apples egne apps, så der ikke er luft til ingenting. */}
-      <header className={back ? 'pt-1 pb-5' : 'pt-4 pb-5'}>
+      <header className={back ? 'pt-1 pb-7' : 'pt-4 pb-7'}>
         {back && (
           <div className="flex min-h-11 items-center justify-between gap-3">
             <BackLink back={back} />

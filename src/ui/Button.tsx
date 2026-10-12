@@ -9,7 +9,8 @@ const base =
 const look: Record<Variant, string> = {
   // Gradienten er forbeholdt primærknappen (og få andre steder, se tokens.css).
   primary: 'bg-brand text-on-brand',
-  secondary: 'bg-surface-2 text-ink',
+  // --fill i stedet for --surface-2: ellers forsvinder knappen på den grå baggrund.
+  secondary: 'bg-fill text-ink',
 };
 
 /** Stor knap: fuld bredde, 52 px, radius 14, tekst 17/600. */

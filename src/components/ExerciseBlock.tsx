@@ -98,7 +98,7 @@ export function ExerciseBlock({
   }
 
   return (
-    <article className="mb-8">
+    <article className="mb-10">
       {showTitle && <h2 className="mb-2 text-title">{label}</h2>}
       <div className="mb-4 px-1">
         <HeroNumber
