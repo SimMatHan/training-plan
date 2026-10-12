@@ -16,6 +16,7 @@ import { SecondaryButton, SmallButton } from '../ui/Button';
 import { GradientPill, HeroNumber } from '../ui/HeroNumber';
 import { InsetList } from '../ui/InsetList';
 import { NoteField } from './NoteField';
+import { ExerciseIllustration } from './ExerciseIllustration';
 import { RpePicker } from './RpePicker';
 import { usePerSidePref } from '../data/sidePrefs';
 import { roundTarget, sidesDiffer, toRounds, type Round } from '../logic/rounds';
@@ -117,13 +118,28 @@ export function ExerciseBlock({
     <article className="mb-10">
       {showTitle && <h2 className="mb-2 text-title">{label}</h2>}
       <div className="mb-4 px-1">
-        <HeroNumber
-          size={showTitle ? 'md' : 'lg'}
-          label={record ? 'I dag' : last ? `Sidst ${formatShort(last.workout.date)}` : 'Første gang · mål'}
-          value={hero?.value ?? (target || '–')}
-          unit={hero?.unit ?? (exercise.kind === 'time' ? 'sek' : 'reps')}
-          badge={record && <GradientPill>Ny rekord</GradientPill>}
-        />
+        <div className="flex items-start justify-between gap-3">
+          <HeroNumber
+            className="min-w-0"
+            size={showTitle ? 'md' : 'lg'}
+            label={record ? 'I dag' : last ? `Sidst ${formatShort(last.workout.date)}` : 'Første gang · mål'}
+            value={hero?.value ?? (target || '–')}
+            unit={hero?.unit ?? (exercise.kind === 'time' ? 'sek' : 'reps')}
+            badge={record && <GradientPill>Ny rekord</GradientPill>}
+          />
+          <ExerciseIllustration
+            id={exercise.id}
+            name={label}
+            size={showTitle ? 'sm' : 'md'}
+            details={
+              <div className="flex flex-col gap-1 px-1">
+                <p className="num text-body">{meta}</p>
+                {(dose.tempo || dose.note) && <p className="text-secondary">{[dose.tempo, dose.note].filter(Boolean).join(' · ')}</p>}
+                {resolved.planned.cue && !useAlt && <p className="text-secondary text-ink-2">{resolved.planned.cue}</p>}
+              </div>
+            }
+          />
+        </div>
         <p className="num mt-2 text-secondary text-ink-2">{meta}</p>
         {(dose.tempo || dose.note) && <p className="mt-0.5 text-secondary">{[dose.tempo, dose.note].filter(Boolean).join(' · ')}</p>}
         {!useAlt && resolved.planned.cue && <p className="mt-0.5 text-secondary text-ink-2">{resolved.planned.cue}</p>}

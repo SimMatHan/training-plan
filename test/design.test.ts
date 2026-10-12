@@ -4,6 +4,8 @@ import planJson from '../plan/plan.v1.json';
 import { PlanSchema } from '../shared/plan.schema';
 import { resolveStrengthSession } from '../shared/resolve';
 import { categoryOf, exerciseCategory, sessionCategory } from '../src/logic/category';
+import { blend, LEN, pingPong, solve } from '../src/logic/figure';
+import { ILLUSTRATIONS, illustrationFor } from '../src/logic/illustrations';
 import { roundTarget, sidesDiffer, toRounds } from '../src/logic/rounds';
 import { bestScore, nearestIndex, setScore, weightStep, wheelValues } from '../src/logic/wheel';
 
@@ -107,5 +109,42 @@ describe('runder for ensidige øvelser', () => {
     expect(sidesDiffer([log('H', 10), log('V', 10)])).toBe(false);
     expect(sidesDiffer([log('H', 10), log('V', 12)])).toBe(true);
     expect(sidesDiffer([log('H', 10)])).toBe(false);
+  });
+});
+
+describe('øvelsesillustrationer', () => {
+  const dist = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+
+  it('findes for alle planens øvelser og mobilitetspunkter', () => {
+    const missing = [...plan.exercises.map((e) => [e.id, e.name]), ...(plan.mobility?.items ?? []).map((i) => [i.id, i.name])].filter(
+      ([id, name]) => !illustrationFor(id, name),
+    );
+    expect(missing).toEqual([]);
+  });
+
+  it('genkender øvelser fra andre planer på navnet', () => {
+    expect(illustrationFor('ukendt-id', 'Goblet split squat')).toBe(ILLUSTRATIONS['bulgarian-split-squat']);
+    expect(illustrationFor('ukendt-id', 'Noget helt andet')).toBeUndefined();
+  });
+
+  it('bevarer lemmernes længde og det faste led gennem hele bevægelsen', () => {
+    for (const ill of Object.values(ILLUSTRATIONS)) {
+      for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+        const pose = blend(ill.from, ill.to, t);
+        const s = solve(pose);
+        expect(dist(s.hip, s.kneeN)).toBeCloseTo(LEN.thigh, 6);
+        expect(dist(s.kneeN, s.ankleN)).toBeCloseTo(LEN.shin, 6);
+        expect(dist(s.shoulder, s.elbowF)).toBeCloseTo(LEN.upperArm, 6);
+        expect(s[pose.anchor][0]).toBeCloseTo(pose.at[0], 6);
+        expect(s[pose.anchor][1]).toBeCloseTo(pose.at[1], 6);
+      }
+    }
+  });
+
+  it('bevæger sig blødt frem og tilbage med ophold i enderne', () => {
+    expect(pingPong(0)).toBe(0);
+    expect(pingPong(0.5)).toBeCloseTo(1, 6);
+    expect(pingPong(1)).toBe(0);
+    expect(pingPong(0.25)).toBeGreaterThan(0.4);
   });
 });

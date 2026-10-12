@@ -32,6 +32,13 @@ async function toFirstExercise(page: Page) {
 
 const scenarios: Scenario[] = [
   { name: 'dev-ui', full: true, run: (p) => p.goto('/dev/ui').then(() => undefined) },
+  {
+    name: 'dev-figurer-udvalgt',
+    full: true,
+    run: (p) =>
+      p.goto(`/dev/figurer?vis=${process.env.FIGURER ?? 'copenhagen-plank,sideplanke,glideskinne-leg-curl,step-down,pull-up-elastik,psoas-release'}`).then(() => p.getByText('Figurer').waitFor()),
+  },
+  { name: 'dev-figurer', full: true, run: (p) => p.goto('/dev/figurer').then(() => p.getByText('Figurer').waitFor()) },
   { name: '1-logning-mobilitet', run: startSession },
   { name: '2-logning', run: toFirstExercise },
   {
@@ -83,6 +90,14 @@ const scenarios: Scenario[] = [
       await p.getByRole('button', { name: /^Oversigt/ }).click();
       await p.getByText('2/6 sæt').waitFor();
       console.log('  runde logget på begge sider (2/6 sæt)');
+    },
+  },
+  {
+    name: '4e-illustration',
+    run: async (p) => {
+      await toFirstExercise(p);
+      await p.getByRole('button', { name: /Se hvordan .* udføres/ }).click();
+      await p.getByRole('dialog').waitFor();
     },
   },
   { name: '5-logning-afslut', run: async (p) => {

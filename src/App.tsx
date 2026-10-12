@@ -19,6 +19,7 @@ import { WeekPage } from './pages/WeekPage';
 // Primitiverne i lys og mørk. Kun i dev-build: import.meta.env.DEV er false i produktion, så
 // Vite udelader siden helt.
 const DevUi = import.meta.env.DEV ? lazy(() => import('./ui/DevUi')) : null;
+const DevFigures = import.meta.env.DEV ? lazy(() => import('./ui/DevFigures')) : null;
 
 export function App() {
   const auth = useAuth();
@@ -38,6 +39,12 @@ export function App() {
     // Kun når brugeren skifter, ikke ved hver opdatering af /api/me.
   }, [userId]);
 
+  if (DevFigures && location === '/dev/figurer')
+    return (
+      <Suspense>
+        <DevFigures />
+      </Suspense>
+    );
   if (DevUi && location === '/dev/ui')
     return (
       <Suspense>

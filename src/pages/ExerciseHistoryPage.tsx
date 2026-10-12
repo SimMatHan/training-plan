@@ -4,6 +4,7 @@ import { useRoute, useSearch } from 'wouter';
 import type { ExerciseHistoryEntry } from '../../shared/history';
 import { getExercise, getSession } from '../../shared/resolve';
 import { useViewedAthlete } from '../components/AthletePicker';
+import { ExerciseIllustration } from '../components/ExerciseIllustration';
 import { useExerciseHistory } from '../data/history';
 import { usePlan, type ActivePlan } from '../data/plan';
 import { useRemote } from '../data/remote';
@@ -113,7 +114,12 @@ export function ExerciseHistoryPage() {
               ]}
             />
           )}
-          {best != null && <HeroNumber className="mb-4 px-1" label="Bedste resultat" value={formatDecimal(best)} unit={series.unit} />}
+          {best != null && (
+            <div className="mb-4 flex items-start justify-between gap-3 px-1">
+              <HeroNumber className="min-w-0" label="Bedste resultat" value={formatDecimal(best)} unit={series.unit} />
+              <ExerciseIllustration id={exerciseId} name={name} />
+            </div>
+          )}
 
           <Card className="mb-3">
             {points.length > 0 ? (
