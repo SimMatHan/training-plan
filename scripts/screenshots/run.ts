@@ -80,7 +80,7 @@ const scenarios: Scenario[] = [
     },
   },
   {
-    // En runde skal logge begge sider: ✓ på sæt 1 giver 2 af 6 sæt i oversigten.
+    // En runde skal logge begge sider: en runde tæller først som lavet, når begge sider er det.
     name: '4d-runde-logger-begge-sider',
     run: async (p) => {
       await toFirstExercise(p);
@@ -88,8 +88,8 @@ const scenarios: Scenario[] = [
       await p.getByRole('button', { name: /^Sæt 1 færdigt/ }).click();
       await p.getByRole('button', { name: 'Spring over' }).click();
       await p.getByRole('button', { name: /^Oversigt/ }).click();
-      await p.getByText('2/6 sæt').waitFor();
-      console.log('  runde logget på begge sider (2/6 sæt)');
+      await p.getByText('1/3 sæt').waitFor();
+      console.log('  runde logget på begge sider (1/3 sæt)');
     },
   },
   {
@@ -98,6 +98,24 @@ const scenarios: Scenario[] = [
       await toFirstExercise(p);
       await p.getByRole('button', { name: /Se hvordan .* udføres/ }).click();
       await p.getByRole('dialog').waitFor();
+    },
+  },
+  {
+    name: '4f-hele-traeningen-logning',
+    run: async (p) => {
+      await toFirstExercise(p);
+      await p.getByRole('button', { name: /^Sæt 1 færdigt/ }).click();
+      await p.getByRole('button', { name: 'Spring over' }).click();
+      await p.getByRole('button', { name: 'Se hele træningen' }).click();
+      await p.getByRole('dialog').getByText('Rumænsk dødløft (RDL)').waitFor();
+    },
+  },
+  {
+    name: '6b-hele-traeningen-i-dag',
+    run: async (p) => {
+      await p.goto('/');
+      await p.getByRole('button', { name: 'Se hele træningen' }).click();
+      await p.getByRole('dialog').getByText('Rumænsk dødløft (RDL)').waitFor();
     },
   },
   { name: '5-logning-afslut', run: async (p) => {
