@@ -95,3 +95,7 @@ export function useMonitors() {
 export function useMobilityTests() {
   return (usePlan().profile?.mobilityTests ?? []).filter((t) => t.active);
 }
+
+/** Gemmer en redigeret plan som ny aktiv version (kun egen atlet, kræver net). */
+export const savePlanEdit = (slug: string, body: { baseVersion: number; note?: string; plan: Plan }) =>
+  athleteApi<{ meta: PlanVersionMeta; plan: Plan; diff: string[] }>(slug, '/plan/versions', { method: 'POST', json: body });

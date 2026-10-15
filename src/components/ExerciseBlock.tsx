@@ -1,4 +1,4 @@
-import { ArrowUp } from '@phosphor-icons/react';
+import { ArrowUp, Minus, Plus } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { Exercise, Plan } from '../../shared/plan.schema';
 import { findPlannedDose, readyForMoreWeight } from '../../shared/progression';
@@ -6,13 +6,15 @@ import type { ExerciseNote, SetLog } from '../../shared/records.schema';
 import { formatDose, formatIntensity, formatRange, getExercise, setRows, type ResolvedExercise } from '../../shared/resolve';
 import { useExerciseHistory } from '../data/history';
 import { startTimer } from '../data/timer';
+import { deleteRecord } from '../data/records';
 import { upsertExerciseNote, upsertSet, useLastTime } from '../data/workouts';
+import { extraSetRows, nextSetNo, sidesOf } from '../logic/extras';
 import { formatShort } from '../lib/dates';
 import { ghostFor, previousSet, summarizeSets } from '../logic/lastTime';
 import { formatDecimal } from '../logic/numbers';
 import { restAfter } from '../logic/rest';
 import { bestScore, setScore, weightStep } from '../logic/wheel';
-import { SecondaryButton, SmallButton } from '../ui/Button';
+import { SecondaryButton, SmallButton, TextButton } from '../ui/Button';
 import { GradientPill, HeroNumber } from '../ui/HeroNumber';
 import { InsetList } from '../ui/InsetList';
 import { NoteField } from './NoteField';
@@ -46,6 +48,7 @@ export function ExerciseBlock({
   notes,
   supersetFirst,
   showTitle = false,
+  onRemove,
 }: {
   plan: Plan;
   workoutUuid: string;
@@ -55,6 +58,8 @@ export function ExerciseBlock({
   supersetFirst: boolean;
   /** Vis navnet (superset: to øvelser på samme trin). */
   showTitle?: boolean;
+  /** En øvelse ud over planen: fjerner den fra træningen. */
+  onRemove?: () => void;
 }) {
   const alt = resolved.planned.alternative;
   const altExercise = alt && getExercise(plan, alt.exerciseId);
@@ -64,8 +69,11 @@ export function ExerciseBlock({
   const exercise = useAlt && altExercise ? altExercise : resolved.exercise;
   const dose = useAlt && alt ? alt.dose : resolved.planned.dose;
   const label = useAlt && alt ? (alt.label ?? altExercise!.name) : resolved.label;
-  const rows = useAlt ? setRows(exercise, dose) : resolved.rows;
+  const plannedRows = useAlt ? setRows(exercise, dose) : resolved.rows;
   const mine = sets.filter((s) => s.exercise_id === exercise.id);
+  // Planens sæt og de sæt, der er tilføjet ud over planen i denne træning.
+  const extraRows = extraSetRows(plannedRows, mine, exercise, dose);
+  const rows = [...plannedRows, ...extraRows];
   const note = notes.find((n) => n.exercise_id === exercise.id);
   const last = useLastTime(exercise.id, workoutUuid);
   const history = useExerciseHistory(exercise.id);
@@ -102,11 +110,28 @@ export function ExerciseBlock({
   const target = exercise.kind === 'time' ? formatRange(dose.seconds) : formatRange(dose.reps);
   const meta = [formatDose(exercise, dose), formatIntensity(dose), `pause ${dose.restSec} s`].filter(Boolean).join(' · ');
   const intensity = dose.intensity?.kind === 'rpe' ? formatRange(dose.intensity) : undefined;
-  const canCopy = !!last && rows.some((r) => !logFor(r.side, r.setNo)?.done && ghostFor(last, r.side, r.setNo));
+  const canCopy = !!last && plannedRows.some((r) => !logFor(r.side, r.setNo)?.done && ghostFor(last, r.side, r.setNo));
+
+  /** Et sæt mere ud over planen: tomt, med sidste gangs tal på hjulene. */
+  async function addSet() {
+    const setNo = nextSetNo(plannedRows, mine, exercise.id);
+    await Promise.all(sidesOf(exercise, dose).map((side) => upsertSet(key(side, setNo), { done: false, weight_kg: null, reps: null, seconds: null })));
+    setPicked(perSide ? rows.length : rounds.length);
+  }
+
+  /** Fjerner det sidste ekstra sæt. */
+  async function removeSet() {
+    const setNo = extraRows.at(-1)?.setNo;
+    if (setNo == null) return;
+    const logs = mine.filter((s) => s.set_no === setNo);
+    if (logs.some((s) => s.done) && !confirm(`Fjerne sæt ${setNo}? Det er logget.`)) return;
+    await Promise.all(logs.map((s) => deleteRecord('set_logs', s.uuid)));
+    setPicked(null);
+  }
 
   /** Alle ufærdige sæt som sidst, markeret færdige. */
   function sameAsLast() {
-    for (const r of rows) {
+    for (const r of plannedRows) {
       const g = ghostFor(last, r.side, r.setNo);
       if (!g || logFor(r.side, r.setNo)?.done || r.optional) continue;
       void upsertSet(key(r.side, r.setNo), { weight_kg: g.weight_kg, reps: g.reps, seconds: g.seconds, done: true });
@@ -207,13 +232,29 @@ export function ExerciseBlock({
         })}
       </InsetList>
 
-      <SecondaryButton onClick={sameAsLast} disabled={!canCopy} className="mt-3">
+      <div className="mt-2 flex items-center gap-1 px-1">
+        <TextButton onClick={() => void addSet()} className="gap-1 text-ink">
+          <Plus size={16} weight="bold" aria-hidden="true" /> Tilføj sæt
+        </TextButton>
+        {extraRows.length > 0 && (
+          <TextButton onClick={() => void removeSet()} className="gap-1">
+            <Minus size={16} weight="bold" aria-hidden="true" /> Fjern ekstra sæt
+          </TextButton>
+        )}
+      </div>
+
+      <SecondaryButton onClick={sameAsLast} disabled={!canCopy} className="mt-2">
         Samme som sidst
       </SecondaryButton>
 
       <div className="mt-6 flex flex-col gap-4 px-1">
         <RpePicker label="RPE for øvelsen" target={intensity} value={note?.rpe ?? null} onChange={(rpe) => void upsertExerciseNote(workoutUuid, exercise.id, { rpe })} />
         <NoteField label="Note til øvelsen" value={note?.note ?? null} onSave={(v) => void upsertExerciseNote(workoutUuid, exercise.id, { note: v })} />
+        {onRemove && (
+          <TextButton danger onClick={onRemove} className="self-start">
+            Fjern øvelsen fra træningen
+          </TextButton>
+        )}
       </div>
     </article>
   );

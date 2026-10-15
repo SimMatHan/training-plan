@@ -90,7 +90,7 @@ export function SetRow({
       </span>
       <span className="num block text-footnote text-ink-2">
         <span className="whitespace-nowrap">
-          {row.optional ? 'valgfrit · ' : ''}mål {target}
+          {row.extra ? 'ekstra · ' : row.optional ? 'valgfrit · ' : ''}mål {target}
         </span>
         {previous && (
           <>

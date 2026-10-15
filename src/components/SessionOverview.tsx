@@ -1,13 +1,16 @@
-import { Check } from '@phosphor-icons/react';
+import { Check, PencilSimple } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
+import { useLocation } from 'wouter';
 import type { Plan, Session } from '../../shared/plan.schema';
 import type { MobilityCheck, SetLog } from '../../shared/records.schema';
-import { formatDose, formatIntensity, getExercise, resolveStrengthSession, setRows, type ResolvedExercise } from '../../shared/resolve';
+import { formatDose, formatIntensity, getExercise, resolveStrengthSession, setRows, type ResolvedExercise, type ResolvedSlot } from '../../shared/resolve';
 import { useLastEntries } from '../data/history';
 import { formatShort } from '../lib/dates';
 import { summarizeSets } from '../logic/lastTime';
+import { EXTRA_STEP } from '../logic/extras';
 import { toRounds } from '../logic/rounds';
 import { illustrationFor } from '../logic/illustrations';
+import { ButtonLink } from '../ui/Button';
 import { Figure } from '../ui/Figure';
 import { IconTile } from '../ui/IconTile';
 import { InsetList, InsetRow } from '../ui/InsetList';
@@ -75,6 +78,7 @@ export function SessionOverview({
   current,
   onPick,
   footer,
+  extraSlots = [],
 }: {
   open: boolean;
   onClose: () => void;
@@ -90,9 +94,12 @@ export function SessionOverview({
   /** Spring til et trin (kun i logningen). */
   onPick?: (step: string) => void;
   footer?: ReactNode;
+  /** Øvelser ud over planen i dagens træning. */
+  extraSlots?: ResolvedSlot[];
 }) {
+  const [location] = useLocation();
   const strength = session.kind === 'styrke' ? resolveStrengthSession(plan, session.id, weekNo) : undefined;
-  const slots = strength?.slots ?? [];
+  const slots = [...(strength?.slots ?? []), ...extraSlots];
   const showMobility = !!plan.mobility && (session.kind === 'mobilitet' || (session.kind === 'styrke' && session.mobility === 'before'));
   const exercises = slots.flatMap((s) => s.exercises.map((ex) => inUse(plan, ex, sets)));
   const last = useLastEntries(
@@ -172,6 +179,7 @@ export function SessionOverview({
                   <span className="block text-row">
                     <span className="num text-ink-2">{si + 1}.</span> {e.label}
                     {slot.superset && <span className="text-secondary text-ink-2"> · superset {ei === 0 ? 'a' : 'b'}</span>}
+                    {slot.slotId.startsWith(EXTRA_STEP) && <span className="text-secondary text-ink-2"> · ekstra</span>}
                   </span>
                   <span className="num block text-secondary text-ink-2">{meta}</span>
                   {prev && (
@@ -200,6 +208,12 @@ export function SessionOverview({
           </InsetRow>
         )}
       </InsetList>
+      {strength && (
+        <ButtonLink small href={`/plan/${session.id}?uge=${weekNo}&tilbage=${encodeURIComponent(location)}`} className="mb-4 gap-1.5">
+          <PencilSimple size={16} weight="bold" aria-hidden="true" />
+          Ret øvelserne i planen
+        </ButtonLink>
+      )}
       {footer}
     </Sheet>
   );

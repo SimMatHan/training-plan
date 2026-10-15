@@ -87,6 +87,8 @@ function diffStrength(before: Plan, after: Plan, b: StrengthSession | undefined,
     if (!same(b.notes, a.notes) || b.intro !== a.intro) lines.push(`${a.name}: noter ændret`);
     if (!same(b.progression, a.progression)) lines.push(`${a.name}: progressionstabel ændret`);
     if (b.mobility !== a.mobility) lines.push(`${a.name}: mobilitet ${b.mobility} → ${a.mobility}`);
+    const order = (s: StrengthSession) => [...s.slots].sort((x, y) => x.order - y.order).map((slot) => slot.id).filter((id) => b.slots.some((s) => s.id === id) && a.slots.some((s) => s.id === id));
+    if (!same(order(b), order(a))) lines.push(`${a.name}: rækkefølgen af øvelserne ændret`);
     if (!lines.length && !same(b, a)) lines.push(`${a.name}: øvelsernes udførelse eller rækkefølge ændret`);
   }
   return lines;
