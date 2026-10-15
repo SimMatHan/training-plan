@@ -79,13 +79,7 @@ function schemaError(error: z.ZodError): ValidationError {
   return new ValidationError(`Resultatet består ikke plan-skemaet: ${issues.join('; ')}${more}`);
 }
 
-/**
- * Anvender patchen på basisplanen og tjekker resultatet:
- *  - patchen kan anvendes (RFC 6902) og er højst 50 KB
- *  - resultatet består plan-skemaet
- *  - intet exerciseId fra basisplanen forsvinder eller skifter betydning (navn, type, sidevis)
- *  - nye øvelser får id'er der aldrig har været brugt (i en planversion eller i loggen)
- */
+/** Anvender patchen (RFC 6902, højst 50 KB) på basisplanen og tjekker resultatet med validateDerivedPlan. */
 export async function validatePatch(db: D1Database, athleteId: number, base: Plan, patch: JsonPatch): Promise<{ plan: Plan; diff: string[] }> {
   if (byteLength(JSON.stringify(patch)) > MAX_PATCH_BYTES) throw new ValidationError(`Patchen er større end ${MAX_PATCH_BYTES / 1000} KB`);
 
@@ -96,7 +90,16 @@ export async function validatePatch(db: D1Database, athleteId: number, base: Pla
     if (e instanceof PatchError) throw new ValidationError(`Patchen kan ikke anvendes: ${e.message}`);
     throw e;
   }
+  return validateDerivedPlan(db, athleteId, base, patched);
+}
 
+/**
+ * Tjekker en plan der er afledt af basisplanen (Claudes patch eller en redigering i appen):
+ *  - resultatet består plan-skemaet
+ *  - intet exerciseId fra basisplanen forsvinder eller skifter betydning (navn, type, sidevis)
+ *  - nye øvelser får id'er der aldrig har været brugt (i en planversion eller i loggen)
+ */
+export async function validateDerivedPlan(db: D1Database, athleteId: number, base: Plan, patched: unknown): Promise<{ plan: Plan; diff: string[] }> {
   // Id-reglerne tjekkes før skemaet, så et omdøbt id giver den præcise fejl og ikke "Ukendt øvelse".
   const exercises = rawExercises(patched);
   const problems: string[] = [];

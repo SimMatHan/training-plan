@@ -27,6 +27,8 @@ export interface SetRow {
   reps?: NumRange;
   seconds?: NumRange;
   optional: boolean;
+  /** Et sæt ud over planen, tilføjet i træningen. */
+  extra?: boolean;
 }
 
 /** Sætrækker i udførelsesrækkefølge. Unilaterale øvelser giver én række pr. side pr. sæt. */

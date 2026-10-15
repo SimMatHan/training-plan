@@ -111,6 +111,27 @@ const scenarios: Scenario[] = [
     },
   },
   {
+    name: '4g-ekstra-saet',
+    run: async (p) => {
+      await toFirstExercise(p);
+      await p.getByRole('button', { name: 'Tilføj sæt' }).click();
+      await p.getByText('ekstra · mål 8 reps').waitFor();
+      await p.getByRole('button', { name: 'Fjern ekstra sæt' }).evaluate((e) => e.scrollIntoView({ block: 'center' }));
+    },
+  },
+  {
+    name: '4h-ekstra-oevelse',
+    run: async (p) => {
+      await toFirstExercise(p);
+      await p.getByRole('button', { name: 'Se hele træningen' }).click();
+      await p.getByRole('dialog').getByRole('button', { name: 'Tilføj øvelse' }).click();
+      await p.getByRole('searchbox', { name: 'Søg i øvelser' }).fill('face');
+      await p.getByRole('button', { name: /Face pull/ }).click();
+      await p.getByRole('heading', { name: 'Face pull' }).waitFor();
+      await p.getByText('7/7').waitFor();
+    },
+  },
+  {
     name: '6b-hele-traeningen-i-dag',
     run: async (p) => {
       await p.goto('/');
@@ -150,6 +171,35 @@ const scenarios: Scenario[] = [
       console.log('  hel Styrke A logget uden tastatur');
     },
   },
+  { name: '14-ret-session', full: true, run: (p) => p.goto('/plan/styrke-a?uge=6').then(() => p.getByRole('heading', { name: 'Ret Styrke A' }).waitFor()) },
+  {
+    name: '14b-ret-oevelse',
+    run: async (p) => {
+      await p.goto('/plan/styrke-a?uge=6');
+      await p.getByRole('button', { name: /Rumænsk dødløft/ }).click();
+      await p.getByRole('button', { name: 'Sæt: flere', exact: true }).click();
+      await p.getByRole('dialog').getByText('Pause').waitFor();
+    },
+  },
+  {
+    name: '14c-ret-aendringer',
+    run: async (p) => {
+      await p.goto('/plan/styrke-a?uge=6');
+      await p.getByRole('button', { name: /Rumænsk dødløft/ }).click();
+      await p.getByRole('button', { name: 'Sæt: flere', exact: true }).click();
+      await p.getByRole('dialog').getByRole('button', { name: 'Luk' }).click();
+      await p.getByRole('button', { name: 'Flyt 6 op' }).click();
+      await p.getByText('Ændringer', { exact: true }).evaluate((e) => e.scrollIntoView({ block: 'start' }));
+    },
+  },
+  {
+    name: '14d-tilfoej-oevelse',
+    run: async (p) => {
+      await p.goto('/plan/styrke-a?uge=6');
+      await p.getByRole('button', { name: 'Tilføj øvelse' }).click();
+      await p.getByRole('dialog').getByText('Ny øvelse').waitFor();
+    },
+  },
   { name: '6-i-dag', run: (p) => p.goto('/').then(() => p.getByRole('button', { name: /Start session/ }).waitFor()) },
   { name: '6-i-dag-hele', full: true, run: (p) => p.goto('/').then(() => p.getByRole('button', { name: /Start session/ }).waitFor()) },
   { name: '7-historik', run: (p) => p.goto('/historik').then(() => p.getByText('Rumænsk dødløft (RDL)').first().waitFor()) },
@@ -180,6 +230,7 @@ async function api(route: Route, loggedOut: boolean) {
   if (loggedOut) return json({ error: 'Ikke logget ind' }, 401);
   if (p === '/me') return json(f.me);
   if (p === '/plan/active') return json({ meta: f.meta, plan: f.plan });
+  if (p === '/plan/versions' && route.request().method() === 'POST') return json({ meta: { ...f.meta, version: 2 }, plan: f.plan, diff: [] });
   if (p === '/plan/versions') return json([f.meta]);
   if (p === '/profile') return json(f.profile);
   if (p === '/sync/push') return json({});

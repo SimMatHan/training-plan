@@ -1,11 +1,13 @@
-import { CaretLeft, ListBullets } from '@phosphor-icons/react';
+import { CaretLeft, ListBullets, Plus } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
-import type { Plan, Session } from '../../shared/plan.schema';
+import type { Exercise, Plan, Session } from '../../shared/plan.schema';
+import { newExerciseId } from '../../shared/planEdit';
 import type { Workout } from '../../shared/records.schema';
-import { formatRange, getSession, resolveStrengthSession } from '../../shared/resolve';
+import { formatRange, getExercise, getSession, resolveStrengthSession } from '../../shared/resolve';
 import { CoachNotes } from '../components/CoachNotes';
 import { ExerciseBlock } from '../components/ExerciseBlock';
+import { ExercisePicker } from '../components/ExercisePicker';
 import { MobilityChecklist } from '../components/MobilityChecklist';
 import { NoteField } from '../components/NoteField';
 import { RestTimer } from '../components/RestTimer';
@@ -16,10 +18,13 @@ import { ScoreScale } from '../components/ScoreScale';
 import { SyncBadge } from '../components/SyncBadge';
 import { saveDuringScore, useDuringScores } from '../data/health';
 import { useCoachNotes } from '../data/notes';
-import { useMonitors, usePlan } from '../data/plan';
+import { db } from '../data/db';
+import { savePlanEdit, useMonitors, usePlan } from '../data/plan';
 import { deleteRecord } from '../data/records';
 import { skipTimer, useTimer } from '../data/timer';
-import { finishWorkout, patchWorkout, useWorkout, useWorkoutLogs } from '../data/workouts';
+import { finishWorkout, patchWorkout, upsertSet, useWorkout, useWorkoutLogs } from '../data/workouts';
+import { OfflineError } from '../lib/api';
+import { EXTRA_STEP, extraSlots, plannedExerciseIds } from '../logic/extras';
 import { formatLong } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
 import { useWakeLock } from '../lib/wakeLock';
@@ -39,7 +44,7 @@ export function SessionPage() {
   const [, params] = useRoute('/session/:uuid');
   const uuid = params?.uuid;
   const [, navigate] = useLocation();
-  const { active } = usePlan();
+  const { active, slug, refresh } = usePlan();
   const workout = useWorkout(uuid);
   const logs = useWorkoutLogs(uuid);
   const timer = useTimer();
@@ -50,6 +55,7 @@ export function SessionPage() {
   const [step, setStep] = useState<string>();
   const [overview, setOverview] = useState(false);
   const [timerCompact, setTimerCompact] = useState(false);
+  const [adding, setAdding] = useState(false);
   useWakeLock(true);
 
   const plan = active?.plan;
@@ -57,6 +63,9 @@ export function SessionPage() {
   const strength = plan && session?.kind === 'styrke' && workout?.week_no ? resolveStrengthSession(plan, session.id, workout.week_no) : undefined;
   const showMobility = !!plan?.mobility && (session?.kind === 'mobilitet' || (session?.kind === 'styrke' && session.mobility === 'before'));
   const stepped = !!strength || session?.kind === 'mobilitet';
+  // Øvelser ud over planen: logget i træningen, men ikke på sessionens pladser i ugen.
+  const planned = strength ? plannedExerciseIds(strength.slots) : new Set<string>();
+  const extras = plan && strength && logs ? extraSlots(plan, planned, logs.sets) : [];
 
   // Trinene i rækkefølge: mobilitet først, så pladserne, til sidst afslutning.
   const order: string[] = [];
@@ -66,7 +75,7 @@ export function SessionPage() {
       order.push(MOBILITY);
       progress[MOBILITY] = mobilityProgress(plan, logs.mobility);
     }
-    for (const slot of strength?.slots ?? []) {
+    for (const slot of [...(strength?.slots ?? []), ...extras]) {
       order.push(slot.slotId);
       progress[slot.slotId] = slotProgress(plan, slot, logs.sets);
     }
@@ -91,9 +100,10 @@ export function SessionPage() {
     );
 
   const timerFor = timer.state?.workoutUuid === workout.uuid;
-  const current = stepped ? (step ?? steps[0]) : FINISH;
+  // Et trin der (endnu) ikke findes, fx en øvelse der lige er tilføjet eller fjernet: vis det første.
+  const current = stepped ? (step && steps.includes(step) ? step : steps[0]) : FINISH;
   const index = steps.indexOf(current);
-  const slots = strength?.slots ?? [];
+  const slots = [...(strength?.slots ?? []), ...extras];
   const slotIndex = slots.findIndex((s) => s.slotId === current);
   const slot = slots[slotIndex];
   const title = !stepped
@@ -130,6 +140,44 @@ export function SessionPage() {
     if (timerFor) skipTimer();
     navigate('/');
   }
+
+  /** Tilføjer en øvelse ud over planen: et tomt første sæt (begge sider), og går til den. */
+  async function addExtra(exercise: Pick<Exercise, 'id' | 'perSide'>) {
+    const sides = exercise.perSide ? (['H', 'V'] as const) : [null];
+    await Promise.all(
+      sides.map((side) => upsertSet({ workoutUuid: workout!.uuid, exerciseId: exercise.id, side, setNo: 1 }, { done: false, weight_kg: null, reps: null, seconds: null })),
+    );
+    go(`${EXTRA_STEP}${exercise.id}`);
+  }
+
+  /** En ny øvelse kommer i planens katalog (ny planversion), før den kan logges. Kræver net. */
+  async function createExercise(e: Omit<Exercise, 'id'>) {
+    try {
+      const logged = (await db.set_logs.orderBy('exercise_id').uniqueKeys()) as string[];
+      const exercise = { id: newExerciseId(e.name, [...plan!.exercises.map((x) => x.id), ...logged]), ...e };
+      await savePlanEdit(slug, { baseVersion: active!.meta.version, note: `Ny øvelse: ${e.name}`, plan: { ...plan!, exercises: [...plan!.exercises, exercise] } });
+      await refresh();
+      await addExtra(exercise);
+    } catch (err) {
+      alert(err instanceof OfflineError ? 'Ingen forbindelse. En ny øvelse kan kun oprettes med net; vælg en fra listen i stedet.' : (err as Error).message);
+    }
+  }
+
+  /** Fjerner en øvelse ud over planen fra træningen: alle dens sæt og noten. */
+  async function removeExtra(exerciseId: string) {
+    const own = logs!.sets.filter((s) => s.exercise_id === exerciseId);
+    const note = logs!.notes.find((n) => n.exercise_id === exerciseId);
+    if ((own.some((s) => s.done || s.reps != null || s.weight_kg != null || s.seconds != null) || note) && !confirm('Fjerne øvelsen fra træningen? Det loggede slettes.')) return;
+    await Promise.all([...own.map((s) => deleteRecord('set_logs', s.uuid)), ...(note ? [deleteRecord('exercise_notes', note.uuid)] : [])]);
+    go(steps[index + 1] ?? FINISH);
+  }
+
+  const canAdd = !!strength;
+  const addButton = canAdd && (
+    <SecondaryButton onClick={() => setAdding(true)} className="mb-4 gap-1.5">
+      <Plus size={18} weight="bold" aria-hidden="true" /> Tilføj øvelse
+    </SecondaryButton>
+  );
 
   const counter = slotIndex >= 0 ? `${slotIndex + 1}/${slots.length}` : undefined;
 
@@ -191,6 +239,7 @@ export function SessionPage() {
             notes={logs.notes}
             supersetFirst={slot.superset && i === 0}
             showTitle={slot.superset}
+            onRemove={slot.slotId.startsWith(EXTRA_STEP) ? () => void removeExtra(ex.exercise.id) : undefined}
           />
         ))}
       {slot?.superset && <Muted className="-mt-4 mb-6 px-1">Tag dem lige efter hinanden; pause efter anden øvelse.</Muted>}
@@ -201,6 +250,7 @@ export function SessionPage() {
       )}
       {!stepped && !session && workout.activity && <RunLog workout={workout} />}
 
+      {current === FINISH && addButton}
       {current === FINISH && (
         <FinishSection
           workout={workout}
@@ -234,16 +284,35 @@ export function SessionPage() {
           mobilityChecks={logs.mobility}
           current={current}
           onPick={go}
+          extraSlots={extras}
           footer={
-            <div className="flex items-center justify-between">
-              <SyncBadge />
-              {!workout.finished_at && (
-                <TextButton danger onClick={() => void remove('annuller')}>
-                  Annuller session
-                </TextButton>
-              )}
-            </div>
+            <>
+              {addButton}
+              <div className="flex items-center justify-between">
+                <SyncBadge />
+                {!workout.finished_at && (
+                  <TextButton danger onClick={() => void remove('annuller')}>
+                    Annuller session
+                  </TextButton>
+                )}
+              </div>
+            </>
           }
+        />
+      )}
+
+      {canAdd && (
+        <ExercisePicker
+          open={adding}
+          onClose={() => setAdding(false)}
+          title="Tilføj øvelse"
+          catalog={plan.exercises}
+          exclude={[...planned, ...extras.map((s) => s.exercises[0].exercise.id)]}
+          onPick={(id) => {
+            const exercise = getExercise(plan, id);
+            if (exercise) void addExtra(exercise);
+          }}
+          onCreate={(e) => void createExercise(e)}
         />
       )}
 

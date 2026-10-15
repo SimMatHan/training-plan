@@ -10,6 +10,7 @@ import { InvitePage, LoginPage, OnboardingPage, Splash } from './pages/AuthPages
 import { ExerciseHistoryPage } from './pages/ExerciseHistoryPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { MobilityPage } from './pages/MobilityPage';
+import { PlanEditPage } from './pages/PlanEditPage';
 import { ProposalPage, ProposalsPage } from './pages/ProposalPage';
 import { SessionRoute } from './pages/SessionLinkPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -73,6 +74,7 @@ export function App() {
         <Route path="/uge" component={WeekPage} />
         <Route path="/historik/oevelse/:id" component={ExerciseHistoryPage} />
         <Route path="/historik" component={HistoryPage} />
+        <Route path="/plan/:sessionId" component={PlanEditPage} />
         <Route path="/forslag/:id" component={ProposalPage} />
         <Route path="/forslag" component={ProposalsPage} />
         <Route path="/indstillinger" component={SettingsPage} />

@@ -262,6 +262,20 @@ planen er nye planversioner.
 Planen gemmes i versioner (`plan_versions`), og kun én er aktiv. Loghistorikken hænger på
 `exerciseId`, ikke på versionen, så den følger med. Et id må aldrig skifte betydning.
 
+### Ret en session i appen
+
+Under **Indstillinger → Plan → Ret øvelserne** (eller **Se hele træningen → Ret øvelserne i planen**) ser man en
+styrkesession, som den er i én uge, og kan rette dosering (sæt, reps/sekunder, RPE, pause, tempo, note, udførelse),
+bytte, tilføje (også helt nye øvelser), fjerne og flytte øvelser. Man vælger, om det gælder **kun ugen**, **ugen og
+frem** eller **alle uger**, og ser ændringerne som tekst før man gemmer. Gem laver en ny aktiv version med
+`source = 'manual'` (`POST /api/a/<atlet>/plan/versions`, kun ejeren), og Claudes ventende planforslag bliver forældede.
+
+Ændringerne lægges ind i planens pladser og varianter (`shared/planEdit.ts`), så resten af planen er urørt: en rettet
+værdi ændres kun i uger, hvor samme øvelse står på pladsen *og* feltet havde samme værdi (deload og progression i andre
+uger bevares). Rækkefølgen er fælles for alle uger. Serveren tjekker de samme id-regler som for Claudes forslag.
+
+### Ny version fra Excel eller JSON
+
 1. **Ret planen.** Enten i et nyt Excel-ark med samme opbygning (hvis nye øvelsesnavne dukker op,
    får de et id i `plan/seed-config.ts`), eller direkte i en kopi af `plan/plan.v1.json`.
 2. **Lav SQL'en:**
@@ -621,6 +635,11 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
   så hurtige ændringer aldrig giver dubletter.
 - En ny installation henter alt fra D1 ved første sync.
 - Pausetimeren gemmer kun sluttidspunktet, så den er korrekt efter slukket skærm og genstart.
+- **Ud over planen** kan man i en træning tilføje sæt (**Tilføj sæt**) og øvelser (**Tilføj øvelse** i oversigten og
+  på Afslut). Der gemmes intet nyt: et ekstra sæt er en sætlog med et sætnummer over planens, og en ekstra øvelse er
+  en øvelse med sætlogs, som sessionen ikke har i ugen (`src/logic/extras.ts`). De oprettes som tomme sætlogs, som
+  historikken først tæller, når der er logget noget. En helt ny øvelse kommer først i planens katalog (ny planversion,
+  kræver net). Ekstra sæt og øvelser kan fjernes igen; en planlagt øvelse fjernes for en uge i planen (**Kun uge N**).
 
 ### Flytning og andre aktiviteter
 
@@ -682,6 +701,7 @@ atlet) giver **404**, for lav rolle (træner der vil ændre noget) **403**. Muta
 | GET/POST/DELETE | `/api/a/:slug/sharing[/:userId]` | Hvem har adgang; giv/fjern trænerrollen (ejer) |
 | GET | `/api/a/:slug/plan/active` | Aktiv planversion, eller `null` uden plan |
 | GET | `/api/a/:slug/plan/versions` | Alle planversioner |
+| POST | `/api/a/:slug/plan/versions` | `{ baseVersion, note?, plan }`: planen redigeret i appen bliver en ny aktiv version (ejer; 409 hvis en anden version er aktiv) |
 | POST | `/api/a/:slug/plan/versions/:version/activate` | Skift eller rul tilbage til en version (ejer) |
 | GET | `/api/a/:slug/plan/weeks/:weekNo` | Ugens sessioner med konkret dosering |
 | POST | `/api/a/:slug/sync/push` | Gem poster fra klienten (ejer) |

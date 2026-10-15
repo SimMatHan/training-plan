@@ -13,7 +13,7 @@ const section = (id: string, title: string, icon: Icon, description: string): Se
 
 export const SECTIONS = {
   konto: section('konto', 'Konto', UserCircle, 'Hvem der er logget ind på denne telefon.'),
-  plan: section('plan', 'Plan', ClipboardText, 'Den aktive planversion. Du kan skifte tilbage til en tidligere; loghistorikken bevares.'),
+  plan: section('plan', 'Plan', ClipboardText, 'Den aktive planversion. Ret øvelserne i en session, eller skift tilbage til en tidligere version; loghistorikken bevares.'),
   overvaagning: section(
     'overvaagning',
     'Overvågning',

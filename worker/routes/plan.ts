@@ -4,6 +4,7 @@ import { ownerOnly } from '../auth';
 import type { AppEnv } from '../env';
 import { ValidationError } from '../services/errors';
 import { activatePlanVersion, findActivePlan, getWeek, listPlanVersions } from '../services/plan';
+import { savePlanEdit } from '../services/planEdits';
 
 const positiveInt = (s: string, what: string) => {
   const r = z.coerce.number().int().min(1).safeParse(s);
@@ -15,6 +16,8 @@ export const planRoutes = new Hono<AppEnv>()
   // null når atleten ingen plan har endnu (appen venter så på det første forslag).
   .get('/active', async (c) => c.json(await findActivePlan(c.env.DB, c.var.access.athleteId)))
   .get('/versions', async (c) => c.json(await listPlanVersions(c.env.DB, c.var.access.athleteId)))
+  // Planen redigeret i appen: bliver en ny aktiv version. Kun atleten selv.
+  .post('/versions', async (c) => c.json(await savePlanEdit(c.env.DB, ownerOnly(c).athleteId, await c.req.json())))
   .post('/versions/:version/activate', async (c) =>
     c.json(await activatePlanVersion(c.env.DB, ownerOnly(c).athleteId, positiveInt(c.req.param('version'), 'versionsnummer'))),
   )

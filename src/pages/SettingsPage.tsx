@@ -4,7 +4,7 @@ import { AccountSection, MonitoringSection, SecuritySection, SharingSection, Use
 import { CalendarSection } from '../components/CalendarSection';
 import { ClaudeSection } from '../components/ClaudeSection';
 import { PrimaryButton, SecondaryButton, smallButton } from '../ui/Button';
-import { Card, Group, SectionIcon, Subheading } from '../ui/InsetList';
+import { Card, Group, InsetList, InsetRow, RowText, SectionIcon, Subheading } from '../ui/InsetList';
 import { groupProps, SECTIONS } from '../components/settingsSections';
 import { ErrorText, Muted, Screen } from '../ui/Screen';
 import { usePlan } from '../data/plan';
@@ -85,6 +85,20 @@ export function SettingsPage() {
             <Muted>Ingen plan hentet endnu.</Muted>
           )}
         </Card>
+        {active && active.plan.sessions.some((s) => s.kind === 'styrke') && (
+          <>
+            <Subheading>Ret øvelserne</Subheading>
+            <InsetList className="mb-3" label="Styrkesessioner">
+              {active.plan.sessions.map((s) =>
+                s.kind === 'styrke' ? (
+                  <InsetRow key={s.id} href={`/plan/${s.id}`}>
+                    <RowText title={s.name} detail="Dosering, byt, tilføj, fjern og rækkefølge" />
+                  </InsetRow>
+                ) : null,
+              )}
+            </InsetList>
+          </>
+        )}
         {offline && <Muted className="mb-3 px-1">Offline — versioner kan skiftes, når der er net.</Muted>}
         <ErrorText className="mb-3">{error}</ErrorText>
         {versions && versions.length > 0 && <Subheading>Versioner</Subheading>}
