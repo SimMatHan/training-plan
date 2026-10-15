@@ -52,6 +52,28 @@ export function ghostFor(last: LastTime | undefined, side: Side | null, setNo: n
   return s && { weight_kg: s.weight_kg, reps: s.reps, seconds: s.seconds };
 }
 
+/** "50 kg × 8", "8 reps" eller "30 sek". */
+function formatSet(s: SetLog, kind: ExerciseKind): string {
+  if (kind === 'time') return `${s.seconds ?? '?'} sek`;
+  return s.weight_kg ? `${formatDecimal(s.weight_kg)} kg × ${s.reps ?? '?'}` : `${s.reps ?? '?'} reps`;
+}
+
+/**
+ * Hvad sættet var sidst, til at sammenligne med i dag: kun samme sætnummer (ingen fallback som
+ * ghostFor). En runde med begge sider giver "12 kg × 8", eller "H 12 kg × 8 / V 12 kg × 7" hvis
+ * siderne var forskellige.
+ */
+export function previousSet(last: LastTime | undefined, sides: (Side | null)[], setNo: number, kind: ExerciseKind): string | undefined {
+  if (!last) return undefined;
+  const per = sides
+    .map((side) => ({ side, set: last.sets.find((s) => s.side === side && s.set_no === setNo) }))
+    .filter((p): p is { side: Side | null; set: SetLog } => !!p.set)
+    .map((p) => ({ side: p.side, text: formatSet(p.set, kind) }));
+  if (!per.length) return undefined;
+  if (per.every((p) => p.text === per[0].text)) return per[0].text;
+  return per.map((p) => `${p.side} ${p.text}`).join(' / ');
+}
+
 function describe(sets: SetLog[], kind: ExerciseKind): string {
   const groups: { n: number; key: string }[] = [];
   for (const s of sets) {
