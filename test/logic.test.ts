@@ -3,7 +3,7 @@ import planJson from '../plan/plan.v1.json';
 import { PlanSchema } from '../shared/plan.schema';
 import type { SetLog, Workout } from '../shared/records.schema';
 import { resolveStrengthSession } from '../shared/resolve';
-import { ghostFor, pickLastTime, summarizeSets } from '../src/logic/lastTime';
+import { ghostFor, pickLastTime, previousSet, summarizeSets } from '../src/logic/lastTime';
 import { formatDecimal, parseDecimal, sanitizeDecimal } from '../src/logic/numbers';
 import { restAfter } from '../src/logic/rest';
 import { deterministicUuid } from '../src/logic/uuid';
@@ -88,6 +88,17 @@ describe('sidste gang', () => {
     const last = pickLastTime('enbens-rdl', { uuid: C, date: '2026-10-12' }, workouts, sets, []);
     expect(ghostFor(last, 'V', 2)).toEqual({ weight_kg: 12.5, reps: 7, seconds: null });
     expect(ghostFor(last, 'H', 3)).toEqual({ weight_kg: 12.5, reps: 8, seconds: null });
+  });
+
+  it('viser sættet fra sidst: kun samme sætnummer, begge sider samlet', () => {
+    const last = pickLastTime('enbens-rdl', { uuid: C, date: '2026-10-12' }, workouts, sets, []);
+    expect(previousSet(last, ['H'], 1, 'weight_reps')).toBe('12,5 kg × 8');
+    expect(previousSet(last, ['H', 'V'], 1, 'weight_reps')).toBe('12,5 kg × 8');
+    expect(previousSet(last, ['H', 'V'], 2, 'weight_reps')).toBe('H 12,5 kg × 8 / V 12,5 kg × 7');
+    expect(previousSet(last, ['H'], 3, 'weight_reps')).toBeUndefined();
+    expect(previousSet(undefined, ['H'], 1, 'weight_reps')).toBeUndefined();
+    const bodyweight = pickLastTime('enbens-rdl', { uuid: C, date: '2026-10-12' }, [workout(A, '2026-09-28')], [set(A, 1, null, null, 12)], [])!;
+    expect(previousSet(bodyweight, [null], 1, 'bodyweight_reps')).toBe('12 reps');
   });
 
   it('opsummerer sæt', () => {

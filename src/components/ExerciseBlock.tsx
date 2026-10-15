@@ -8,7 +8,7 @@ import { useExerciseHistory } from '../data/history';
 import { startTimer } from '../data/timer';
 import { upsertExerciseNote, upsertSet, useLastTime } from '../data/workouts';
 import { formatShort } from '../lib/dates';
-import { ghostFor } from '../logic/lastTime';
+import { ghostFor, previousSet, summarizeSets } from '../logic/lastTime';
 import { formatDecimal } from '../logic/numbers';
 import { restAfter } from '../logic/rest';
 import { bestScore, setScore, weightStep } from '../logic/wheel';
@@ -35,8 +35,8 @@ function heroOf(sets: Values[], kind: Exercise['kind']): { value: string; unit: 
 }
 
 /**
- * Én øvelse i logningen: sidste gangs tal som heltetal, sættene med talhjul, "Samme som sidst"
- * og RPE/note. Slår et sæt rekorden (vægt × reps), ruller heltetallet til det nye tal.
+ * Én øvelse i logningen: sidste gangs tal som heltetal og alle sættene fra sidst som tekst (så man
+ * kan se hvad man skal øge), sættene med talhjul, "Samme som sidst" og RPE/note. Slår et sæt rekorden (vægt × reps), ruller heltetallet til det nye tal.
  */
 export function ExerciseBlock({
   plan,
@@ -140,7 +140,13 @@ export function ExerciseBlock({
             }
           />
         </div>
-        <p className="num mt-2 text-secondary text-ink-2">{meta}</p>
+        {last && (
+          <p className="num mt-2 text-secondary">
+            <span className="font-semibold">Sidst{record ? ` ${formatShort(last.workout.date)}` : ''}:</span>{' '}
+            {[summarizeSets(last.sets, exercise.kind), last.rpe != null && `RPE ${formatDecimal(last.rpe)}`].filter(Boolean).join(' · ')}
+          </p>
+        )}
+        <p className={`num ${last ? 'mt-0.5' : 'mt-2'} text-secondary text-ink-2`}>{meta}</p>
         {(dose.tempo || dose.note) && <p className="mt-0.5 text-secondary">{[dose.tempo, dose.note].filter(Boolean).join(' · ')}</p>}
         {!useAlt && resolved.planned.cue && <p className="mt-0.5 text-secondary text-ink-2">{resolved.planned.cue}</p>}
         {last?.note && <p className="mt-0.5 text-secondary text-ink-2">Sidst: “{last.note}”</p>}
@@ -185,6 +191,7 @@ export function ExerciseBlock({
               ghost={ghostFor(last, round.rows[0].side, round.setNo)}
               active={i === active}
               targetText={round.rows.length > 1 ? roundTarget(round, exercise.kind) : undefined}
+              previous={previousSet(last, round.rows.map((r) => r.side), round.setNo, exercise.kind)}
               onActivate={() => setPicked(i)}
               onPatch={write}
               onDone={(done, values) => {

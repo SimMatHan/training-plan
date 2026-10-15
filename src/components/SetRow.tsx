@@ -30,8 +30,9 @@ export function describeSet(v: SetValues, kind: ExerciseKind) {
 
 /**
  * Ét sæt. Det aktive sæt viser talhjul (vægt og reps, eller sekunder) centreret på sidste
- * gangs værdi, så et sæt magen til sidst er ét tryk på ✓. De øvrige er en kort linje; tryk
- * på linjen gør sættet aktivt.
+ * gangs værdi, så et sæt magen til sidst er ét tryk på ✓. Under målet står hvad sættet var
+ * sidst, så man kan se hvad man skal slå. De øvrige er en kort linje; tryk på linjen gør
+ * sættet aktivt.
  */
 export function SetRow({
   row,
@@ -44,6 +45,7 @@ export function SetRow({
   onPatch,
   onDone,
   targetText,
+  previous,
 }: {
   row: Row;
   kind: ExerciseKind;
@@ -58,6 +60,8 @@ export function SetRow({
   onDone: (done: boolean, values: SetValues) => void;
   /** Målet som tekst, fx "12 H / 10 V reps" for en runde med begge sider. */
   targetText?: string;
+  /** Sættet sidste gang, fx "50 kg × 8". Står fast, også når hjulene drejes. */
+  previous?: string;
 }) {
   const [values, setValues] = useState(() => initial(log, ghost, row));
   // Optimistisk ✓, så to hurtige tryk ikke læser en forældet værdi.
@@ -85,7 +89,15 @@ export function SetRow({
         {row.side && <span className="text-ink-2"> · {sideName(row.side)}</span>}
       </span>
       <span className="num block text-footnote text-ink-2">
-        {row.optional ? 'valgfrit · ' : ''}mål {target}
+        <span className="whitespace-nowrap">
+          {row.optional ? 'valgfrit · ' : ''}mål {target}
+        </span>
+        {previous && (
+          <>
+            {' · '}
+            <span className="whitespace-nowrap">sidst {previous}</span>
+          </>
+        )}
       </span>
     </span>
   );
