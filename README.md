@@ -423,6 +423,9 @@ kræver, at Karo har givet dig trænerrollen under **Indstillinger → Deling**.
 Åbn projektet i claude.ai, start en samtale, tryk på værktøjsknappen og slå forbindelsen til. Brug kun Simons forbindelse i
 Simons projekt og Karos i Karos. Spørg fx "Hvad løftede jeg i enbens RDL de sidste to gange?".
 
+Projektinstruktionerne ligger i [`docs/claude-projekt-simon.md`](docs/claude-projekt-simon.md) og
+[`docs/claude-projekt-karo.md`](docs/claude-projekt-karo.md): kopiér teksten under stregen ind som projektets instruktioner.
+
 ### Værktøjer
 
 | Værktøj | Hvad |
