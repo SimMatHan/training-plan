@@ -7,7 +7,7 @@ import { ghostFor, pickLastTime, previousSet, summarizeSets } from '../src/logic
 import { formatDecimal, parseDecimal, sanitizeDecimal } from '../src/logic/numbers';
 import { restAfter } from '../src/logic/rest';
 import { deterministicUuid } from '../src/logic/uuid';
-import { dayState, nextIncomplete, slotProgress } from '../src/logic/progress';
+import { dayState, nextIncomplete, slotProgress, slotSetProgress } from '../src/logic/progress';
 import { Workout as WorkoutSchema } from '../shared/records.schema';
 
 const plan = PlanSchema.parse(planJson);
@@ -147,6 +147,13 @@ describe('fremskridt og sammenfoldning', () => {
   it('tæller alternativ-øvelsens rækker, når den er logget', () => {
     const slot = resolveStrengthSession(plan, 'rehab-a', 3).slots.find((x) => x.slotId === 'rehab-a-4')!;
     expect(slotProgress(plan, slot, [s('adduktorklem', 1, null)])).toEqual({ done: 1, total: 3 });
+  });
+
+  it('tæller sæt med begge sider som ét, og først når begge sider er lavet', () => {
+    const slot = resolveStrengthSession(plan, 'styrke-a', 6).slots.find((x) => x.exercises.some((e) => e.exercise.id === 'enbens-tahaev'))!;
+    expect(slotProgress(plan, slot, []).total).toBe(6);
+    expect(slotSetProgress(plan, slot, [])).toEqual({ done: 0, total: 3 });
+    expect(slotSetProgress(plan, slot, [s('enbens-tahaev', 1, 'H'), s('enbens-tahaev', 1, 'V'), s('enbens-tahaev', 2, 'H')])).toEqual({ done: 1, total: 3 });
   });
 
   it('finder næste ufærdige sektion', () => {
