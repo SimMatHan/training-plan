@@ -26,8 +26,18 @@ async function startSession(page: Page) {
 
 async function toFirstExercise(page: Page) {
   await startSession(page);
-  await page.getByRole('button', { name: /Til øvelserne|Næste øvelse/ }).click();
   await page.getByRole('heading', { name: /Rumænsk dødløft/ }).waitFor();
+  // Sidste gangs tal er forslagene, ✓ gemmer: vent til de er indlæst.
+  await page.getByText('50 kg × 8').first().waitFor();
+}
+
+/** En øvelse på logningssiden (kortet), scrollet op under topbjælken. */
+async function toExercise(page: Page, name: RegExp) {
+  await toFirstExercise(page);
+  const card = page.getByRole('article', { name });
+  await card.evaluate((e) => e.scrollIntoView({ block: 'start' }));
+  await page.evaluate('window.scrollBy(0, -96)');
+  return card;
 }
 
 const scenarios: Scenario[] = [
@@ -45,90 +55,83 @@ const scenarios: Scenario[] = [
     name: '3-logning-pause',
     run: async (p) => {
       await toFirstExercise(p);
-      await p.getByRole('button', { name: /Sæt 1.*færdigt/ }).click();
+      await p.getByRole('button', { name: /Sæt 1.*færdigt/ }).first().click();
       await p.getByRole('timer').waitFor();
     },
   },
   {
     name: '4-logning-rekord',
     run: async (p) => {
-      await toFirstExercise(p);
-      await p.getByRole('spinbutton', { name: /Sæt 1, kg/ }).focus();
-      await p.keyboard.press('ArrowUp');
-      await p.keyboard.press('ArrowUp');
-      await p.getByRole('button', { name: /Sæt 1.*færdigt/ }).click();
+      const card = await toExercise(p, /Rumænsk dødløft/);
+      await card.getByRole('textbox', { name: 'Sæt 1, kg' }).fill('55');
+      await card.getByRole('button', { name: /Sæt 1.*færdigt/ }).click();
       await p.getByText('Ny rekord').waitFor();
       await p.getByRole('button', { name: 'Spring over' }).click();
-      await p.evaluate('window.scrollTo(0, 0)');
+      await card.evaluate((e) => e.scrollIntoView({ block: 'start' }));
+      await p.evaluate('window.scrollBy(0, -96)');
     },
   },
   {
     name: '4b-logning-runder',
     run: async (p) => {
-      await toFirstExercise(p);
-      await p.getByRole('button', { name: 'Næste øvelse' }).click();
-      await p.getByRole('heading', { name: /Bulgarian split squat/ }).waitFor();
+      await toExercise(p, /Bulgarian split squat/);
     },
   },
   {
     name: '4c-logning-pr-side',
     run: async (p) => {
-      await toFirstExercise(p);
-      await p.getByRole('button', { name: 'Næste øvelse' }).click();
+      const card = await toExercise(p, /Bulgarian split squat/);
+      await card.getByRole('button', { name: /^Mere for/ }).click();
       await p.getByRole('switch', { name: /Forskellig vægt eller reps pr. side/ }).click();
-      await p.getByRole('button', { name: /Sæt 1 venstre/ }).first().waitFor();
+      await p.getByRole('dialog').getByRole('button', { name: 'Luk' }).click();
+      await card.getByRole('button', { name: /Sæt 1 venstre/ }).first().waitFor();
     },
   },
   {
     // En runde skal logge begge sider: en runde tæller først som lavet, når begge sider er det.
     name: '4d-runde-logger-begge-sider',
     run: async (p) => {
-      await toFirstExercise(p);
-      await p.getByRole('button', { name: 'Næste øvelse' }).click();
-      await p.getByRole('button', { name: /^Sæt 1 færdigt/ }).click();
+      const card = await toExercise(p, /Bulgarian split squat/);
+      await card.getByRole('button', { name: /^Sæt 1 færdigt/ }).click();
       await p.getByRole('button', { name: 'Spring over' }).click();
-      await p.getByRole('button', { name: /^Oversigt/ }).click();
-      await p.getByText('1/3 sæt').waitFor();
-      console.log('  runde logget på begge sider (1/3 sæt)');
+      await p.getByText('1/17', { exact: true }).waitFor();
+      console.log('  runde logget på begge sider (1/17 sæt)');
     },
   },
   {
     name: '4e-illustration',
     run: async (p) => {
       await toFirstExercise(p);
-      await p.getByRole('button', { name: /Se hvordan .* udføres/ }).click();
+      await p.getByRole('button', { name: /Se hvordan Rumænsk .* udføres/ }).click();
       await p.getByRole('dialog').waitFor();
     },
   },
   {
     name: '4f-hele-traeningen-logning',
+    full: true,
     run: async (p) => {
       await toFirstExercise(p);
-      await p.getByRole('button', { name: /^Sæt 1 færdigt/ }).click();
+      await p.getByRole('button', { name: /^Sæt 1 færdigt/ }).first().click();
       await p.getByRole('button', { name: 'Spring over' }).click();
-      await p.getByRole('button', { name: 'Se hele træningen' }).click();
-      await p.getByRole('dialog').getByText('Rumænsk dødløft (RDL)').waitFor();
     },
   },
   {
     name: '4g-ekstra-saet',
     run: async (p) => {
-      await toFirstExercise(p);
-      await p.getByRole('button', { name: 'Tilføj sæt' }).click();
-      await p.getByText('ekstra · mål 8 reps').waitFor();
-      await p.getByRole('button', { name: 'Fjern ekstra sæt' }).evaluate((e) => e.scrollIntoView({ block: 'center' }));
+      const card = await toExercise(p, /Rumænsk dødløft/);
+      await card.getByRole('button', { name: 'Tilføj sæt' }).click();
+      await card.getByText('ekstra').waitFor();
     },
   },
   {
     name: '4h-ekstra-oevelse',
     run: async (p) => {
       await toFirstExercise(p);
-      await p.getByRole('button', { name: 'Se hele træningen' }).click();
-      await p.getByRole('dialog').getByRole('button', { name: 'Tilføj øvelse' }).click();
+      await p.getByRole('button', { name: 'Tilføj øvelse' }).click();
       await p.getByRole('searchbox', { name: 'Søg i øvelser' }).fill('face');
       await p.getByRole('button', { name: /Face pull/ }).click();
       await p.getByRole('heading', { name: 'Face pull' }).waitFor();
-      await p.getByText('7/7').waitFor();
+      await p.waitForTimeout(600);
     },
   },
   {
@@ -141,27 +144,24 @@ const scenarios: Scenario[] = [
   },
   { name: '5-logning-afslut', run: async (p) => {
       await startSession(p);
-      for (let i = 0; i < 7; i++) await p.getByRole('button', { name: /Til øvelserne|Næste øvelse|Til afslutning/ }).click();
+      await p.getByRole('button', { name: 'Afslut', exact: true }).click();
       await p.getByRole('heading', { name: 'Afslut' }).waitFor();
     } },
   {
-    // Definition of done: en hel Styrke A logget med talhjul og ✓, uden at tastaturet åbnes.
+    // Definition of done: en hel Styrke A logget med ✓ alene (sidste gangs tal), uden at tastaturet åbnes.
     name: '13-hel-styrke-a',
     run: async (p) => {
       await startSession(p);
       await p.evaluate(`window.__keyboard = 0; addEventListener('focusin', (e) => { if (e.target.matches('input, textarea')) window.__keyboard++; });`);
       for (const box of await p.getByRole('checkbox').all()) await box.check({ force: true });
-      await p.getByRole('button', { name: 'Til øvelserne' }).click();
-      for (let step = 0; step < 6; step++) {
-        const skip = p.getByRole('button', { name: 'Spring over' });
-        for (;;) {
-          const open = p.locator('button[aria-label$="færdigt"][aria-pressed="false"]');
-          if ((await open.count()) === 0) break;
-          await open.first().click();
-          if (await skip.isVisible()) await skip.click();
-        }
-        await p.getByRole('button', { name: /Næste øvelse|Til afslutning/ }).click();
+      const skip = p.getByRole('button', { name: 'Spring over' });
+      for (;;) {
+        const open = p.locator('button[aria-label$="færdigt"][aria-pressed="false"]');
+        if ((await open.count()) === 0) break;
+        await open.first().click();
+        if (await skip.isVisible()) await skip.click();
       }
+      await p.getByRole('button', { name: 'Afslut', exact: true }).click();
       await p.getByRole('group', { name: /Venstre lyske under/ }).getByRole('button', { name: '1', exact: true }).click();
       await p.getByRole('button', { name: 'Afslut session' }).click();
       await p.waitForURL((u) => u.pathname === '/');

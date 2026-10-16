@@ -264,7 +264,7 @@ Planen gemmes i versioner (`plan_versions`), og kun én er aktiv. Loghistorikken
 
 ### Ret en session i appen
 
-Under **Indstillinger → Plan → Ret øvelserne** (eller **Se hele træningen → Ret øvelserne i planen**) ser man en
+Under **Indstillinger → Plan → Ret øvelserne** (eller **Ret øvelserne i planen** nederst i logningen) ser man en
 styrkesession, som den er i én uge, og kan rette dosering (sæt, reps/sekunder, RPE, pause, tempo, note, udførelse),
 bytte, tilføje (også helt nye øvelser), fjerne og flytte øvelser. Man vælger, om det gælder **kun ugen**, **ugen og
 frem** eller **alle uger**, og ser ændringerne som tekst før man gemmer. Gem laver en ny aktiv version med
@@ -538,7 +538,7 @@ Definition of done for fase 1. Kør dem efter første deploy:
 - [ ] Appen er installeret fra Safari på hjemmeskærmen og åbner uden browserbjælke.
 - [ ] **Flytilstand:** slå den til, log en hel Styrke A-session (eller Rehab A), og luk appen.
       Statussen viser "Offline · N venter". Slå nettet til, åbn appen, og vent på "Synket".
-- [ ] Næste gang samme øvelse dukker op, står talhjulene på sidste gangs tal, og en hel Styrke A kan logges uden tastatur.
+- [ ] Næste gang samme øvelse dukker op, foreslår felterne sidste gangs tal, og en hel Styrke A kan logges med ✓ alene, uden tastatur.
 - [ ] Luk appen midt i en pause og åbn den igen: intet er tabt, og timeren står rigtigt.
 - [ ] Slet appen fra hjemmeskærmen, installér igen og log ind med passkey: alle data er der stadig, og hjemmeskærmen
       viser vægtløfter-ikonet.
@@ -609,15 +609,19 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
   `/dev/ui` viser dem alle i lys og mørk; siden findes kun i dev-build (`npm run dev`).
 - **Ikonfliser:** kategorien kommer fra planens fokusområde (`src/logic/category.ts`). Ikoner er
   [Phosphor](https://phosphoricons.com) (MIT).
-- **Logning** tager én øvelse ad gangen. Ensidige øvelser logges som runder (sæt 1, 2, 3) med samme tal på begge sider;
-  kontakten **Forskellig vægt eller reps pr. side** viser siderne hver for sig (valget huskes pr. øvelse på telefonen). Talhjulene står på sidste gangs vægt og reps, så et sæt magen til sidst er ét
-  tryk på ✓; tryk på det valgte tal åbner tastaturet. Vægttrinnet er 2,5 kg for stang, kabel og maskine og 0,5 kg ellers
-  (`src/logic/wheel.ts`). Slår et sæt rekorden (vægt × reps), ruller heltetallet til det nye tal med "Ny rekord".
-- **Hele træningen:** "Se hele træningen" (i logningen og ved Øvelser på I dag) viser hele sessionen i ét ark:
-  figur, dosering, sidste gang og dagens fremskridt pr. øvelse, talt i runder. I logningen springer et tryk til øvelsen.
+- **Logning** er bygget som Hevy: hele træningen på én side. Øverst varighed, volumen (kg × reps) og sæt; toppen har
+  pausetimeren og **Afslut** (smerte, RPE og note). Mobiliteten står først og kan foldes sammen. Hver øvelse er et kort
+  med figur, navn (tryk: historik), piller for pause, note og RPE, og sættene som en tabel **Sæt · Sidst · Kg · Reps · ✓**
+  med **Tilføj sæt** under. Felterne viser sidste gangs tal (ellers planens mål) i gråt, så et sæt magen til sidst er ét
+  tryk på ✓; skriver man et tal, gemmes det i stedet. Et færdigt sæt bliver grønt. Ensidige øvelser logges som runder
+  (sæt 1, 2, 3) med samme tal på begge sider; i ⋯-menuen viser **Forskellig vægt eller reps pr. side** siderne hver for
+  sig (valget huskes pr. øvelse på telefonen). Menuen har også "Samme som sidst", alternativet og historikken. Slår et
+  sæt rekorden (vægt × reps), får øvelsen "Ny rekord".
+- **Hele træningen:** "Se hele træningen" ved Øvelser på I dag viser hele sessionen i ét ark: figur, dosering, sidste
+  gang og fremskridt pr. øvelse, talt i runder.
 - **Øvelsesillustrationer:** hver øvelse og hvert mobilitetspunkt har en tændstiksmand (`src/logic/illustrations.ts`),
   defineret som led-vinkler for en start- og en slutstilling (`src/logic/figure.ts`). Figuren bevæger sig blødt mellem
-  dem, lemmerne bevarer deres længde, og et valgt led (fx foden) står fast. En miniature står ved heltetallet i
+  dem, lemmerne bevarer deres længde, og et valgt led (fx foden) står fast. En miniature står ved navnet i
   logningen, på historikken og i mobilitetslisten; tryk viser bevægelsen. Nye øvelser i en plan får en figur på id
   eller genkendes på navnet; en test fejler, hvis en af planens øvelser mangler en. `/dev/figurer` (dev-build) viser
   dem alle med start og slut; `?vis=rdl,sideplanke` viser udvalgte større.

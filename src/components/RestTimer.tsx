@@ -3,7 +3,7 @@ import { extendTimer, skipTimer, useTimer } from '../data/timer';
 import { SecondaryButton, SmallButton } from '../ui/Button';
 import { Ring } from '../ui/Ring';
 
-const mmss = (ms: number) => {
+export const mmss = (ms: number) => {
   const s = Math.ceil(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 };
