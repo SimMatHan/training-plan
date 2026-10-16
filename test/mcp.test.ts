@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { applyPatch, PatchError } from '../shared/jsonPatch';
 import { formatWeekList } from '../shared/planDiff';
 import { callTool, serverInfo, TOOLS } from '../worker/mcp/tools';
@@ -208,14 +209,14 @@ describe('ny plan og overvågning', () => {
     const r = await call('foreslaa_overvaagning', {
       summary: 'Overvåg højre knæ',
       rationale: 'Ondt efter løb',
-      ændringer: [
+      aendringer: [
         { handling: 'tilfoej_monitor', label: 'Højre knæ' },
         { handling: 'tilfoej_test', navn: 'Sit and reach', enhed: 'cm', prSide: false },
         { handling: 'deaktiver_monitor', monitorId: 1 },
       ],
     });
     expect(r.data.diff).toEqual(['Ny smerteovervågning: Højre knæ', 'Ny mobilitetstest: Sit and reach (cm)', 'Stop smerteovervågning: Venstre lyske']);
-    expect((await call('foreslaa_overvaagning', { summary: 'Fremmed', rationale: 'x', ændringer: [{ handling: 'deaktiver_monitor', monitorId: 99 }] })).error).toBe(
+    expect((await call('foreslaa_overvaagning', { summary: 'Fremmed', rationale: 'x', aendringer: [{ handling: 'deaktiver_monitor', monitorId: 99 }] })).error).toBe(
       'ugyldigt-input',
     );
     await approveProposal(db, r.data.id);
@@ -251,6 +252,17 @@ describe('læseværktøjer', () => {
     ]);
     expect(TOOLS.filter((t) => !t.readOnly).map((t) => t.name)).toEqual(['foreslaa_planaendring', 'foreslaa_ny_plan', 'foreslaa_overvaagning', 'log_lob', 'skriv_note']);
     expect(TOOLS.filter((t) => t.ownerOnly).map((t) => t.name)).toEqual(['log_lob']);
+  });
+
+  it('alle feltnavne i input-skemaerne er gyldige for Claudes API (ingen æøå)', () => {
+    const keys = (node: unknown): string[] =>
+      node && typeof node === 'object'
+        ? Object.entries(node).flatMap(([k, v]) => [...(k === 'properties' && v && typeof v === 'object' ? Object.keys(v) : []), ...keys(v)])
+        : [];
+    for (const t of TOOLS) {
+      const bad = keys(z.toJSONSchema(t.input, { io: 'input', unrepresentable: 'any' })).filter((k) => !/^[a-zA-Z0-9_.-]{1,64}$/.test(k));
+      expect(bad, t.name).toEqual([]);
+    }
   });
 
   it('forbindelsen præsenterer sig med atletens navn', () => {

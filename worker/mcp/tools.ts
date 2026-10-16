@@ -557,11 +557,11 @@ export const TOOLS: ToolDef[] = [
     input: z.object({
       summary: Summary.describe('Kort titel, fx "Overvåg højre knæ"'),
       rationale: Rationale,
-      ændringer: z.array(MonitoringChange).min(1).max(10),
+      aendringer: z.array(MonitoringChange).min(1).max(10),
     }),
     readOnly: false,
-    async run({ db, now, athlete }, { summary, rationale, ændringer }) {
-      const p = await createMonitoringProposal(db, athlete.id, { summary, rationale, changes: ændringer }, now.toISOString());
+    async run({ db, now, athlete }, { summary, rationale, aendringer }) {
+      const p = await createMonitoringProposal(db, athlete.id, { summary, rationale, changes: aendringer }, now.toISOString());
       return { id: p.id, status: p.status, diff: p.diff, besked: 'Forslaget venter på godkendelse i appen.' };
     },
   }),
