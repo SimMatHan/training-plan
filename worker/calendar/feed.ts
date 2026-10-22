@@ -3,7 +3,7 @@
 //   planlagt, ikke lavet    planens (evt. flyttede) dag i ugen
 //   lavet                   flyttes til den faktiske dato, "✓ " foran titlen
 //   sprunget over / misset  "– " foran titlen (misset = ugen er passeret uden træning)
-//   løbet og planens mål    heldagsevents
+//   løbet og planens mål    heldagsevents (løbet kun når planen har raceDate)
 //
 // UID er stabilt pr. session og uge, så kalenderen opdaterer eventet i stedet for at lave
 // dubletter. SEQUENCE og LAST-MODIFIED afledes af det seneste tidsstempel blandt alt, der
@@ -295,31 +295,34 @@ const slug = (s: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-/** Løbet på raceDate og planens øvrige mål som heldagsevents. */
+/** Løbet på raceDate (hvis planen har en) og planens øvrige mål som heldagsevents. */
 function goalEvents(plan: Plan, planChanged: number): CalendarEvent[] {
   const base = { startTime: null, durationMin: null, lastModified: planChanged, sequence: sequenceOf(planChanged), category: 'Mål', state: 'mål' as const };
-  // Titlen tages fra ugeplanens løbsdag, fx "LØB: 5 km – sub 20" → "Mål: 5 km – sub 20".
-  const raceLabel = plan.weeks
-    .flatMap((w: Week) => w.sessions.filter((s) => dateOfDay(w, s.day) === plan.raceDate && getSession(plan, s.sessionId)?.kind === 'løb'))
-    .map((s) => s.label)
-    .find((l) => /^løb\b/i.test(l));
-  const race: CalendarEvent = {
-    ...base,
-    uid: `maal-loebet@${UID_DOMAIN}`,
-    summary: `Mål: ${raceLabel ? raceLabel.replace(/^løb:?\s*/i, '') : 'løbet'}`,
-    description: [plan.summary, plan.title].filter(Boolean).join('\n'),
-    date: plan.raceDate,
-  };
-  const others = plan.goals.map(
-    (g): CalendarEvent => ({
+  const events: CalendarEvent[] = [];
+  const raceDate = plan.raceDate;
+  if (raceDate) {
+    // Titlen tages fra ugeplanens løbsdag, fx "LØB: 5 km – sub 20" → "Mål: 5 km – sub 20".
+    const raceLabel = plan.weeks
+      .flatMap((w: Week) => w.sessions.filter((s) => dateOfDay(w, s.day) === raceDate && getSession(plan, s.sessionId)?.kind === 'løb'))
+      .map((s) => s.label)
+      .find((l) => /^løb\b/i.test(l));
+    events.push({
+      ...base,
+      uid: `maal-loebet@${UID_DOMAIN}`,
+      summary: `Mål: ${raceLabel ? raceLabel.replace(/^løb:?\s*/i, '') : 'løbet'}`,
+      description: [plan.summary, plan.title].filter(Boolean).join('\n'),
+      date: raceDate,
+    });
+  }
+  for (const g of plan.goals)
+    events.push({
       ...base,
       uid: `maal-${g.date}-${slug(g.title)}@${UID_DOMAIN}`,
       summary: `Mål: ${g.title}`,
       description: [g.note, plan.title].filter(Boolean).join('\n'),
       date: g.date,
-    }),
-  );
-  return [race, ...others];
+    });
+  return events;
 }
 
 // ─── iCalendar ──────────────────────────────────────────────────────────────

@@ -236,7 +236,10 @@ export const PlanSchema = z
     title: z.string(),
     summary: z.string().optional(),
     startDate: IsoDate,
-    raceDate: IsoDate,
+    /** Løbsdagen. Valgfri: en blok uden løb har ingen. Med den kommer løbet i kalenderen som et mål. */
+    raceDate: IsoDate.optional(),
+    /** Planens sidste dag. Valgfri: uden den er det søndag i sidste uge (se planEndDate). */
+    endDate: IsoDate.optional(),
     readingNotes: z.array(z.string()).default([]),
     exercises: z.array(Exercise).min(1),
     sessions: z.array(Session).min(1),
@@ -252,7 +255,7 @@ export const PlanSchema = z
       })
       .optional(),
     runNotes: z.array(z.string()).default([]),
-    /** Mål og milepæle ud over løbet på raceDate. Vises som heldagsevents i kalenderfeedet. */
+    /** Mål og milepæle ud over løbet på raceDate (hvis planen har et). Vises som heldagsevents i kalenderfeedet. */
     goals: z.array(z.object({ date: IsoDate, title: z.string().min(1), note: z.string().optional() })).default([]),
   })
   .superRefine((plan, ctx) => {
@@ -295,6 +298,11 @@ export const PlanSchema = z
 
     const weekNos = new Set<number>();
     const start = Date.parse(plan.startDate);
+    if (plan.endDate) {
+      const lastMonday = plan.weeks.map((w) => w.startDate).sort().at(-1)!;
+      if (plan.endDate < plan.startDate) issue('endDate ligger før startDate', ['endDate']);
+      else if (plan.endDate < lastMonday) issue(`endDate ligger før sidste uge (${lastMonday})`, ['endDate']);
+    }
     plan.weeks.forEach((w, wi) => {
       if (weekNos.has(w.weekNo)) issue(`Dublet uge ${w.weekNo}`, ['weeks', wi]);
       weekNos.add(w.weekNo);

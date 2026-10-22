@@ -100,6 +100,8 @@ svarer med.
   `seconds`, `intensity` (`{ "kind": "rpe", "min": 7, "max": 8 }` eller `"kind": "pct1rm"`), `restSec`, evt. `tempo`
   og `note`. Rotation og ændret dosering er flere varianter på samme plads med hver sine `weeks`. Hver uge har
   `startDate` (mandag) og sessioner med `day` 1–7. Bliver forslaget afvist af skemaet, så læs fejlen, ret og prøv igen.
+- `raceDate` er valgfri: en blok uden løb udelader den. `endDate` (valgfri) er planens sidste dag, ellers søndag i
+  sidste uge.
 - Du kan ikke godkende forslag, aktivere eller rulle en planversion tilbage, slette noget eller ændre mine logs. Det gør
   jeg i appen (tilbagerulning under **Indstillinger → Plan**).
 

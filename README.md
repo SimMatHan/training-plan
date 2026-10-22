@@ -300,6 +300,17 @@ Intet slettes, og loghistorikken bevares.
 Claudes forslag (`plan_proposals`) godkendes i appen og bliver nye versioner med `source = 'claude'`
 (se [Claude-connector](#claude-connector-mcp)). En atlets første plan kommer altid som et forslag (`foreslaa_ny_plan`).
 
+### Nyt i plan-formatet
+
+Formatet er stadig `schemaVersion: 1`. Alle nye felter er valgfrie, så ældre planversioner validerer og vises som før.
+
+- **`raceDate` er valgfri.** En blok uden løb udelader den. Så er der intet `Mål: …`-event for løbet i kalenderen,
+  ingen løbsdato i appen, og `hent_status`/`hent_profil`/`hent_plan` svarer `løbsdato: null`. Mål i `goals` vises
+  som før.
+- **`endDate`** (valgfri) er planens sidste dag. Uden den er det søndag i sidste uge (`planEndDate` i
+  `shared/resolve.ts`). Slutdatoen tages aldrig fra `raceDate`. Den skal ligge efter `startDate` og tidligst
+  mandag i sidste uge.
+
 ## Lokal udvikling
 
 ```sh
@@ -357,7 +368,7 @@ abonnementet i kalenderen og tilføj det igen med den nye URL.
 | Planlagt session, ikke lavet | Planens (evt. flyttede) dag i ugen |
 | Session lavet | Den faktiske dato, `✓ ` foran titlen. I gang = faktisk dato uden mærke |
 | Sprunget over (markeret i appen, eller ugen er passeret uden træning) | Bliver stående med `– ` foran titlen |
-| Løbet på `raceDate` og `goals` i planen | Heldagsevent, `Mål: …` |
+| Løbet på `raceDate` (kun hvis planen har en) og `goals` i planen | Heldagsevent, `Mål: …` |
 
 Titlen er kort: `Styrke A`, `Løb — 3×10 min tærskel`, `Crosstrainer — 45 min`. Beskrivelsen har uge og fase,
 øvelserne med ugens dosering (`Enbens RDL — 3 × 8/side, RPE 6, 75 s`), et resultat for lavede sessioner

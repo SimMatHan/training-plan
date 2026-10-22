@@ -1,7 +1,7 @@
 import { Check, Circle, CircleHalf, MinusCircle } from '@phosphor-icons/react';
 import type { ExerciseHistoryEntry } from '../../shared/history';
 import type { Plan, Week } from '../../shared/plan.schema';
-import { getSession, weekForDate } from '../../shared/resolve';
+import { getSession, planEndDate, weekForDate } from '../../shared/resolve';
 import { effectiveSessions } from '../../shared/schedule';
 import { AddActivityButton } from '../components/AddActivitySheet';
 import { CoachNotes } from '../components/CoachNotes';
@@ -104,7 +104,7 @@ export function TodayPage() {
         </>
       ) : (
         <Muted>
-          Planen løber fra {formatLong(plan.startDate)} til {formatLong(plan.raceDate)}.
+          Planen løber fra {formatLong(plan.startDate)} til {formatLong(plan.raceDate ?? planEndDate(plan))}.
         </Muted>
       )}
     </Screen>

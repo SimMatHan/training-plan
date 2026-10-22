@@ -13,7 +13,7 @@ import { IsoDate, Slug, type Dose, type Plan, type Session, type WeekRange } fro
 import { formatWeekList } from '../../shared/planDiff';
 import { readyForMoreWeight, findPlannedDose } from '../../shared/progression';
 import type { PainScore, Workout } from '../../shared/records.schema';
-import { dateOfDay, formatDose, formatIntensity, getExercise, getSession, weekForDate } from '../../shared/resolve';
+import { dateOfDay, formatDose, formatIntensity, getExercise, getSession, planEndDate, weekForDate } from '../../shared/resolve';
 import { getAt, JsonPatch, PatchError } from '../../shared/jsonPatch';
 import { getSharing, listMobilityTests, listMonitors, type Athlete } from '../services/athletes';
 import { recordMcpCall, type McpErrorKind } from '../services/audit';
@@ -33,13 +33,16 @@ const KIND = { weight_reps: 'vægt', bodyweight_reps: 'kropsvægt', time: 'tid' 
 const weekdayOf = (date: string) => ((new Date(date + 'T00:00:00Z').getUTCDay() + 6) % 7) + 1;
 const weeksText = (ranges: WeekRange[]) => formatWeekList(ranges.flatMap((r) => Array.from({ length: r.to - r.from + 1 }, (_, i) => r.from + i)));
 
+/** Felter der står med null i svaret i stedet for at blive fjernet: null betyder noget her ("ingen løbsdato"). */
+const KEEP_NULL = new Set(['løbsdato']);
+
 /** Fjerner null, undefined og tomme lister, så svarene er kompakte. */
 function compact<T>(value: T): T {
   if (Array.isArray(value)) return value.map(compact) as T;
   if (value && typeof value === 'object')
     return Object.fromEntries(
       Object.entries(value)
-        .filter(([, v]) => v !== null && v !== undefined && !(Array.isArray(v) && v.length === 0))
+        .filter(([k, v]) => (v !== null || KEEP_NULL.has(k)) && v !== undefined && !(Array.isArray(v) && v.length === 0))
         .map(([k, v]) => [k, compact(v)]),
     ) as T;
   return value;
@@ -117,6 +120,11 @@ const Uge = z.int().min(1).max(60);
 const Tekst = (max: number) => z.string().trim().min(1).max(max);
 const Summary = z.string().trim().min(3).max(200);
 const Rationale = z.string().trim().min(1).max(4000).describe('Hvorfor, ud fra data');
+
+/** Det plan-formatet kan ud over det åbenlyse. Står i beskrivelserne af hent_plan og forslagsværktøjerne. */
+const PLAN_FORMAT =
+  'Plan-format: raceDate er valgfri (en blok uden løb udelader den; så er der intet løbsmål i kalenderen), ' +
+  'og endDate (valgfri) er planens sidste dag, ellers søndag i sidste uge.';
 
 const smerteTrend = tool({
   name: 'hent_smertetrend',
@@ -208,7 +216,8 @@ export const TOOLS: ToolDef[] = [
         ...base,
         planversion: meta.version,
         planStart: plan.startDate,
-        løbsdato: plan.raceDate,
+        planSlut: planEndDate(plan),
+        løbsdato: plan.raceDate ?? null,
         uge: uge ?? (today < plan.startDate ? 'planen er ikke startet' : 'planen er slut'),
         mobilitetstests: mobility.map(({ test, points }) => {
           const due = measurementDue(points, today, reminderDays);
@@ -244,9 +253,9 @@ export const TOOLS: ToolDef[] = [
               version: active.meta.version,
               titel: active.plan.title,
               start: active.plan.startDate,
-              løbsdato: active.plan.raceDate,
+              løbsdato: active.plan.raceDate ?? null,
               uger: active.plan.weeks.length,
-              slut: dateOfDay(active.plan.weeks.at(-1)!, 7),
+              slut: planEndDate(active.plan),
             }
           : 'ingen aktiv plan endnu',
         adgang: sharing.access.map((a) => ({ navn: a.name, rolle: a.role })),
@@ -260,7 +269,8 @@ export const TOOLS: ToolDef[] = [
     description:
       'Den aktive planversion (eller en angivet version) i kompakt form: sessioner, øvelser og dosering pr. ugeinterval, ugeprogrammet, ' +
       'mobilitet og trafiklysregler. Hver variant og uge har en "sti" (JSON Pointer). Angiv "sti" for at få den rå JSON under stien, ' +
-      'fx "/sessions/2/slots/1" — brug det, når du skal skrive en patch til foreslaa_planaendring.',
+      'fx "/sessions/2/slots/1" — brug det, når du skal skrive en patch til foreslaa_planaendring. ' +
+      PLAN_FORMAT,
     input: z.object({
       version: z.int().min(1).optional().describe('Planversion. Udelades for den aktive.'),
       sti: z.string().max(300).optional().describe('JSON Pointer ind i planen, fx "/weeks/4". Giver rå JSON for netop den del.'),
@@ -283,7 +293,8 @@ export const TOOLS: ToolDef[] = [
         note: meta.note,
         titel: plan.title,
         start: plan.startDate,
-        løbsdato: plan.raceDate,
+        slut: planEndDate(plan),
+        løbsdato: plan.raceDate ?? null,
         sessioner: plan.sessions.map((s: Session, si) => {
           const base = { id: s.id, navn: s.name, type: s.kind, sti: `/sessions/${si}` };
           if (s.kind === 'styrke')
@@ -516,7 +527,8 @@ export const TOOLS: ToolDef[] = [
       'Foreslår en ændring til den aktive plan som JSON Patch (RFC 6902). Forslaget bliver ALDRIG aktivt af sig selv: ' +
       'atleten godkender eller afviser det i appen. Hent stierne med hent_plan (og evt. hent_plan med "sti" for rå JSON). ' +
       'Regler: et exerciseId må aldrig ændres, fjernes eller genbruges — nye øvelser tilføjes til /exercises med et nyt id. ' +
-      'Resultatet skal bestå plan-skemaet. Har atleten ingen plan, så brug foreslaa_ny_plan. Svaret har forslagets id og en læsbar diff; vis diffen.',
+      'Resultatet skal bestå plan-skemaet. Har atleten ingen plan, så brug foreslaa_ny_plan. Svaret har forslagets id og en læsbar diff; vis diffen. ' +
+      PLAN_FORMAT,
     input: z.object({
       summary: Summary.describe('Kort titel, bliver noten på den nye planversion. Fx "Enbens RDL 3 × 10 i uge 5–8"'),
       rationale: Rationale,
@@ -535,7 +547,8 @@ export const TOOLS: ToolDef[] = [
     description:
       'Foreslår en komplet plan (samme JSON-format som hent_plan med "sti": ""), fx atletens første plan eller en ny blok. ' +
       'Planen valideres mod plan-skemaet og lander som et forslag, som atleten godkender i appen; så bliver den den aktive planversion. ' +
-      'Et exerciseId der har været brugt før, må ikke skifte betydning. Hent profilen med hent_profil først (monitors, tærskelpuls).',
+      'Et exerciseId der har været brugt før, må ikke skifte betydning. Hent profilen med hent_profil først (monitors, tærskelpuls). ' +
+      PLAN_FORMAT,
     input: z.object({
       summary: Summary.describe('Kort titel, fx "Første plan: 12 uger mod 10 km"'),
       rationale: Rationale,

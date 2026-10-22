@@ -180,6 +180,7 @@ export function describePlanChange(before: Plan, after: Plan): string[] {
     ['summary', 'Resumé'],
     ['startDate', 'Startdato'],
     ['raceDate', 'Løbsdato'],
+    ['endDate', 'Slutdato'],
     ['goals', 'Mål'],
     ['readingNotes', 'Læsevejledning'],
     ['runNotes', 'Løbenoter'],
