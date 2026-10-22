@@ -57,7 +57,8 @@ describe('fase 5-migrationen', () => {
     const db = productionBefore();
     const before = snapshotBefore(db, TODAY);
     expect(Object.values(before.lights).map((l) => l.split('/')[2])).toEqual(['grøn', 'gul', 'rød', 'ukendt']);
-    expect(applyPending(db)).toEqual(['0006_atleter.sql']);
+    // 0006 og de senere migrationer (kun tilføjelser) ændrer ingen eksisterende data.
+    expect(applyPending(db)).toEqual(['0006_atleter.sql', '0008_planformat.sql', '0009_mobilitetsrunder.sql']);
     const after = await snapshotAfter(db, TODAY);
     expect(compareSnapshots(before, after)).toEqual([]);
 

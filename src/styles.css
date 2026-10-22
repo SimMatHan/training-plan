@@ -76,6 +76,8 @@
   --color-cat-calf: var(--cat-calf);
   --color-cat-mobility: var(--cat-mobility);
   --color-cat-cardio: var(--cat-cardio);
+  --color-cat-strength-c: var(--cat-strength-c);
+  --color-cat-strength-d: var(--cat-strength-d);
   --shadow-float: var(--shadow-float);
   --shadow-pill: var(--shadow-pill);
   --shadow-glow: var(--glow);

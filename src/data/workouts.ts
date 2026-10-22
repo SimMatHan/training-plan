@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { Session, Side } from '../../shared/plan.schema';
-import type { ExerciseNote, MobilityCheck, SetLog, Workout, WorkoutType } from '../../shared/records.schema';
+import type { MobilityRound, Session, Side, Week } from '../../shared/plan.schema';
+import type { ExerciseNote, MobilityCheck, MobilityRoundCheck, SetLog, Workout, WorkoutType } from '../../shared/records.schema';
+import { assignToOccurrences, occurrenceKey } from '../../shared/schedule';
 import { todayIso } from '../lib/dates';
 import { pickLastTime, type LastTime } from '../logic/lastTime';
 import { deterministicUuid } from '../logic/uuid';
@@ -15,25 +16,44 @@ const alive = <T extends { deleted_at: string | null }>(r: T | undefined): r is 
 
 const MOBILITY_SESSION = 'mobilitet';
 
-/** Mobilitetsblokken tages dagligt; alle andre sessioner én gang pr. uge. */
-const matches = (w: Workout, sessionId: string, today: string) =>
-  w.planned_session_id === sessionId && !w.deleted_at && (sessionId !== MOBILITY_SESSION || w.date === today);
+/** Én planlagt session i en uge: sessionen og planens dag (forekomsten, hvis den står flere gange). */
+export interface Occurrence {
+  week: Week;
+  sessionId: string;
+  /** Planens dag. Udelades for mobilitetsblokken, der tages dagligt. */
+  plannedDay?: number;
+}
+
+/**
+ * Ugens træning for en planlagt session: mobilitetsblokken pr. dato, alle andre pr. forekomst i ugen
+ * (shared/schedule.ts). Står sessionen kun én gang, er det den første træning med sessionens id, som altid.
+ */
+function findWorkout(workouts: Workout[], o: Occurrence, today: string): Workout | undefined {
+  const live = workouts.filter((w) => !w.deleted_at && w.week_no === o.week.weekNo);
+  if (o.sessionId === MOBILITY_SESSION) return live.find((w) => w.planned_session_id === MOBILITY_SESSION && w.date === today);
+  const day = o.plannedDay ?? o.week.sessions.find((s) => s.sessionId === o.sessionId)?.day;
+  if (day === undefined) return undefined;
+  return assignToOccurrences(
+    o.week,
+    live,
+    (w) => w.planned_session_id,
+    (w) => w.planned_day ?? null,
+  ).get(occurrenceKey(o.sessionId, day))?.[0];
+}
 
 /** Starter (eller genåbner) ugens træning for en planlagt session. Datoen er i dag. */
-export async function startSession(opts: { session: Session; weekNo: number; planVersion: number }): Promise<string> {
+export async function startSession(opts: { session: Session; week: Week; plannedDay?: number; planVersion: number }): Promise<string> {
   const today = todayIso();
-  const existing = await db.workouts
-    .where('week_no')
-    .equals(opts.weekNo)
-    .filter((w) => matches(w, opts.session.id, today))
-    .first();
+  const weekWorkouts = await db.workouts.where('week_no').equals(opts.week.weekNo).toArray();
+  const existing = findWorkout(weekWorkouts, { week: opts.week, sessionId: opts.session.id, plannedDay: opts.plannedDay }, today);
   if (existing) return existing.uuid;
   const draft = emptyWorkout({
     date: today,
     type: typeOf(opts.session.kind),
     planned_session_id: opts.session.id,
+    planned_day: opts.session.id === MOBILITY_SESSION ? null : (opts.plannedDay ?? null),
     plan_version: opts.planVersion,
-    week_no: opts.weekNo,
+    week_no: opts.week.weekNo,
   });
   await saveRecord('workouts', draft);
   return draft.uuid;
@@ -57,8 +77,8 @@ export function useWeekWorkouts(weekNo: number | undefined): Workout[] | undefin
 
 export type SessionStatus = 'ikke-lavet' | 'i-gang' | 'lavet' | 'sprunget-over';
 
-export function statusOf(workouts: Workout[], sessionId: string, today = todayIso()): { status: SessionStatus; workout?: Workout } {
-  const workout = workouts.find((w) => matches(w, sessionId, today));
+export function statusOf(workouts: Workout[], occurrence: Occurrence, today = todayIso()): { status: SessionStatus; workout?: Workout } {
+  const workout = findWorkout(workouts, occurrence, today);
   if (!workout) return { status: 'ikke-lavet' };
   if (workout.skipped_at) return { status: 'sprunget-over', workout };
   return { status: workout.finished_at ? 'lavet' : 'i-gang', workout };
@@ -68,7 +88,15 @@ export function statusOf(workouts: Workout[], sessionId: string, today = todayIs
  * Markerer en planlagt session som sprunget over, så det logges. Gemmes som en
  * træning uden sæt, dateret til sessionens (evt. flyttede) dag.
  */
-export async function skipSession(opts: { session: Session; weekNo: number; planVersion: number; date: string; reason: string | null; note: string | null }) {
+export async function skipSession(opts: {
+  session: Session;
+  weekNo: number;
+  plannedDay: number;
+  planVersion: number;
+  date: string;
+  reason: string | null;
+  note: string | null;
+}) {
   const now = new Date().toISOString();
   await saveRecord(
     'workouts',
@@ -76,6 +104,7 @@ export async function skipSession(opts: { session: Session; weekNo: number; plan
       date: opts.date,
       type: typeOf(opts.session.kind),
       planned_session_id: opts.session.id,
+      planned_day: opts.plannedDay,
       plan_version: opts.planVersion,
       week_no: opts.weekNo,
       started_at: null,
@@ -123,6 +152,17 @@ export async function upsertExerciseNote(workoutUuid: string, exerciseId: string
 export async function setMobilityCheck(workoutUuid: string, itemId: string, done: boolean) {
   const uuid = await deterministicUuid('mobility', workoutUuid, itemId);
   return upsertRecord('mobility_checks', uuid, { uuid, workout_uuid: workoutUuid, item_id: itemId, done }, { done });
+}
+
+/** Et punkt i en mobilitetsrunde (morgen/aften) på en dato. Én post pr. dato + runde + punkt. */
+export async function setRoundCheck(date: string, round: MobilityRound, itemId: string, done: boolean) {
+  const uuid = await deterministicUuid('mobility-round', date, round, itemId);
+  return upsertRecord('mobility_round_checks', uuid, { uuid, date, round, item_id: itemId, done }, { done, deleted_at: null });
+}
+
+/** Dagens afkrydsninger i mobilitetsrunderne. undefined mens de indlæses. */
+export function useRoundChecks(date: string | undefined): MobilityRoundCheck[] | undefined {
+  return useLiveQuery(async () => (date ? (await db.mobility_round_checks.where('date').equals(date).toArray()).filter(alive) : []), [date]);
 }
 
 /** Alt logget i én træning. */

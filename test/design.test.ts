@@ -1,9 +1,11 @@
 // Logikken bag det nye UI: kategorier til ikonfliser, vægttrin og talhjul, rekorder.
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import planJson from '../plan/plan.v1.json';
 import { PlanSchema } from '../shared/plan.schema';
 import { resolveStrengthSession } from '../shared/resolve';
-import { categoryOf, exerciseCategory, sessionCategory } from '../src/logic/category';
+import { CATEGORY_LABEL, categoryOf, exerciseCategory, sessionCategory, type Category } from '../src/logic/category';
 import { blend, LEN, pingPong, solve } from '../src/logic/figure';
 import { ILLUSTRATIONS, illustrationFor } from '../src/logic/illustrations';
 import { roundTarget, sidesDiffer, toRounds } from '../src/logic/rounds';
@@ -37,6 +39,20 @@ describe('kategorier', () => {
     expect(sessionCategory({ kind: 'løb', colorKey: 'run' })).toBe('cardio');
     expect(sessionCategory({ kind: 'mobilitet', colorKey: 'mobility' })).toBe('mobility');
     expect(sessionCategory({ kind: 'styrke', colorKey: 'B' })).toBe('back');
+    expect(sessionCategory({ kind: 'styrke', colorKey: 'A' })).toBe('legs');
+    expect(sessionCategory({ kind: 'styrke', colorKey: 'C' })).toBe('strength-c');
+    expect(sessionCategory({ kind: 'styrke', colorKey: 'D' })).toBe('strength-d');
+  });
+
+  it('har en farve-token for hver kategori i lys, mørk (system) og mørk (tvunget)', () => {
+    const css = readFileSync(path.resolve(import.meta.dirname, '../src/styles/tokens.css'), 'utf8');
+    const [light, systemDark, forcedDark] = [css.indexOf(':root,'), css.indexOf('@media (prefers-color-scheme: dark)'), css.indexOf("[data-theme='dark'] {")];
+    const blocks = { light: css.slice(light, systemDark), systemDark: css.slice(systemDark, forcedDark), forcedDark: css.slice(forcedDark) };
+    for (const c of Object.keys(CATEGORY_LABEL) as Category[]) {
+      expect(blocks.light, c).toContain(`--cat-${c}:`);
+      // Ben følger brandfarven, som selv skifter i mørk.
+      if (c !== 'legs') for (const dark of [blocks.systemDark, blocks.forcedDark]) expect(dark, c).toContain(`--cat-${c}:`);
+    }
   });
 });
 

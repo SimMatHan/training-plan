@@ -1,10 +1,10 @@
 // Historik pr. øvelse og pr. uge. Ren logik: appen kalder den med data fra
 // IndexedDB, services (og MCP) med data fra D1.
 import { worstByWorkout, type PainAssessment, type PainLight } from './pain';
-import type { Plan } from './plan.schema';
-import type { ExerciseNote, ScheduleOverride, SetLog, Workout } from './records.schema';
+import type { MobilityRound, Plan } from './plan.schema';
+import type { ExerciseNote, MobilityRoundCheck, ScheduleOverride, SetLog, Workout } from './records.schema';
 import { dateOfDay, getExercise, getSession } from './resolve';
-import { effectiveSessions } from './schedule';
+import { assignToOccurrences, effectiveSessions, occurrenceKey } from './schedule';
 
 const alive = <T extends { deleted_at: string | null }>(r: T) => !r.deleted_at;
 const hasValue = (s: SetLog) => s.done || s.reps != null || s.seconds != null || s.weight_kg != null;
@@ -93,8 +93,10 @@ export interface WeeklySummary {
   planned: number;
   /** Ikke-valgfrie sessioner markeret som sprunget over. */
   skipped: number;
-  /** Dage med mobilitetsblokken taget alene. */
+  /** Dage med mobilitetsblokken: taget alene som session, eller mindst ét punkt krydset af i en runde. */
   mobilityDays: number;
+  /** Mobilitetsrunder (planer med mobility.schedule): afkrydsede punkter pr. dato og runde, ældste først. */
+  mobilityRounds: { date: string; round: MobilityRound; done: number; total: number }[];
   /** Aktiviteter uden for planen, fx padel. */
   extras: { workoutUuid: string; date: string; name: string; durationSec: number | null; light?: PainLight }[];
   runKm: number;
@@ -110,6 +112,7 @@ export function weeklySummary(
   sets: SetLog[],
   pain: PainAssessment[],
   overrides: ScheduleOverride[] = [],
+  roundChecks: MobilityRoundCheck[] = [],
 ): WeeklySummary {
   const week = plan.weeks.find((w) => w.weekNo === weekNo);
   if (!week) throw new Error(`Uge ${weekNo} findes ikke i planen`);
@@ -117,8 +120,15 @@ export function weeklySummary(
   // Det værste lys på tværs af monitors pr. træning.
   const lightOf = new Map([...worstByWorkout(pain)].map(([uuid, a]) => [uuid, a.light]));
 
+  // Træningerne pr. forekomst: en session der står to gange, har en status pr. dag.
+  const byOccurrence = assignToOccurrences(
+    week,
+    inWeek,
+    (w) => w.planned_session_id,
+    (w) => w.planned_day ?? null,
+  );
   const sessions = effectiveSessions(week, overrides).map((s) => {
-    const w = inWeek.find((x) => x.planned_session_id === s.sessionId);
+    const w = byOccurrence.get(occurrenceKey(s.sessionId, s.plannedDay))?.[0];
     return {
       sessionId: s.sessionId,
       name: getSession(plan, s.sessionId)?.name ?? s.label,
@@ -151,16 +161,32 @@ export function weeklySummary(
     volumeMap.set(exerciseId, v);
   }
 
+  // Afkrydsninger i mobilitetsrunderne i ugen, talt pr. dato og runde (kun planens punkter).
+  const endDate = dateOfDay(week, 7);
+  const items = new Set(plan.mobility?.items.map((i) => i.id) ?? []);
+  const roundsDone = new Map<string, { date: string; round: MobilityRound; done: Set<string> }>();
+  for (const c of roundChecks) {
+    if (!alive(c) || !c.done || !items.has(c.item_id) || c.date < week.startDate || c.date > endDate) continue;
+    const key = `${c.date}|${c.round}`;
+    const r = roundsDone.get(key) ?? { date: c.date, round: c.round, done: new Set<string>() };
+    r.done.add(c.item_id);
+    roundsDone.set(key, r);
+  }
+  const mobilityRounds = [...roundsDone.values()]
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.round === b.round ? 0 : a.round === 'morgen' ? -1 : 1))
+    .map((r) => ({ date: r.date, round: r.round, done: r.done.size, total: items.size }));
+
   return {
     weekNo,
     startDate: week.startDate,
-    endDate: dateOfDay(week, 7),
+    endDate,
     phase: week.phase,
     sessions,
     done: sessions.filter((s) => !s.optional && s.status === 'lavet').length,
     skipped: sessions.filter((s) => !s.optional && s.status === 'sprunget-over').length,
     planned: sessions.filter((s) => !s.optional).length,
-    mobilityDays: new Set(inWeek.filter((w) => w.type === 'mobilitet').map((w) => w.date)).size,
+    mobilityDays: new Set([...inWeek.filter((w) => w.type === 'mobilitet').map((w) => w.date), ...mobilityRounds.map((r) => r.date)]).size,
+    mobilityRounds,
     extras: inWeek
       .filter((w) => !w.planned_session_id)
       .sort((a, b) => a.date.localeCompare(b.date))

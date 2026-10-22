@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { applyPatch, JsonPatch, PatchError } from '../../shared/jsonPatch';
 import { describePlanChange, formatWeekList } from '../../shared/planDiff';
 import { PlanSchema, type Plan } from '../../shared/plan.schema';
+import { planEndDate } from '../../shared/resolve';
 import { PROPOSAL_STATUSES, type Proposal, type ProposalKind, type ProposalStatus } from '../../shared/proposals';
 import { listMobilityTests, listMonitors } from './athletes';
 import { ConflictError, NotFoundError, ValidationError } from './errors';
@@ -156,7 +157,7 @@ export async function validateNewPlan(db: D1Database, athleteId: number, raw: un
   const active = await findActivePlan(db, athleteId);
   const intro = [
     `Ny plan: ${plan.title}`,
-    `${plan.weeks.length} uger fra ${plan.startDate}, mål ${plan.raceDate}`,
+    `${plan.weeks.length} uger fra ${plan.startDate}${plan.raceDate ? `, mål ${plan.raceDate}` : ` til ${planEndDate(plan)}`}`,
     `Sessioner: ${plan.sessions.map((s) => s.name).join(', ')}`,
   ];
   if (!active) {

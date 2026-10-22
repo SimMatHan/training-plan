@@ -243,6 +243,8 @@ Køre en migration manuelt (fx hvis buildets token mangler D1-adgang): `npm run 
 Fase 5 (`0006_atleter.sql`) er undtagelsen fra "kun tilføjelser": `plan_versions` og `calendar_settings` bygges om,
 fordi deres nøgler skal være pr. atlet. Migrationer der fjerner noget, ligger i `migrations-pending/`, til de er
 bekræftet, og flyttes så til `migrations/` (Workers Builds kører alt i `migrations/` automatisk).
+Nummer `0007` er reserveret til `migrations-pending/0007_oprydning.sql`; nye migrationer fortsætter fra `0008`
+(wrangler kører en senere flyttet `0007` alligevel, fordi den ikke står i `d1_migrations`).
 
 ## Seed
 
@@ -299,6 +301,33 @@ Intet slettes, og loghistorikken bevares.
 
 Claudes forslag (`plan_proposals`) godkendes i appen og bliver nye versioner med `source = 'claude'`
 (se [Claude-connector](#claude-connector-mcp)). En atlets første plan kommer altid som et forslag (`foreslaa_ny_plan`).
+
+### Nyt i plan-formatet
+
+Formatet er stadig `schemaVersion: 1`. Alle nye felter er valgfrie, så ældre planversioner validerer og vises som før.
+
+- **`raceDate` er valgfri.** En blok uden løb udelader den. Så er der intet `Mål: …`-event for løbet i kalenderen,
+  ingen løbsdato i appen, og `hent_status`/`hent_profil`/`hent_plan` svarer `løbsdato: null`. Mål i `goals` vises
+  som før.
+- **`endDate`** (valgfri) er planens sidste dag. Uden den er det søndag i sidste uge (`planEndDate` i
+  `shared/resolve.ts`). Slutdatoen tages aldrig fra `raceDate`. Den skal ligge efter `startDate` og tidligst
+  mandag i sidste uge.
+- **`colorKey`** kan være `A`, `B`, `C` og `D` for styrkesessioner (plus `run` og `mobility`). C og D har egne
+  kategorifarver i `src/styles/tokens.css` (`--cat-strength-c` iOS-blå, `--cat-strength-d` iOS-brun, lys og mørk).
+- **Samme session flere gange i en uge:** `weeks[].sessions` må have samme `sessionId` på forskellige dage (fx en
+  gåtur mandag, onsdag og fredag). `(sessionId, day)` skal være unik i ugen. Hver forekomst har sin egen status,
+  flytning og kalenderevent. Træninger og flytninger gemmer planens dag i `planned_day` (migration `0008`);
+  `shared/schedule.ts` (`assignToOccurrences`) kobler dem til forekomsten. Ældre poster uden dag hører til
+  sessionen, når den kun står én gang i ugen, som før. Kalender-UID'et får dagen med (`<sessionId>-uge<n>-d<dag>`)
+  kun for sessioner, der står flere gange i ugen, så eksisterende events ikke får dubletter. `log_lob` vælger
+  forekomsten på løbets ugedag, ellers den første uloggede.
+- **Mobilitet morgen og aften:** `mobility.schedule: ["morgen", "aften"]` (valgfri). Så viser **I dag** hver dag en
+  tjekliste pr. runde uden for sessionerne, og afkrydsningen gemmes pr. dato + runde i `mobility_round_checks`
+  (migration `0009`, deterministisk uuid). På træningsdage er tjeklisten i en styrkesession med
+  `mobility: "before"` dagens morgenrunde, så den kan krydses af som opvarmning. Ugeopsummeringen, `hent_uge`
+  (`mobilitetsrunder`) og `hent_status` (`mobilitetIDag`) viser runderne. Uden `schedule` tages blokken én gang
+  dagligt som før (en mobilitetssession på hviledage eller i styrkesessionen, afkrydsning i `mobility_checks`
+  under træningen). Første sync efter app-opdateringen henter alt én gang (Dexie version 2 nulstiller cursoren).
 
 ## Lokal udvikling
 
@@ -357,7 +386,7 @@ abonnementet i kalenderen og tilføj det igen med den nye URL.
 | Planlagt session, ikke lavet | Planens (evt. flyttede) dag i ugen |
 | Session lavet | Den faktiske dato, `✓ ` foran titlen. I gang = faktisk dato uden mærke |
 | Sprunget over (markeret i appen, eller ugen er passeret uden træning) | Bliver stående med `– ` foran titlen |
-| Løbet på `raceDate` og `goals` i planen | Heldagsevent, `Mål: …` |
+| Løbet på `raceDate` (kun hvis planen har en) og `goals` i planen | Heldagsevent, `Mål: …` |
 
 Titlen er kort: `Styrke A`, `Løb — 3×10 min tærskel`, `Crosstrainer — 45 min`. Beskrivelsen har uge og fase,
 øvelserne med ugens dosering (`Enbens RDL — 3 × 8/side, RPE 6, 75 s`), et resultat for lavede sessioner
@@ -365,7 +394,8 @@ Titlen er kort: `Styrke A`, `Løb — 3×10 min tærskel`, `Crosstrainer — 45 
 åbner ugens træning, hvis den er startet, ellers ugen.
 
 **Opdatering uden dubletter:** `UID` er `<sessionId>-uge<n>@traeningsnav` og ændrer sig aldrig for en
-session i en uge. `LAST-MODIFIED`, `DTSTAMP` og `SEQUENCE` afledes af det seneste tidsstempel blandt alt,
+session i en uge. Står samme session flere gange i ugen, er det `<sessionId>-uge<n>-d<planens dag>@traeningsnav`
+(og linket får `&dag=<n>`). `LAST-MODIFIED`, `DTSTAMP` og `SEQUENCE` afledes af det seneste tidsstempel blandt alt,
 der påvirker eventet: planskiftet (`plan_versions.activated_at`), træninger, sæt, smertescorer, flytninger og
 kalenderindstillingen (tombstones tæller med), plus midnat efter ugen, når en session bliver misset.
 `SEQUENCE` er sekunder fra 1/1 2026 til det tidspunkt, så den stiger ved hver ændring uden at noget gemmes.
@@ -638,7 +668,7 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
   `POST /api/a/<atlet>/sync/push` sender hele poster med last-write-wins på `updated_at` (kun ejeren; posterne gemmes på
   rutens atlet, og en post med samme uuid hos en anden atlet overskrives aldrig).
   `GET /api/a/<atlet>/sync/pull?since=<cursor>` henter alt ændret siden, inklusive sletninger som tombstones.
-- Sæt, øvelsesnoter og mobilitetstjek har deterministiske uuid'er (træning + øvelse + side + sæt),
+- Sæt, øvelsesnoter og mobilitetstjek har deterministiske uuid'er (træning + øvelse + side + sæt; mobilitetsrunder: dato + runde + punkt),
   så hurtige ændringer aldrig giver dubletter.
 - En ny installation henter alt fra D1 ved første sync.
 - Pausetimeren gemmer kun sluttidspunktet, så den er korrekt efter slukket skærm og genstart.
@@ -651,7 +681,8 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
 ### Flytning og andre aktiviteter
 
 - **Flyt en session:** ⋯ ud for en session, der ikke er lavet, flytter den til en anden dag i
-  samme uge. Flytningen gemmes i `schedule_overrides`, og planen ændres ikke.
+  samme uge. Flytningen gemmes i `schedule_overrides`, og planen ændres ikke. Står sessionen flere gange i
+  ugen, flyttes kun den ene forekomst (`planned_day`), og den kan ikke lægges på en dag, hvor sessionen står i forvejen.
   `shared/schedule.ts` lægger flytningerne ovenpå planen for appen, `getWeek` og ugeopsummeringen
   (og kalenderfeedet i fase 2).
 - **Spring over:** samme ark (⋯ ud for en session) kan markere en session som sprunget over med en årsag

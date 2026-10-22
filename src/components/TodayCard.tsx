@@ -2,8 +2,11 @@ import { Check, ListBullets } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { ExerciseHistoryEntry } from '../../shared/history';
 import type { PainAssessment } from '../../shared/pain';
-import type { Plan, ScheduledSession, Session, Week } from '../../shared/plan.schema';
-import { useWorkoutLogs } from '../data/workouts';
+import type { Plan, Session, Week } from '../../shared/plan.schema';
+import type { EffectiveSession } from '../../shared/schedule';
+import { warmupRound } from '../../shared/mobility';
+import { useRoundChecks, useWorkoutLogs } from '../data/workouts';
+import { todayIso } from '../lib/dates';
 import type { Workout } from '../../shared/records.schema';
 import { formatDose, formatIntensity, formatRange, resolveStrengthSession } from '../../shared/resolve';
 import { sessionDetail, sessionTitle } from '../lib/sessions';
@@ -44,16 +47,19 @@ export function TodayCard({
 }: {
   plan: Plan;
   week: Week;
-  scheduled: ScheduledSession;
+  scheduled: EffectiveSession;
   session: Session;
   workouts: Workout[] | undefined;
   groin: Map<string, PainAssessment>;
   /** Seneste gang pr. øvelse. */
   last: Map<string, ExerciseHistoryEntry>;
 }) {
-  const { status, workout, open, busy } = useSessionOpener(session, week, workouts);
+  const { status, workout, open, busy } = useSessionOpener(session, week, workouts, scheduled.plannedDay);
   const [overview, setOverview] = useState(false);
   const logs = useWorkoutLogs(workout?.uuid);
+  // Med en morgenrunde i planen er sessionens mobilitet dagens morgenrunde.
+  const warmup = session.kind === 'styrke' && warmupRound(plan);
+  const rounds = useRoundChecks(warmup && workout ? workout.date : warmup ? todayIso() : undefined);
   const strength = session.kind === 'styrke' ? resolveStrengthSession(plan, session.id, week.weekNo) : undefined;
   const exercises = strength?.slots.flatMap((s) => s.exercises) ?? [];
   const light = workout && groin.get(workout.uuid)?.light;
@@ -146,7 +152,7 @@ export function TodayCard({
           weekNo={week.weekNo}
           workoutUuid={workout && !workout.skipped_at ? workout.uuid : undefined}
           sets={logs?.sets}
-          mobilityChecks={logs?.mobility}
+          mobilityChecks={warmup ? rounds?.filter((c) => c.round === 'morgen') : logs?.mobility}
         />
       )}
     </>

@@ -26,6 +26,7 @@ export function SessionOptionsSheet({
   scheduled,
   session,
   skipped,
+  taken = [],
 }: {
   open: boolean;
   onClose: () => void;
@@ -34,6 +35,8 @@ export function SessionOptionsSheet({
   session: Session;
   /** Træningen hvis sessionen allerede er markeret som sprunget over. */
   skipped?: Workout;
+  /** Dage hvor samme session allerede står (en anden forekomst i ugen). Der kan ikke flyttes dertil. */
+  taken?: number[];
 }) {
   const { active } = usePlan();
   const [reason, setReason] = useState<string | null>(null);
@@ -42,7 +45,7 @@ export function SessionOptionsSheet({
   const title = sessionTitle(session);
 
   async function move(day: number) {
-    if (day !== scheduled.day) await moveSession(week.weekNo, scheduled.sessionId, day, scheduled.plannedDay);
+    if (day !== scheduled.day) await moveSession(week.weekNo, scheduled.sessionId, day, scheduled.plannedDay, scheduled.repeated);
     onClose();
   }
 
@@ -53,6 +56,7 @@ export function SessionOptionsSheet({
       await skipSession({
         session,
         weekNo: week.weekNo,
+        plannedDay: scheduled.plannedDay,
         planVersion: active.meta.version,
         date: dateOfDay(week, scheduled.day),
         reason,
@@ -88,15 +92,17 @@ export function SessionOptionsSheet({
       <div role="group" aria-label="Dag" className="grid grid-cols-7 gap-1">
         {[1, 2, 3, 4, 5, 6, 7].map((day) => {
           const selected = day === scheduled.day;
+          const blocked = !selected && taken.includes(day);
           const date = dateOfDay(week, day);
           return (
             <button
               key={day}
               type="button"
               aria-pressed={selected}
+              disabled={blocked}
               aria-label={`${WEEKDAYS[day]} ${formatShort(date)}${day === scheduled.plannedDay ? ', planens dag' : ''}`}
               onClick={() => void move(day)}
-              className={`flex min-h-16 flex-col items-center justify-center rounded-[10px] text-footnote ${selected ? 'bg-ink font-semibold text-surface' : 'bg-fill text-ink'}`}
+              className={`flex min-h-16 flex-col items-center justify-center rounded-[10px] text-footnote ${selected ? 'bg-ink font-semibold text-surface' : 'bg-fill text-ink'} ${blocked ? 'opacity-40' : ''}`}
             >
               <span>{WEEKDAYS_SHORT[day]}</span>
               <span className="num text-headline">{Number(date.slice(8, 10))}</span>

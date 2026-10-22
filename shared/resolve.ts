@@ -21,6 +21,13 @@ export function dateOfDay(week: Week, day: number): string {
   return new Date(Date.parse(week.startDate + 'T00:00:00Z') + (day - 1) * DAY_MS).toISOString().slice(0, 10);
 }
 
+/** Planens sidste dag: endDate, ellers søndag i sidste uge. Lånes aldrig fra raceDate. */
+export function planEndDate(plan: Plan): string {
+  if (plan.endDate) return plan.endDate;
+  const last = plan.weeks.reduce((a, b) => (b.startDate > a.startDate ? b : a));
+  return dateOfDay(last, 7);
+}
+
 export interface SetRow {
   setNo: number;
   side: Side | null;

@@ -64,7 +64,7 @@ function WeekProgress({ week }: { week: Week }) {
   const groin = useWorstLights();
   if (!workouts) return null;
   const planned = effectiveSessions(week, overrides ?? []).filter((s) => !s.optional);
-  const done = planned.filter((s) => statusOf(workouts, s.sessionId).status === 'lavet').length;
+  const done = planned.filter((s) => statusOf(workouts, { week, sessionId: s.sessionId, plannedDay: s.plannedDay }).status === 'lavet').length;
   const km = workouts.filter((w) => w.type === 'løb').reduce((sum, w) => sum + (w.distance_km ?? 0), 0);
   const lights = workouts.map((w) => groin.get(w.uuid)?.light).filter((l): l is PainLight => !!l);
   const counts = (['grøn', 'gul', 'rød'] as const).map((l) => [l, lights.filter((x) => x === l).length] as const).filter(([, n]) => n > 0);

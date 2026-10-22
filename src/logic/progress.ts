@@ -50,7 +50,8 @@ export function slotSetProgress(plan: Plan, slot: ResolvedSlot, sets: SetLog[]):
   return { done, total };
 }
 
-export function mobilityProgress(plan: Plan, checks: MobilityCheck[]): Progress {
+/** Fremdrift i mobilitetsblokken: afkrydsninger fra en træning (mobility_checks) eller en runde (mobility_round_checks). */
+export function mobilityProgress(plan: Plan, checks: Pick<MobilityCheck, 'item_id' | 'done' | 'deleted_at'>[]): Progress {
   const done = new Set(checks.filter((c) => c.done && !c.deleted_at).map((c) => c.item_id));
   const items = plan.mobility?.items ?? [];
   return { done: items.filter((i) => done.has(i.id)).length, total: items.length };

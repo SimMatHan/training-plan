@@ -15,15 +15,16 @@ export function useWeekOverrides(weekNo: number | undefined): ScheduleOverride[]
 
 /**
  * Flytter en session til `day` (1 = mandag). Flyttes den tilbage til planens dag,
- * bliver flytningen en tombstone. Én post pr. uge + session (deterministisk uuid).
+ * bliver flytningen en tombstone. Én post pr. uge + session (deterministisk uuid); står
+ * sessionen flere gange i ugen (`repeated`), én pr. forekomst, så uuid'en får planens dag med.
  */
-export async function moveSession(weekNo: number, sessionId: string, day: number, plannedDay: number) {
-  const uuid = await deterministicUuid('flyt', weekNo, sessionId);
+export async function moveSession(weekNo: number, sessionId: string, day: number, plannedDay: number, repeated = false) {
+  const uuid = repeated ? await deterministicUuid('flyt', weekNo, sessionId, plannedDay) : await deterministicUuid('flyt', weekNo, sessionId);
   const back = day === plannedDay;
   await upsertRecord(
     'schedule_overrides',
     uuid,
-    { uuid, week_no: weekNo, session_id: sessionId, day },
+    { uuid, week_no: weekNo, session_id: sessionId, day, planned_day: plannedDay },
     { day, deleted_at: back ? new Date().toISOString() : null },
   );
 }

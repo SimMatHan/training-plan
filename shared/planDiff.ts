@@ -1,8 +1,9 @@
 // Læsbar forskel mellem to planversioner, fx
 //   "Styrke A · Enbens RDL, uge 5–8: 3 × 8/side, RPE 6 → 3 × 10/side, RPE 6".
 // Bruges til Claudes forslag (MCP-svaret og forslagsvisningen i appen).
-import type { Plan, Session, StrengthSession } from './plan.schema';
+import type { Plan, ScheduledSession, Session, StrengthSession, Week } from './plan.schema';
 import { formatDose, formatIntensity, getExercise, resolveStrengthSession } from './resolve';
+import { isRepeated } from './schedule';
 
 const DAYS = ['', 'man', 'tir', 'ons', 'tor', 'fre', 'lør', 'søn'];
 
@@ -143,21 +144,32 @@ function diffWeeks(before: Plan, after: Plan): string[] {
     if (b.focus !== a.focus) push(`focus|${a.focus}`, `fokus ${quote(a.focus)}`);
     if (b.kmLabel !== a.kmLabel) push(`km|${b.kmLabel}|${a.kmLabel}`, `km ${b.kmLabel ?? '–'} → ${a.kmLabel ?? '–'}`);
     if (b.startDate !== a.startDate) push(`start|${a.startDate}`, `startdato ${b.startDate} → ${a.startDate}`);
+    // En session kan stå flere gange i ugen: par først på (session, dag), så på sessionen alene.
+    const used = new Set<ScheduledSession>();
+    const match = (s: ScheduledSession) => {
+      const old = b.sessions.find((x) => !used.has(x) && x.sessionId === s.sessionId && x.day === s.day) ?? b.sessions.find((x) => !used.has(x) && x.sessionId === s.sessionId);
+      if (old) used.add(old);
+      return old;
+    };
+    // Gentagne sessioner får dagen med i navnet, så ændringerne kan skelnes.
+    const label = (week: Week, s: ScheduledSession) => (isRepeated(week, s.sessionId) ? `${name(s.sessionId)} (${DAYS[s.day]})` : name(s.sessionId));
+    const id = (week: Week, s: ScheduledSession) => (isRepeated(week, s.sessionId) ? `${s.sessionId}@${s.day}` : s.sessionId);
     for (const s of a.sessions) {
-      const old = b.sessions.find((x) => x.sessionId === s.sessionId);
+      const old = match(s);
       if (!old) {
         push(`+${s.sessionId}|${s.day}|${s.label}`, `+ ${name(s.sessionId)} (${DAYS[s.day]}${s.optional ? ', valgfri' : ''}) ${quote(s.label)}`);
         continue;
       }
+      const n = label(a, s);
+      const k = id(a, s);
       if (old.day !== s.day) push(`day|${s.sessionId}|${old.day}|${s.day}`, `${name(s.sessionId)} ${DAYS[old.day]} → ${DAYS[s.day]}`);
-      if (old.label !== s.label) push(`label|${s.sessionId}|${s.label}`, `${name(s.sessionId)}: ${quote(old.label)} → ${quote(s.label)}`);
-      if (!same(old.targetKm, s.targetKm)) push(`km|${s.sessionId}|${range(old.targetKm)}|${range(s.targetKm)}`, `${name(s.sessionId)} km ${range(old.targetKm)} → ${range(s.targetKm)}`);
-      if (!same(old.targetMin, s.targetMin)) push(`min|${s.sessionId}|${range(old.targetMin)}|${range(s.targetMin)}`, `${name(s.sessionId)} min ${range(old.targetMin)} → ${range(s.targetMin)}`);
-      if (old.optional !== s.optional) push(`opt|${s.sessionId}|${s.optional}`, `${name(s.sessionId)} ${s.optional ? 'nu valgfri' : 'ikke længere valgfri'}`);
-      if (old.condition !== s.condition) push(`cond|${s.sessionId}|${s.condition}`, `${name(s.sessionId)} betingelse ${quote(s.condition)}`);
+      if (old.label !== s.label) push(`label|${k}|${s.label}`, `${n}: ${quote(old.label)} → ${quote(s.label)}`);
+      if (!same(old.targetKm, s.targetKm)) push(`km|${k}|${range(old.targetKm)}|${range(s.targetKm)}`, `${n} km ${range(old.targetKm)} → ${range(s.targetKm)}`);
+      if (!same(old.targetMin, s.targetMin)) push(`min|${k}|${range(old.targetMin)}|${range(s.targetMin)}`, `${n} min ${range(old.targetMin)} → ${range(s.targetMin)}`);
+      if (old.optional !== s.optional) push(`opt|${k}|${s.optional}`, `${n} ${s.optional ? 'nu valgfri' : 'ikke længere valgfri'}`);
+      if (old.condition !== s.condition) push(`cond|${k}|${s.condition}`, `${n} betingelse ${quote(s.condition)}`);
     }
-    for (const s of b.sessions)
-      if (!a.sessions.some((x) => x.sessionId === s.sessionId)) push(`-${s.sessionId}`, `− ${name(s.sessionId)} (${DAYS[s.day]})`);
+    for (const s of b.sessions) if (!used.has(s)) push(`-${id(b, s)}`, `− ${name(s.sessionId)} (${DAYS[s.day]})`);
   }
   return [...lines, ...byWeeks(entries).map((l) => l.charAt(0).toUpperCase() + l.slice(1))];
 }
@@ -180,6 +192,7 @@ export function describePlanChange(before: Plan, after: Plan): string[] {
     ['summary', 'Resumé'],
     ['startDate', 'Startdato'],
     ['raceDate', 'Løbsdato'],
+    ['endDate', 'Slutdato'],
     ['goals', 'Mål'],
     ['readingNotes', 'Læsevejledning'],
     ['runNotes', 'Løbenoter'],

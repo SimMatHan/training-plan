@@ -121,8 +121,8 @@ export type SessionSlot = z.infer<typeof SessionSlot>;
 
 // ─── Sessioner ──────────────────────────────────────────────────────────────
 
-/** Farvenøgle: A = rød, B = blå, run = gul, mobility = grøn. */
-export const ColorKey = z.enum(['A', 'B', 'run', 'mobility']);
+/** Farvenøgle for sessionen: styrke A, B, C og D, run (løb og cardio) og mobility. Farverne står i src/styles/tokens.css. */
+export const ColorKey = z.enum(['A', 'B', 'C', 'D', 'run', 'mobility']);
 
 const SessionBase = z.object({
   id: Slug,
@@ -178,11 +178,25 @@ export const MobilityItem = z.object({
 });
 export type MobilityItem = z.infer<typeof MobilityItem>;
 
+/** En runde af mobilitetsblokken i løbet af dagen. */
+export const MobilityRound = z.enum(['morgen', 'aften']);
+export type MobilityRound = z.infer<typeof MobilityRound>;
+
 export const MobilityBlock = z.object({
   name: z.string(),
   durationMin: NumRange.optional(),
   intro: z.string().optional(),
   items: z.array(MobilityItem).min(1),
+  /**
+   * Hvornår blokken tages, fx ["morgen", "aften"]: én afkrydsning pr. runde pr. dag, uden for sessionerne
+   * (morgenrunden kan krydses af som opvarmning i en styrkesession). Udeladt: én gang dagligt som en
+   * mobilitetssession eller som del af en styrkesession (mobility: "before").
+   */
+  schedule: z
+    .array(MobilityRound)
+    .min(1)
+    .refine((r) => new Set(r).size === r.length, 'Samme runde står to gange i mobility.schedule')
+    .optional(),
   /** Fase 5: mobilitetstests (fx knee-to-wall) ligger pr. atlet i mobility_tests; planen siger hvornår. */
   measurement: z
     .object({
@@ -199,8 +213,9 @@ export const MobilityBlock = z.object({
 // ─── Uger ───────────────────────────────────────────────────────────────────
 
 export const ScheduledSession = z.object({
+  /** Planens session. Samme session må stå flere gange i en uge, på hver sin dag. */
   sessionId: Slug,
-  /** 1 = mandag … 7 = søndag. Foreslået dag; sessioner kan tages andre dage i ugen. */
+  /** 1 = mandag … 7 = søndag. Foreslået dag; sessioner kan tages andre dage i ugen. (sessionId, day) er unik i ugen. */
   day: z.int().min(1).max(7),
   /** Teksten fra ugeplanen, fx "RH (5 km) — kun hvis snurren er væk". */
   label: z.string(),
@@ -236,7 +251,10 @@ export const PlanSchema = z
     title: z.string(),
     summary: z.string().optional(),
     startDate: IsoDate,
-    raceDate: IsoDate,
+    /** Løbsdagen. Valgfri: en blok uden løb har ingen. Med den kommer løbet i kalenderen som et mål. */
+    raceDate: IsoDate.optional(),
+    /** Planens sidste dag. Valgfri: uden den er det søndag i sidste uge (se planEndDate). */
+    endDate: IsoDate.optional(),
     readingNotes: z.array(z.string()).default([]),
     exercises: z.array(Exercise).min(1),
     sessions: z.array(Session).min(1),
@@ -252,7 +270,7 @@ export const PlanSchema = z
       })
       .optional(),
     runNotes: z.array(z.string()).default([]),
-    /** Mål og milepæle ud over løbet på raceDate. Vises som heldagsevents i kalenderfeedet. */
+    /** Mål og milepæle ud over løbet på raceDate (hvis planen har et). Vises som heldagsevents i kalenderfeedet. */
     goals: z.array(z.object({ date: IsoDate, title: z.string().min(1), note: z.string().optional() })).default([]),
   })
   .superRefine((plan, ctx) => {
@@ -295,20 +313,29 @@ export const PlanSchema = z
 
     const weekNos = new Set<number>();
     const start = Date.parse(plan.startDate);
+    if (plan.endDate) {
+      const lastMonday = plan.weeks.map((w) => w.startDate).sort().at(-1)!;
+      if (plan.endDate < plan.startDate) issue('endDate ligger før startDate', ['endDate']);
+      else if (plan.endDate < lastMonday) issue(`endDate ligger før sidste uge (${lastMonday})`, ['endDate']);
+    }
     plan.weeks.forEach((w, wi) => {
       if (weekNos.has(w.weekNo)) issue(`Dublet uge ${w.weekNo}`, ['weeks', wi]);
       weekNos.add(w.weekNo);
       if (new Date(w.startDate + 'T00:00:00Z').getUTCDay() !== 1) issue(`Uge ${w.weekNo} starter ikke en mandag`, ['weeks', wi]);
       if (Date.parse(w.startDate) < start) issue(`Uge ${w.weekNo} ligger før planens start`, ['weeks', wi]);
 
+      // Samme session må gerne stå flere gange i ugen, men ikke to gange samme dag.
       const seen = new Set<string>();
+      const checked = new Set<string>();
       w.sessions.forEach((ss, ssi) => {
         const path = ['weeks', wi, 'sessions', ssi];
-        if (seen.has(ss.sessionId)) issue(`Session ${ss.sessionId} står to gange i uge ${w.weekNo}`, path);
-        seen.add(ss.sessionId);
+        const key = `${ss.sessionId}|${ss.day}`;
+        if (seen.has(key)) issue(`Session ${ss.sessionId} står to gange samme dag (dag ${ss.day}) i uge ${w.weekNo}`, path);
+        seen.add(key);
         const session = sessions.get(ss.sessionId);
         if (!session) return issue(`Ukendt session: ${ss.sessionId}`, path);
-        if (session.kind !== 'styrke') return;
+        if (session.kind !== 'styrke' || checked.has(session.id)) return;
+        checked.add(session.id);
         // Hver plads må højst have én variant der dækker ugen, og mindst én plads skal være aktiv.
         let active = 0;
         for (const slot of session.slots) {

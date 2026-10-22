@@ -12,6 +12,7 @@ export const TABLES = Object.keys(SyncTables) as SyncTable[];
 const BOOLEAN_COLUMNS: Partial<Record<SyncTable, string[]>> = {
   set_logs: ['done'],
   mobility_checks: ['done'],
+  mobility_round_checks: ['done'],
 };
 
 const columnsOf = (table: SyncTable) => Object.keys(SyncTables[table].shape);

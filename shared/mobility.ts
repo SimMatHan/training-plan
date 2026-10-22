@@ -1,6 +1,13 @@
 // Mobilitetstests (fx knee-to-wall). For tests pr. side er forskellen venstre − højre; for
 // knee-to-wall er højre achilles den stramme side, og målet er forskel 0.
+import type { Plan } from './plan.schema';
 import type { MobilityMeasurement } from './records.schema';
+
+/**
+ * Om mobilitetsblokken i planen tages i runder (mobility.schedule) med en morgenrunde. Så er tjeklisten i en
+ * styrkesession dagens morgenrunde; ellers hører afkrydsningen til træningen (mobility_checks), som før.
+ */
+export const warmupRound = (plan: Plan) => !!plan.mobility?.schedule?.includes('morgen');
 
 export interface MobilityPoint {
   uuid: string;

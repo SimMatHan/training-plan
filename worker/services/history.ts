@@ -1,14 +1,15 @@
 // Historik og eksport. Kaldes af API'et og af MCP. Alt er pr. atlet.
 import { assessAllPain } from '../../shared/pain';
 import { exerciseHistory, weeklySummary, type ExerciseHistoryEntry, type WeeklySummary } from '../../shared/history';
-import { ExerciseNote, PainScore, ScheduleOverride, SetLog, SyncTables, Workout, type SyncTable } from '../../shared/records.schema';
+import { ExerciseNote, MobilityRoundCheck, PainScore, ScheduleOverride, SetLog, SyncTables, Workout, type SyncTable } from '../../shared/records.schema';
+import { dateOfDay } from '../../shared/resolve';
 import { listMonitors } from './athletes';
 import { NotFoundError } from './errors';
 import { getActivePlan } from './plan';
 
 type Row = Record<string, unknown>;
 
-const BOOL_COLUMNS: Partial<Record<SyncTable, string[]>> = { set_logs: ['done'], mobility_checks: ['done'] };
+const BOOL_COLUMNS: Partial<Record<SyncTable, string[]>> = { set_logs: ['done'], mobility_checks: ['done'], mobility_round_checks: ['done'] };
 
 /**
  * Læser en atlets rækker i en tabel som validerede poster (booleans konverteret, server_updated_at
@@ -69,18 +70,22 @@ export const readPainScores = (db: D1Database, athleteId: number) => readTable(d
 /** Ugens sessioner, volumen pr. øvelse, løbe-km og trafiklys. */
 export async function getWeeklySummary(db: D1Database, athleteId: number, weekNo: number, asOf = today()): Promise<WeeklySummary> {
   const { plan } = await getActivePlan(db, athleteId);
-  if (!plan.weeks.some((w) => w.weekNo === weekNo)) throw new NotFoundError(`Uge ${weekNo} findes ikke i planen`);
+  const week = plan.weeks.find((w) => w.weekNo === weekNo);
+  if (!week) throw new NotFoundError(`Uge ${weekNo} findes ikke i planen`);
   const workouts = (await readTable(db, athleteId, 'workouts', 'deleted_at IS NULL')) as Workout[];
-  const [sets, scores, overrides, monitors] = await Promise.all([
+  const [sets, scores, overrides, monitors, rounds] = await Promise.all([
     readTable(db, athleteId, 'set_logs', 'deleted_at IS NULL AND workout_uuid IN (SELECT uuid FROM workouts WHERE athlete_id = ? AND week_no = ?)', athleteId, weekNo) as Promise<
       SetLog[]
     >,
     readPainScores(db, athleteId),
     readTable(db, athleteId, 'schedule_overrides', 'deleted_at IS NULL AND week_no = ?', weekNo) as Promise<ScheduleOverride[]>,
     listMonitors(db, athleteId),
+    readTable(db, athleteId, 'mobility_round_checks', 'deleted_at IS NULL AND date >= ? AND date <= ?', week.startDate, dateOfDay(week, 7)) as Promise<
+      MobilityRoundCheck[]
+    >,
   ]);
   const pain = assessAllPain(workouts, scores, monitors.filter((m) => m.active).map((m) => m.id), asOf);
-  return weeklySummary(plan, weekNo, workouts, sets, pain, overrides);
+  return weeklySummary(plan, weekNo, workouts, sets, pain, overrides, rounds);
 }
 
 /** Alt for én atlet som ét JSON-dokument: profil, planversioner, forslag og alle logtabeller. */
