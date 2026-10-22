@@ -107,9 +107,18 @@ export function TodayPage() {
           </Group>
         </>
       ) : (
-        <Muted>
-          Planen løber fra {formatLong(plan.startDate)} til {formatLong(plan.raceDate ?? planEndDate(plan))}.
-        </Muted>
+        // Uden for planens uger (før første uge eller efter sidste): forslag, noter og morgenspørgsmål skal stadig
+        // kunne ses, fx en ny plan, der venter på godkendelse, før den nuværende er startet.
+        <>
+          <Muted className="mb-10">
+            Planen løber fra {formatLong(plan.startDate)} til {formatLong(plan.raceDate ?? planEndDate(plan))}.
+          </Muted>
+          {rounds && today >= plan.startDate && today <= planEndDate(plan) && <MobilityRounds plan={plan} date={today} />}
+          <MorningPainCards />
+          <ProposalBanner />
+          <CoachNotes notes={notes} plan={plan} />
+          <MobilityCards />
+        </>
       )}
     </Screen>
   );
