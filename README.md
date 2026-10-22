@@ -310,6 +310,8 @@ Formatet er stadig `schemaVersion: 1`. Alle nye felter er valgfrie, så ældre p
 - **`endDate`** (valgfri) er planens sidste dag. Uden den er det søndag i sidste uge (`planEndDate` i
   `shared/resolve.ts`). Slutdatoen tages aldrig fra `raceDate`. Den skal ligge efter `startDate` og tidligst
   mandag i sidste uge.
+- **`colorKey`** kan være `A`, `B`, `C` og `D` for styrkesessioner (plus `run` og `mobility`). C og D har egne
+  kategorifarver i `src/styles/tokens.css` (`--cat-strength-c` iOS-blå, `--cat-strength-d` iOS-brun, lys og mørk).
 
 ## Lokal udvikling
 

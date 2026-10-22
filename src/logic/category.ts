@@ -3,7 +3,7 @@
 // falder tilbage på øvelsens navn.
 import type { Plan, Session } from '../../shared/plan.schema';
 
-export type Category = 'legs' | 'back' | 'arms' | 'core' | 'calf' | 'mobility' | 'cardio';
+export type Category = 'legs' | 'back' | 'arms' | 'core' | 'calf' | 'mobility' | 'cardio' | 'strength-c' | 'strength-d';
 
 export const CATEGORY_LABEL: Record<Category, string> = {
   legs: 'Ben og hofte',
@@ -13,6 +13,8 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   calf: 'Læg og ankel',
   mobility: 'Mobilitet',
   cardio: 'Løb og cardio',
+  'strength-c': 'Styrke C',
+  'strength-d': 'Styrke D',
 };
 
 // Rækkefølgen betyder noget: "Baglår, ryg" er ben, "Core, hofte" er core.
@@ -50,9 +52,11 @@ export function exerciseCategory(plan: Plan | undefined, exerciseId: string): Ca
   return categoryOf(exercise?.focus ?? slotFocus, exercise?.name ?? exerciseId);
 }
 
-/** Kategori for en hel session: løb og mobilitet efter type, styrke A som ben, B som ryg. */
+/** Kategori for en hel session: løb og mobilitet efter type, styrke A som ben, B som ryg, C og D med egne farver. */
 export function sessionCategory(session: Pick<Session, 'kind' | 'colorKey'>): Category {
   if (session.kind === 'løb' || session.kind === 'cardio') return 'cardio';
   if (session.kind === 'mobilitet') return 'mobility';
+  if (session.colorKey === 'C') return 'strength-c';
+  if (session.colorKey === 'D') return 'strength-d';
   return session.colorKey === 'B' ? 'back' : 'legs';
 }

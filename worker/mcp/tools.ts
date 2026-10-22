@@ -124,7 +124,8 @@ const Rationale = z.string().trim().min(1).max(4000).describe('Hvorfor, ud fra d
 /** Det plan-formatet kan ud over det åbenlyse. Står i beskrivelserne af hent_plan og forslagsværktøjerne. */
 const PLAN_FORMAT =
   'Plan-format: raceDate er valgfri (en blok uden løb udelader den; så er der intet løbsmål i kalenderen), ' +
-  'og endDate (valgfri) er planens sidste dag, ellers søndag i sidste uge.';
+  'og endDate (valgfri) er planens sidste dag, ellers søndag i sidste uge. ' +
+  'colorKey for styrkesessioner er A, B, C eller D (løb og cardio "run", mobilitet "mobility").';
 
 const smerteTrend = tool({
   name: 'hent_smertetrend',

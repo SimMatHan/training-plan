@@ -11,6 +11,8 @@ const ICON: Record<Category, Icon> = {
   calf: Footprints,
   mobility: PersonSimpleTaiChi,
   cardio: PersonSimpleRun,
+  'strength-c': Barbell,
+  'strength-d': Barbell,
 };
 
 /** Lille flise (36 × 36, radius 10): ikon i kategoriens farve på samme farve i 14 % opacitet. */

@@ -41,6 +41,10 @@
   --cat-calf: #5856d6;
   --cat-mobility: #34c759;
   --cat-cardio: #ff9500;
+  /* Styrkesessioner med colorKey C og D (A og B bruger ben og ryg): iOS-blå og iOS-brun, de systemfarver
+     appen ikke har brugt, og som ikke kan forveksles med trafiklyset. */
+  --cat-strength-c: #007aff;
+  --cat-strength-d: #a2845e;
 
   /* Status (trafiklys). Står altid med tekst ved siden af. Aldrig brand-gradienten. */
   --status-green: #34c759;
@@ -75,6 +79,8 @@
     --cat-calf: #7d7aff;
     --cat-mobility: #30d158;
     --cat-cardio: #ff9f0a;
+    --cat-strength-c: #0a84ff;
+    --cat-strength-d: #ac8e68;
     --status-green: #30d158;
     --status-yellow: #ffd60a;
     --status-red: #ff453a;
@@ -105,6 +111,8 @@
   --cat-calf: #7d7aff;
   --cat-mobility: #30d158;
   --cat-cardio: #ff9f0a;
+  --cat-strength-c: #0a84ff;
+  --cat-strength-d: #ac8e68;
   --status-green: #30d158;
   --status-yellow: #ffd60a;
   --status-red: #ff453a;

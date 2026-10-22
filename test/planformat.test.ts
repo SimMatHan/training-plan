@@ -62,6 +62,20 @@ beforeEach(async () => {
   db = w.db;
 });
 
+describe('colorKey', () => {
+  it('tager styrkefarverne C og D', () => {
+    const plan = variant((p) => {
+      const sessions = p.sessions as { id: string; colorKey: string }[];
+      sessions.find((s) => s.id === 'styrke-a')!.colorKey = 'C';
+      sessions.find((s) => s.id === 'styrke-b')!.colorKey = 'D';
+    });
+    expect(plan.sessions.filter((s) => s.colorKey === 'C' || s.colorKey === 'D').map((s) => s.id)).toEqual(['styrke-a', 'styrke-b']);
+    const raw = structuredClone(planJson) as { sessions: { colorKey: string }[] };
+    raw.sessions[0].colorKey = 'E';
+    expect(PlanSchema.safeParse(raw).success).toBe(false);
+  });
+});
+
 describe('raceDate og endDate', () => {
   it('plan v1 validerer uændret: raceDate bevares, og endDate kommer ikke til', () => {
     expect(v1.raceDate).toBe('2026-12-31');

@@ -121,8 +121,8 @@ export type SessionSlot = z.infer<typeof SessionSlot>;
 
 // ─── Sessioner ──────────────────────────────────────────────────────────────
 
-/** Farvenøgle: A = rød, B = blå, run = gul, mobility = grøn. */
-export const ColorKey = z.enum(['A', 'B', 'run', 'mobility']);
+/** Farvenøgle for sessionen: styrke A, B, C og D, run (løb og cardio) og mobility. Farverne står i src/styles/tokens.css. */
+export const ColorKey = z.enum(['A', 'B', 'C', 'D', 'run', 'mobility']);
 
 const SessionBase = z.object({
   id: Slug,
