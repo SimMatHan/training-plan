@@ -1,13 +1,74 @@
-import { Check } from '@phosphor-icons/react';
+import { CaretDown, Check } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { Plan } from '../../shared/plan.schema';
 import type { MobilityCheck } from '../../shared/records.schema';
-import { setMobilityCheck } from '../data/workouts';
+import { isComplete, type Progress } from '../logic/progress';
+import { IconTile } from '../ui/IconTile';
 import { InsetList } from '../ui/InsetList';
 import { ExerciseIllustration } from './ExerciseIllustration';
 
-/** Mobilitetsblokken som tjekliste. Gemmes pr. punkt. */
-export function MobilityChecklist({ plan, workoutUuid, checks }: { plan: Plan; workoutUuid: string; checks: MobilityCheck[] }) {
+/**
+ * Mobilitetsblokken som et kort, der kan foldes sammen, med tjeklisten indeni. Åben, indtil den er lavet
+ * (eller som `defaultOpen` siger). Bruges i logningen og til morgen- og aftenrunden på I dag.
+ */
+export function MobilityBlockCard({
+  plan,
+  title,
+  kicker,
+  checks,
+  onToggle,
+  progress,
+  defaultOpen,
+}: {
+  plan: Plan;
+  title: string;
+  /** Kort tekst før antal øvelser, fx "Morgenrunden". */
+  kicker?: string;
+  checks: Pick<MobilityCheck, 'item_id' | 'done'>[];
+  onToggle: (itemId: string, done: boolean) => void;
+  progress: Progress;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(() => defaultOpen ?? !isComplete(progress));
+  const block = plan.mobility!;
+  return (
+    <>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center gap-3 rounded-card bg-surface p-3 text-left">
+        <IconTile category="mobility" size={44} />
+        <span className="min-w-0 flex-1">
+          <span className="block text-headline text-brand-red">{title}</span>
+          <span className="num block text-footnote text-ink-2">
+            {kicker && `${kicker} · `}
+            {block.items.length} øvelser{block.durationMin && ` · ${block.durationMin.min}–${block.durationMin.max} min`}
+          </span>
+        </span>
+        <span className="num text-secondary text-ink-2">
+          {progress.done}/{progress.total}
+        </span>
+        <CaretDown size={18} weight="bold" className={`text-ink-3 transition-transform duration-200 ease-ios ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="mt-2">
+          <MobilityChecklist plan={plan} checks={checks} onToggle={onToggle} />
+        </div>
+      )}
+    </>
+  );
+}
+
+/**
+ * Mobilitetsblokken som tjekliste. Gemmes pr. punkt via `onToggle`: i en træning (mobility_checks)
+ * eller i en runde på en dato (mobility_round_checks).
+ */
+export function MobilityChecklist({
+  plan,
+  checks,
+  onToggle,
+}: {
+  plan: Plan;
+  checks: Pick<MobilityCheck, 'item_id' | 'done'>[];
+  onToggle: (itemId: string, done: boolean) => void;
+}) {
   const block = plan.mobility;
   // Optimistisk: vis trykket med det samme, også før IndexedDB har svaret.
   const [pending, setPending] = useState<Record<string, boolean>>({});
@@ -43,7 +104,7 @@ export function MobilityChecklist({ plan, workoutUuid, checks }: { plan: Plan; w
                 onChange={(e) => {
                   const done = e.target.checked;
                   setPending((p) => ({ ...p, [item.id]: done }));
-                  void setMobilityCheck(workoutUuid, item.id, done);
+                  onToggle(item.id, done);
                 }}
                 className="peer sr-only"
               />

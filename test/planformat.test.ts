@@ -1,8 +1,9 @@
-// Det udvidede plan-format: valgfri raceDate og endDate, styrkefarve C/D og samme session flere gange
-// i en uge. Gamle planer skal opføre sig som før.
+// Det udvidede plan-format: valgfri raceDate og endDate, styrkefarve C/D, samme session flere gange
+// i en uge og mobilitet morgen + aften. Gamle planer skal opføre sig som før.
 import { beforeEach, describe, expect, it } from 'vitest';
 import planJson from '../plan/plan.v1.json';
 import { PlanSchema, type Plan } from '../shared/plan.schema';
+import { warmupRound } from '../shared/mobility';
 import { describePlanChange } from '../shared/planDiff';
 import { ScheduleOverride, Workout } from '../shared/records.schema';
 import { planEndDate } from '../shared/resolve';
@@ -284,5 +285,90 @@ describe('samme session flere gange i en uge', () => {
     expect(describePlanChange(plan, v1)).toContain('Uge 2: − Rehab A (fre)');
     const relabeled = twice('rehab-a', 5, 'Ny tekst');
     expect(describePlanChange(plan, relabeled)).toEqual(['Uge 2: Rehab A (fre): "Rehab A (fredag)" → "Ny tekst"']);
+  });
+});
+
+// ─── Mobilitet morgen og aften ──────────────────────────────────────────────
+
+const withRounds = (schedule: string[] = ['morgen', 'aften']) =>
+  variant((p) => {
+    (p.mobility as { schedule?: string[] }).schedule = schedule;
+  });
+const ITEMS = v1.mobility!.items.map((i) => i.id);
+let r = 0;
+const roundCheck = (date: string, round: 'morgen' | 'aften', item_id: string, extra: Record<string, unknown> = {}) => ({
+  uuid: `73000000-0000-4000-8000-${String(++r).padStart(12, '0')}`,
+  date,
+  round,
+  item_id,
+  done: true,
+  updated_at: TS,
+  ...extra,
+});
+
+describe('mobilitet morgen og aften', () => {
+  it('schedule er valgfri; uden den er blokken én gang dagligt som før', () => {
+    expect(v1.mobility!.schedule).toBeUndefined();
+    expect(warmupRound(v1)).toBe(false);
+    expect(withRounds().mobility!.schedule).toEqual(['morgen', 'aften']);
+    expect(warmupRound(withRounds())).toBe(true);
+    expect(warmupRound(withRounds(['aften']))).toBe(false);
+    const raw = structuredClone(planJson) as { mobility: Record<string, unknown> };
+    raw.mobility.schedule = ['morgen', 'morgen'];
+    expect(PlanSchema.safeParse(raw).error?.issues.map((i) => i.message)).toEqual(['Samme runde står to gange i mobility.schedule']);
+    raw.mobility.schedule = ['middag'];
+    expect(PlanSchema.safeParse(raw).success).toBe(false);
+  });
+
+  it('afkrydsninger pr. dato og runde synkes og holdes pr. atlet', async () => {
+    await pushChanges(db, SIMON, {
+      mobility_round_checks: [roundCheck('2026-10-07', 'morgen', ITEMS[0]), roundCheck('2026-10-07', 'aften', ITEMS[0], { done: false })],
+    });
+    const { changes } = await pullChanges(db, SIMON, null);
+    expect(changes.mobility_round_checks?.map((c) => [c.date, c.round, c.item_id, c.done])).toEqual([
+      ['2026-10-07', 'morgen', ITEMS[0], true],
+      ['2026-10-07', 'aften', ITEMS[0], false],
+    ]);
+    expect((await pullChanges(db, w.karo.athleteId, null)).changes.mobility_round_checks).toBeUndefined();
+    await expect(pushChanges(db, SIMON, { mobility_round_checks: [roundCheck('2026-10-07', 'middag' as 'morgen', ITEMS[1])] })).rejects.toThrow('Ugyldig post');
+  });
+
+  it('ugeopsummeringen tæller runder og dage; slettede og ukendte punkter tæller ikke', async () => {
+    await install(withRounds());
+    await pushChanges(db, SIMON, {
+      mobility_round_checks: [
+        ...ITEMS.slice(0, 3).map((id) => roundCheck('2026-10-06', 'morgen', id)),
+        roundCheck('2026-10-06', 'aften', ITEMS[0]),
+        roundCheck('2026-10-07', 'aften', ITEMS[1], { deleted_at: TS }),
+        roundCheck('2026-10-07', 'aften', 'ikke-i-planen'),
+        roundCheck('2026-10-12', 'morgen', ITEMS[0]), // uge 3
+      ],
+      // En mobilitetsdag på den gamle måde tæller stadig med.
+      workouts: [workout({ planned_session_id: 'mobilitet', type: 'mobilitet', date: '2026-10-05' })],
+    });
+    const summary = await getWeeklySummary(db, SIMON, 2, '2026-10-07');
+    expect(summary.mobilityRounds).toEqual([
+      { date: '2026-10-06', round: 'morgen', done: 3, total: ITEMS.length },
+      { date: '2026-10-06', round: 'aften', done: 1, total: ITEMS.length },
+    ]);
+    expect(summary.mobilityDays).toBe(2);
+  });
+
+  it('MCP viser dagens runder, ugens runder og planens schedule', async () => {
+    await install(withRounds());
+    await pushChanges(db, SIMON, { mobility_round_checks: ITEMS.map((id) => roundCheck('2026-10-07', 'morgen', id)) });
+    const status = (await call('hent_status')).json;
+    expect(status.uge.mobilitetIDag).toEqual([
+      { runde: 'morgen', lavet: `${ITEMS.length}/${ITEMS.length}` },
+      { runde: 'aften', lavet: `0/${ITEMS.length}` },
+    ]);
+    expect((await call('hent_uge', { uge: 2 })).json.mobilitetsrunder).toEqual([{ dato: '2026-10-07', runde: 'morgen', lavet: `${ITEMS.length}/${ITEMS.length}` }]);
+    expect((await call('hent_plan')).json.mobilitet.runder).toEqual(['morgen', 'aften']);
+  });
+
+  it('uden schedule er MCP-svarene som før', async () => {
+    expect((await call('hent_status')).json.uge.mobilitetIDag).toBeUndefined();
+    expect((await call('hent_uge', { uge: 2 })).json.mobilitetsrunder).toBeUndefined();
+    expect((await call('hent_plan')).json.mobilitet.runder).toBe('én gang dagligt');
   });
 });

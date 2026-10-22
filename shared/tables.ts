@@ -12,4 +12,5 @@ export const SYNC_TABLES = [
   'mobility_checks',
   'schedule_overrides',
   'coach_notes',
+  'mobility_round_checks',
 ] as const;

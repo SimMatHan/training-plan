@@ -127,7 +127,9 @@ const PLAN_FORMAT =
   'Plan-format: raceDate er valgfri (en blok uden løb udelader den; så er der intet løbsmål i kalenderen), ' +
   'og endDate (valgfri) er planens sidste dag, ellers søndag i sidste uge. ' +
   'colorKey for styrkesessioner er A, B, C eller D (løb og cardio "run", mobilitet "mobility"). ' +
-  'Samme session må stå flere gange i en uges sessions på forskellige dage (fx gang man, ons og fre); (sessionId, day) skal være unik i ugen.';
+  'Samme session må stå flere gange i en uges sessions på forskellige dage (fx gang man, ons og fre); (sessionId, day) skal være unik i ugen. ' +
+  'mobility.schedule (valgfri), fx ["morgen", "aften"], gør mobilitetsblokken til runder, der krydses af hver dag uden for sessionerne ' +
+  '(morgenrunden tæller som opvarmning i en styrkesession med mobility "before"); udeladt tages blokken én gang dagligt som før.';
 
 const smerteTrend = tool({
   name: 'hent_smertetrend',
@@ -213,6 +215,11 @@ export const TOOLS: ToolDef[] = [
           lavet: `${summary.done}/${summary.planned}`,
           iDag: sessions.filter((s) => s.dato === today),
           sessioner: sessions,
+          // Planer med mobilitetsrunder: dagens runder, fx [{ runde: "morgen", lavet: "7/7" }, { runde: "aften", lavet: "0/7" }].
+          mobilitetIDag: plan.mobility?.schedule?.map((runde) => {
+            const r = summary.mobilityRounds.find((x) => x.date === today && x.round === runde);
+            return { runde, lavet: `${r?.done ?? 0}/${plan.mobility!.items.length}` };
+          }),
         };
       }
       const reminderDays = plan.mobility?.measurement?.reminderDays ?? DEFAULT_REMINDER_DAYS;
@@ -337,6 +344,7 @@ export const TOOLS: ToolDef[] = [
         })),
         mobilitet: plan.mobility && {
           øvelser: plan.mobility.items.map((i) => `${i.name} (${i.dose})`),
+          runder: plan.mobility.schedule ?? 'én gang dagligt',
           målingUger: plan.mobility.measurement?.weeks,
         },
         trafiklysregler: plan.groin?.rules.map((r) => `${r.color}: ${r.signal} → ${r.action}`),
@@ -351,7 +359,7 @@ export const TOOLS: ToolDef[] = [
     title: 'En uge: planlagt og lavet',
     description:
       'Én uge: planlagt vs. lavet pr. session (dosering, løbetal, RPE, smerte, note), trafiklys pr. session, volumen pr. øvelse, løbe-km, ' +
-      'aktiviteter uden for planen og noter til ugen. Brug sessionId herfra, når et løb skal knyttes til en planlagt session.',
+      'aktiviteter uden for planen, mobilitetsrunder (morgen/aften) og noter til ugen. Brug sessionId herfra, når et løb skal knyttes til en planlagt session.',
     input: z.object({ uge: Uge.describe('Ugenummer i planen, fx 5') }),
     readOnly: true,
     async run(ctx, { uge }) {
@@ -418,6 +426,7 @@ export const TOOLS: ToolDef[] = [
         volumen: summary.volume.map((v) => ({ exerciseId: v.exerciseId, navn: v.name, sæt: v.sets, reps: v.reps, kg: v.volumeKg })),
         trafiklys: summary.lights,
         mobilitetsdage: summary.mobilityDays,
+        mobilitetsrunder: summary.mobilityRounds.map((r) => ({ dato: r.date, runde: r.round, lavet: `${r.done}/${r.total}` })),
         noter: notes.map((n) => ({ tekst: n.text, session: n.session_id, oprettet: n.created_at.slice(0, 10) })),
       };
     },

@@ -7,6 +7,7 @@ import type {
   ExerciseNote,
   MobilityCheck,
   MobilityMeasurement,
+  MobilityRoundCheck,
   PainScore,
   ScheduleOverride,
   SetLog,
@@ -38,6 +39,7 @@ export interface RecordTypes {
   mobility_checks: MobilityCheck;
   schedule_overrides: ScheduleOverride;
   coach_notes: CoachNote;
+  mobility_round_checks: MobilityRoundCheck;
 }
 
 export class LocalDb extends Dexie {
@@ -51,6 +53,7 @@ export class LocalDb extends Dexie {
   mobility_checks!: Table<MobilityCheck, string>;
   schedule_overrides!: Table<ScheduleOverride, string>;
   coach_notes!: Table<CoachNote, string>;
+  mobility_round_checks!: Table<MobilityRoundCheck, string>;
 
   constructor(name: string) {
     super(name);
@@ -66,6 +69,11 @@ export class LocalDb extends Dexie {
       schedule_overrides: 'uuid, week_no',
       coach_notes: 'uuid, week_no',
     });
+    // Mobilitetsrunder (morgen/aften). Sync-cursoren nulstilles, så første sync efter opdateringen henter alt
+    // igen: en ældre app-version kan have hentet rækker til tabellen uden at gemme dem.
+    this.version(2)
+      .stores({ mobility_round_checks: 'uuid, date' })
+      .upgrade((tx) => tx.table('kv').delete('syncCursor'));
   }
 }
 

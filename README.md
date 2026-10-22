@@ -321,6 +321,13 @@ Formatet er stadig `schemaVersion: 1`. Alle nye felter er valgfrie, så ældre p
   sessionen, når den kun står én gang i ugen, som før. Kalender-UID'et får dagen med (`<sessionId>-uge<n>-d<dag>`)
   kun for sessioner, der står flere gange i ugen, så eksisterende events ikke får dubletter. `log_lob` vælger
   forekomsten på løbets ugedag, ellers den første uloggede.
+- **Mobilitet morgen og aften:** `mobility.schedule: ["morgen", "aften"]` (valgfri). Så viser **I dag** hver dag en
+  tjekliste pr. runde uden for sessionerne, og afkrydsningen gemmes pr. dato + runde i `mobility_round_checks`
+  (migration `0009`, deterministisk uuid). På træningsdage er tjeklisten i en styrkesession med
+  `mobility: "before"` dagens morgenrunde, så den kan krydses af som opvarmning. Ugeopsummeringen, `hent_uge`
+  (`mobilitetsrunder`) og `hent_status` (`mobilitetIDag`) viser runderne. Uden `schedule` tages blokken én gang
+  dagligt som før (en mobilitetssession på hviledage eller i styrkesessionen, afkrydsning i `mobility_checks`
+  under træningen). Første sync efter app-opdateringen henter alt én gang (Dexie version 2 nulstiller cursoren).
 
 ## Lokal udvikling
 
@@ -661,7 +668,7 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
   `POST /api/a/<atlet>/sync/push` sender hele poster med last-write-wins på `updated_at` (kun ejeren; posterne gemmes på
   rutens atlet, og en post med samme uuid hos en anden atlet overskrives aldrig).
   `GET /api/a/<atlet>/sync/pull?since=<cursor>` henter alt ændret siden, inklusive sletninger som tombstones.
-- Sæt, øvelsesnoter og mobilitetstjek har deterministiske uuid'er (træning + øvelse + side + sæt),
+- Sæt, øvelsesnoter og mobilitetstjek har deterministiske uuid'er (træning + øvelse + side + sæt; mobilitetsrunder: dato + runde + punkt),
   så hurtige ændringer aldrig giver dubletter.
 - En ny installation henter alt fra D1 ved første sync.
 - Pausetimeren gemmer kun sluttidspunktet, så den er korrekt efter slukket skærm og genstart.

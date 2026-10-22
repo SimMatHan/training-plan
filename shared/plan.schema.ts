@@ -178,11 +178,25 @@ export const MobilityItem = z.object({
 });
 export type MobilityItem = z.infer<typeof MobilityItem>;
 
+/** En runde af mobilitetsblokken i løbet af dagen. */
+export const MobilityRound = z.enum(['morgen', 'aften']);
+export type MobilityRound = z.infer<typeof MobilityRound>;
+
 export const MobilityBlock = z.object({
   name: z.string(),
   durationMin: NumRange.optional(),
   intro: z.string().optional(),
   items: z.array(MobilityItem).min(1),
+  /**
+   * Hvornår blokken tages, fx ["morgen", "aften"]: én afkrydsning pr. runde pr. dag, uden for sessionerne
+   * (morgenrunden kan krydses af som opvarmning i en styrkesession). Udeladt: én gang dagligt som en
+   * mobilitetssession eller som del af en styrkesession (mobility: "before").
+   */
+  schedule: z
+    .array(MobilityRound)
+    .min(1)
+    .refine((r) => new Set(r).size === r.length, 'Samme runde står to gange i mobility.schedule')
+    .optional(),
   /** Fase 5: mobilitetstests (fx knee-to-wall) ligger pr. atlet i mobility_tests; planen siger hvornår. */
   measurement: z
     .object({

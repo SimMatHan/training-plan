@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { Session, Side, Week } from '../../shared/plan.schema';
-import type { ExerciseNote, MobilityCheck, SetLog, Workout, WorkoutType } from '../../shared/records.schema';
+import type { MobilityRound, Session, Side, Week } from '../../shared/plan.schema';
+import type { ExerciseNote, MobilityCheck, MobilityRoundCheck, SetLog, Workout, WorkoutType } from '../../shared/records.schema';
 import { assignToOccurrences, occurrenceKey } from '../../shared/schedule';
 import { todayIso } from '../lib/dates';
 import { pickLastTime, type LastTime } from '../logic/lastTime';
@@ -152,6 +152,17 @@ export async function upsertExerciseNote(workoutUuid: string, exerciseId: string
 export async function setMobilityCheck(workoutUuid: string, itemId: string, done: boolean) {
   const uuid = await deterministicUuid('mobility', workoutUuid, itemId);
   return upsertRecord('mobility_checks', uuid, { uuid, workout_uuid: workoutUuid, item_id: itemId, done }, { done });
+}
+
+/** Et punkt i en mobilitetsrunde (morgen/aften) på en dato. Én post pr. dato + runde + punkt. */
+export async function setRoundCheck(date: string, round: MobilityRound, itemId: string, done: boolean) {
+  const uuid = await deterministicUuid('mobility-round', date, round, itemId);
+  return upsertRecord('mobility_round_checks', uuid, { uuid, date, round, item_id: itemId, done }, { done, deleted_at: null });
+}
+
+/** Dagens afkrydsninger i mobilitetsrunderne. undefined mens de indlæses. */
+export function useRoundChecks(date: string | undefined): MobilityRoundCheck[] | undefined {
+  return useLiveQuery(async () => (date ? (await db.mobility_round_checks.where('date').equals(date).toArray()).filter(alive) : []), [date]);
 }
 
 /** Alt logget i én træning. */

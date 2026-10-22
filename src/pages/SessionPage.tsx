@@ -4,12 +4,13 @@ import { Link, useLocation, useRoute } from 'wouter';
 import type { Exercise, Plan, Session } from '../../shared/plan.schema';
 import { newExerciseId } from '../../shared/planEdit';
 import type { MobilityCheck, SetLog, Workout } from '../../shared/records.schema';
+import { warmupRound } from '../../shared/mobility';
 import { formatRange, getExercise, getSession, resolveStrengthSession } from '../../shared/resolve';
 import { scheduledOf } from '../../shared/schedule';
 import { CoachNotes } from '../components/CoachNotes';
 import { ExerciseBlock } from '../components/ExerciseBlock';
 import { ExercisePicker } from '../components/ExercisePicker';
-import { MobilityChecklist } from '../components/MobilityChecklist';
+import { MobilityBlockCard } from '../components/MobilityChecklist';
 import { NoteField } from '../components/NoteField';
 import { mmss, RestTimer } from '../components/RestTimer';
 import { STEP_MOBILITY } from '../components/SessionOverview';
@@ -23,16 +24,15 @@ import { db } from '../data/db';
 import { savePlanEdit, useMonitors, usePlan } from '../data/plan';
 import { deleteRecord } from '../data/records';
 import { skipTimer, startTimer, useTimer } from '../data/timer';
-import { finishWorkout, patchWorkout, upsertSet, useWorkout, useWorkoutLogs } from '../data/workouts';
+import { finishWorkout, patchWorkout, setMobilityCheck, setRoundCheck, upsertSet, useRoundChecks, useWorkout, useWorkoutLogs } from '../data/workouts';
 import { OfflineError } from '../lib/api';
 import { EXTRA_STEP, extraSlots, plannedExerciseIds } from '../logic/extras';
 import { formatLong } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
 import { useWakeLock } from '../lib/wakeLock';
-import { isComplete, mobilityProgress, nextIncomplete, slotProgress, slotSetProgress, type Progress } from '../logic/progress';
+import { mobilityProgress, nextIncomplete, slotProgress, slotSetProgress, type Progress } from '../logic/progress';
 import { ButtonLink, PrimaryButton, SecondaryButton, smallButton, TextButton } from '../ui/Button';
 import { HeroNumber } from '../ui/HeroNumber';
-import { IconTile } from '../ui/IconTile';
 import { Sheet } from '../ui/Sheet';
 
 const MOBILITY = STEP_MOBILITY;
@@ -68,6 +68,9 @@ export function SessionPage() {
   const session = plan && workout?.planned_session_id ? getSession(plan, workout.planned_session_id) : undefined;
   const strength = plan && session?.kind === 'styrke' && workout?.week_no ? resolveStrengthSession(plan, session.id, workout.week_no) : undefined;
   const showMobility = !!plan?.mobility && (session?.kind === 'mobilitet' || (session?.kind === 'styrke' && session.mobility === 'before'));
+  // Har planen en morgenrunde, er tjeklisten i en styrkesession dagens morgenrunde (samme afkrydsninger som på I dag).
+  const warmup = !!plan && session?.kind === 'styrke' && warmupRound(plan);
+  const roundChecks = useRoundChecks(warmup ? workout?.date : undefined);
   const stepped = !!strength || session?.kind === 'mobilitet';
   // Øvelser ud over planen: logget i træningen, men ikke på sessionens pladser i ugen.
   const planned = strength ? plannedExerciseIds(strength.slots) : new Set<string>();
@@ -113,7 +116,10 @@ export function SessionPage() {
   const name = session ? sessionTitle(session) : (workout.activity ?? 'Træning');
   // Sæt som i oversigten: højre og venstre i samme sæt er ét.
   const setCount = slots.map((slot) => slotSetProgress(plan, slot, logs.sets)).reduce((a, p) => ({ done: a.done + p.done, total: a.total + p.total }), { done: 0, total: 0 });
-  const mobility = showMobility ? mobilityProgress(plan, logs.mobility) : undefined;
+  const mobilityChecks = warmup ? (roundChecks ?? []).filter((c) => c.round === 'morgen') : logs.mobility;
+  const mobility = showMobility ? mobilityProgress(plan, mobilityChecks) : undefined;
+  const toggleMobility = (itemId: string, done: boolean) =>
+    void (warmup ? setRoundCheck(workout.date, 'morgen', itemId, done) : setMobilityCheck(workout.uuid, itemId, done));
 
   const toList = () => {
     setFinishing(false);
@@ -222,7 +228,7 @@ export function SessionPage() {
           <CoachNotes notes={weekNotes.filter((n) => n.session_id === workout.planned_session_id && n.session_id)} plan={plan} showSession={false} />
 
           <div className="flex flex-col gap-4">
-            {mobility && plan.mobility && <MobilitySection plan={plan} workoutUuid={workout.uuid} checks={logs.mobility} progress={mobility} />}
+            {mobility && plan.mobility && <MobilitySection plan={plan} checks={mobilityChecks} onToggle={toggleMobility} progress={mobility} warmup={warmup} />}
 
             {slots.map((slot) => (
               <section key={slot.slotId} id={slotDomId(slot.slotId)} aria-label={slot.superset ? 'Superset' : undefined} className="flex scroll-mt-24 flex-col gap-2">
@@ -396,30 +402,23 @@ function WorkoutStats({ workout, sets, progress }: { workout: Workout; sets: Set
   );
 }
 
-/** Mobilitetsblokken som et kort, der kan foldes sammen. Åben, indtil den er lavet. */
-function MobilitySection({ plan, workoutUuid, checks, progress }: { plan: Plan; workoutUuid: string; checks: MobilityCheck[]; progress: Progress }) {
-  const [open, setOpen] = useState(() => !isComplete(progress));
-  const block = plan.mobility!;
+/** Mobilitetsblokken i logningen. `warmup`: det er dagens morgenrunde. */
+function MobilitySection({
+  plan,
+  checks,
+  onToggle,
+  progress,
+  warmup,
+}: {
+  plan: Plan;
+  checks: Pick<MobilityCheck, 'item_id' | 'done'>[];
+  onToggle: (itemId: string, done: boolean) => void;
+  progress: Progress;
+  warmup: boolean;
+}) {
   return (
     <section id={slotDomId(MOBILITY)} className="scroll-mt-24">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center gap-3 rounded-card bg-surface p-3 text-left">
-        <IconTile category="mobility" size={44} />
-        <span className="min-w-0 flex-1">
-          <span className="block text-headline text-brand-red">{block.name}</span>
-          <span className="num block text-footnote text-ink-2">
-            {block.items.length} øvelser{block.durationMin && ` · ${block.durationMin.min}–${block.durationMin.max} min`}
-          </span>
-        </span>
-        <span className="num text-secondary text-ink-2">
-          {progress.done}/{progress.total}
-        </span>
-        <CaretDown size={18} weight="bold" className={`text-ink-3 transition-transform duration-200 ease-ios ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
-      </button>
-      {open && (
-        <div className="mt-2">
-          <MobilityChecklist plan={plan} workoutUuid={workoutUuid} checks={checks} />
-        </div>
-      )}
+      <MobilityBlockCard plan={plan} title={plan.mobility!.name} kicker={warmup ? 'Morgenrunden' : undefined} checks={checks} onToggle={onToggle} progress={progress} />
     </section>
   );
 }

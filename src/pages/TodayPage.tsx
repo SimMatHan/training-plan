@@ -7,6 +7,7 @@ import { AddActivityButton } from '../components/AddActivitySheet';
 import { CoachNotes } from '../components/CoachNotes';
 import { GateBox } from '../components/GateBox';
 import { MobilityCards } from '../components/MobilityCards';
+import { MobilityRounds } from '../components/MobilityRounds';
 import { MorningPainCards } from '../components/MorningPainCard';
 import { ProposalBanner } from '../components/ProposalBanner';
 import { useSessionOpener } from '../components/SessionAction';
@@ -49,6 +50,8 @@ export function TodayPage() {
   const todays = sessions.filter((s) => s.day === weekday(today));
   const rest = sessions.filter((s) => s.day > weekday(today));
   const mobility = getSession(plan, 'mobilitet');
+  // Med runder (morgen/aften) tages mobiliteten i rundekortene, ikke som en session på hviledage.
+  const rounds = !!plan.mobility?.schedule;
   const last = new Map<string, ExerciseHistoryEntry>((overview ?? []).map((o) => [o.exerciseId, o.last]));
   const accessory = (
     <>
@@ -64,7 +67,7 @@ export function TodayPage() {
           {todays.length === 0 ? (
             <Card className="mb-10">
               <h2 className="text-title">Hviledag</h2>
-              {mobility && plan.mobility && (
+              {mobility && plan.mobility && !rounds && (
                 <>
                   <Muted className="mt-0.5">Mobilitetsblokken kan tages alene.</Muted>
                   <RestDayMobility session={mobility} week={week} workouts={workouts} />
@@ -76,6 +79,7 @@ export function TodayPage() {
               <TodayCard key={`${s.sessionId}-${s.plannedDay}`} plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
             ))
           )}
+          {rounds && <MobilityRounds plan={plan} date={today} />}
           <MorningPainCards />
           <ProposalBanner />
           <CoachNotes notes={notes} plan={plan} />

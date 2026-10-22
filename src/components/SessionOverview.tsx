@@ -88,7 +88,7 @@ export function SessionOverview({
   /** Dagens træning, hvis den er startet: viser fremskridt og udelader den fra "sidst". */
   workoutUuid?: string;
   sets?: SetLog[];
-  mobilityChecks?: MobilityCheck[];
+  mobilityChecks?: Pick<MobilityCheck, 'item_id' | 'done'>[];
   /** Det trin, logningen står på. */
   current?: string;
   /** Spring til et trin (kun i logningen). */
