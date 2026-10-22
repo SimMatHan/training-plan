@@ -27,6 +27,11 @@ export const Workout = z.object({
   ...SyncFields,
   /** Sessions-id fra planen (fx "styrke-a", "t1"). Null for en ikke-planlagt træning. */
   planned_session_id: Slug.nullable(),
+  /**
+   * Planens dag (1–7) for sessionen, så to forekomster af samme session i en uge kan skelnes. Null i ældre
+   * træninger; de hører til sessionen, når den kun står én gang i ugen (se shared/schedule.ts).
+   */
+  planned_day: z.int().min(1).max(7).nullable().default(null),
   plan_version: z.int().min(1).nullable(),
   week_no: z.int().min(1).nullable(),
   date: IsoDate,
@@ -116,6 +121,8 @@ export const ScheduleOverride = z.object({
   session_id: Slug,
   /** 1 = mandag … 7 = søndag. */
   day: z.int().min(1).max(7),
+  /** Planens dag for den flyttede forekomst, når sessionen står flere gange i ugen. Null i ældre flytninger. */
+  planned_day: z.int().min(1).max(7).nullable().default(null),
 });
 export type ScheduleOverride = z.infer<typeof ScheduleOverride>;
 

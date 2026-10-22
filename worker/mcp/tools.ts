@@ -15,6 +15,7 @@ import { readyForMoreWeight, findPlannedDose } from '../../shared/progression';
 import type { PainScore, Workout } from '../../shared/records.schema';
 import { dateOfDay, formatDose, formatIntensity, getExercise, getSession, planEndDate, weekForDate } from '../../shared/resolve';
 import { getAt, JsonPatch, PatchError } from '../../shared/jsonPatch';
+import { assignToOccurrences, isRepeated, occurrenceKey } from '../../shared/schedule';
 import { getSharing, listMobilityTests, listMonitors, type Athlete } from '../services/athletes';
 import { recordMcpCall, type McpErrorKind } from '../services/audit';
 import { addDays, todayInCopenhagen } from '../services/clock';
@@ -125,7 +126,8 @@ const Rationale = z.string().trim().min(1).max(4000).describe('Hvorfor, ud fra d
 const PLAN_FORMAT =
   'Plan-format: raceDate er valgfri (en blok uden løb udelader den; så er der intet løbsmål i kalenderen), ' +
   'og endDate (valgfri) er planens sidste dag, ellers søndag i sidste uge. ' +
-  'colorKey for styrkesessioner er A, B, C eller D (løb og cardio "run", mobilitet "mobility").';
+  'colorKey for styrkesessioner er A, B, C eller D (løb og cardio "run", mobilitet "mobility"). ' +
+  'Samme session må stå flere gange i en uges sessions på forskellige dage (fx gang man, ons og fre); (sessionId, day) skal være unik i ugen.';
 
 const smerteTrend = tool({
   name: 'hent_smertetrend',
@@ -195,6 +197,7 @@ export const TOOLS: ToolDef[] = [
           sessionId: s.sessionId,
           navn: s.name,
           dag: DAG[s.day],
+          planlagtDag: isRepeated(week, s.sessionId) ? DAG[s.plannedDay] : null,
           dato: dateOfDay(week, s.day),
           status: s.status,
           årsag: s.skipReason,
@@ -362,9 +365,16 @@ export const TOOLS: ToolDef[] = [
         listCoachNotes(db, athlete.id, { weekNo: uge }),
         painLookup(ctx),
       ]);
+      // Træningerne pr. forekomst: en session der står flere gange i ugen, har en status pr. dag.
+      const byOccurrence = assignToOccurrences(
+        view.week,
+        workouts,
+        (x) => x.planned_session_id,
+        (x) => x.planned_day,
+      );
       const sessions = view.sessions.map((ws) => {
-        const s = summary.sessions.find((x) => x.sessionId === ws.session.id);
-        const w = workouts.find((x) => x.planned_session_id === ws.session.id);
+        const s = summary.sessions.find((x) => x.sessionId === ws.session.id && x.plannedDay === ws.scheduled.plannedDay);
+        const w = byOccurrence.get(occurrenceKey(ws.session.id, ws.scheduled.plannedDay))?.[0];
         const session = ws.session;
         const planned =
           session.kind === 'styrke'
@@ -377,6 +387,7 @@ export const TOOLS: ToolDef[] = [
           navn: session.name,
           dag: DAG[ws.scheduled.day],
           dato: ws.date,
+          planlagtDag: ws.scheduled.repeated ? DAG[ws.scheduled.plannedDay] : null,
           flyttetFra: ws.scheduled.moved ? DAG[ws.scheduled.plannedDay] : null,
           valgfri: ws.scheduled.optional || null,
           status: s?.status,

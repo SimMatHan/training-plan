@@ -55,6 +55,7 @@ const workout = (w: Partial<Workout> & Pick<Workout, 'date' | 'type'>): Workout 
   updated_at: ts(w.date, 18),
   deleted_at: null,
   planned_session_id: null,
+  planned_day: null,
   plan_version: 1,
   week_no: null,
   started_at: ts(w.date, 16),

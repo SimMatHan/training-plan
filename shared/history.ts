@@ -4,7 +4,7 @@ import { worstByWorkout, type PainAssessment, type PainLight } from './pain';
 import type { Plan } from './plan.schema';
 import type { ExerciseNote, ScheduleOverride, SetLog, Workout } from './records.schema';
 import { dateOfDay, getExercise, getSession } from './resolve';
-import { effectiveSessions } from './schedule';
+import { assignToOccurrences, effectiveSessions, occurrenceKey } from './schedule';
 
 const alive = <T extends { deleted_at: string | null }>(r: T) => !r.deleted_at;
 const hasValue = (s: SetLog) => s.done || s.reps != null || s.seconds != null || s.weight_kg != null;
@@ -117,8 +117,15 @@ export function weeklySummary(
   // Det værste lys på tværs af monitors pr. træning.
   const lightOf = new Map([...worstByWorkout(pain)].map(([uuid, a]) => [uuid, a.light]));
 
+  // Træningerne pr. forekomst: en session der står to gange, har en status pr. dag.
+  const byOccurrence = assignToOccurrences(
+    week,
+    inWeek,
+    (w) => w.planned_session_id,
+    (w) => w.planned_day ?? null,
+  );
   const sessions = effectiveSessions(week, overrides).map((s) => {
-    const w = inWeek.find((x) => x.planned_session_id === s.sessionId);
+    const w = byOccurrence.get(occurrenceKey(s.sessionId, s.plannedDay))?.[0];
     return {
       sessionId: s.sessionId,
       name: getSession(plan, s.sessionId)?.name ?? s.label,

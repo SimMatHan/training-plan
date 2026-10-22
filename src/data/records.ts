@@ -60,6 +60,7 @@ export function emptyWorkout(fields: Pick<Workout, 'date' | 'type'> & Partial<Wo
   return {
     uuid: newUuid(),
     planned_session_id: null,
+    planned_day: null,
     plan_version: null,
     week_no: null,
     started_at: new Date().toISOString(),

@@ -37,7 +37,7 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
   const workouts = useWeekWorkouts(week.weekNo);
   const overrides = useWeekOverrides(week.weekNo);
   const groin = useWorstLights();
-  const [options, setOptions] = useState<{ scheduled: EffectiveSession; session: Session; skipped?: Workout } | null>(null);
+  const [options, setOptions] = useState<{ scheduled: EffectiveSession; session: Session; skipped?: Workout; taken: number[] } | null>(null);
   const sessions = effectiveSessions(week, overrides ?? []);
   const extras = (workouts ?? []).filter((w) => !w.planned_session_id).sort((a, b) => a.date.localeCompare(b.date));
 
@@ -48,7 +48,7 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
           const session = getSession(plan, s.sessionId)!;
           const date = dateOfDay(week, s.day);
           const state = dayState(date, today);
-          const { status, workout } = workouts ? statusOf(workouts, s.sessionId, today) : { status: undefined, workout: undefined };
+          const { status, workout } = workouts ? statusOf(workouts, { week, sessionId: s.sessionId, plannedDay: s.plannedDay }, today) : { status: undefined, workout: undefined };
           const missed = state === 'past' && !s.optional && status === 'ikke-lavet';
           const skipped = status === 'sprunget-over';
           const light = workout && groin.get(workout.uuid)?.light;
@@ -60,7 +60,7 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
             !skipped && sessionDetail(s, session),
           ].filter(Boolean);
           return (
-            <InsetRow key={s.sessionId} current={state === 'today'} chevron={false} className="gap-2.5">
+            <InsetRow key={`${s.sessionId}-${s.plannedDay}`} current={state === 'today'} chevron={false} className="gap-2.5">
               <Day date={date} today={state === 'today'} />
               <RowText
                 muted={missed || skipped}
@@ -79,14 +79,21 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
               {(status === 'ikke-lavet' || skipped) && (
                 <button
                   type="button"
-                  onClick={() => setOptions({ scheduled: s, session, skipped: skipped ? workout : undefined })}
+                  onClick={() =>
+                    setOptions({
+                      scheduled: s,
+                      session,
+                      skipped: skipped ? workout : undefined,
+                      taken: sessions.filter((x) => x.sessionId === s.sessionId && x.plannedDay !== s.plannedDay).map((x) => x.day),
+                    })
+                  }
                   aria-label={`Muligheder for ${sessionTitle(session)}`}
                   className="grid size-11 shrink-0 place-items-center rounded-full text-ink-2"
                 >
                   <DotsThree size={24} weight="bold" aria-hidden="true" />
                 </button>
               )}
-              <SessionAction session={session} week={week} workouts={workouts} />
+              <SessionAction session={session} week={week} plannedDay={s.plannedDay} workouts={workouts} />
             </InsetRow>
           );
         })}
@@ -112,7 +119,15 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
       )}
 
       {options && (
-        <SessionOptionsSheet open onClose={() => setOptions(null)} week={week} scheduled={options.scheduled} session={options.session} skipped={options.skipped} />
+        <SessionOptionsSheet
+          open
+          onClose={() => setOptions(null)}
+          week={week}
+          scheduled={options.scheduled}
+          session={options.session}
+          skipped={options.skipped}
+          taken={options.taken}
+        />
       )}
     </>
   );

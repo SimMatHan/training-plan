@@ -199,8 +199,9 @@ export const MobilityBlock = z.object({
 // ─── Uger ───────────────────────────────────────────────────────────────────
 
 export const ScheduledSession = z.object({
+  /** Planens session. Samme session må stå flere gange i en uge, på hver sin dag. */
   sessionId: Slug,
-  /** 1 = mandag … 7 = søndag. Foreslået dag; sessioner kan tages andre dage i ugen. */
+  /** 1 = mandag … 7 = søndag. Foreslået dag; sessioner kan tages andre dage i ugen. (sessionId, day) er unik i ugen. */
   day: z.int().min(1).max(7),
   /** Teksten fra ugeplanen, fx "RH (5 km) — kun hvis snurren er væk". */
   label: z.string(),
@@ -309,14 +310,18 @@ export const PlanSchema = z
       if (new Date(w.startDate + 'T00:00:00Z').getUTCDay() !== 1) issue(`Uge ${w.weekNo} starter ikke en mandag`, ['weeks', wi]);
       if (Date.parse(w.startDate) < start) issue(`Uge ${w.weekNo} ligger før planens start`, ['weeks', wi]);
 
+      // Samme session må gerne stå flere gange i ugen, men ikke to gange samme dag.
       const seen = new Set<string>();
+      const checked = new Set<string>();
       w.sessions.forEach((ss, ssi) => {
         const path = ['weeks', wi, 'sessions', ssi];
-        if (seen.has(ss.sessionId)) issue(`Session ${ss.sessionId} står to gange i uge ${w.weekNo}`, path);
-        seen.add(ss.sessionId);
+        const key = `${ss.sessionId}|${ss.day}`;
+        if (seen.has(key)) issue(`Session ${ss.sessionId} står to gange samme dag (dag ${ss.day}) i uge ${w.weekNo}`, path);
+        seen.add(key);
         const session = sessions.get(ss.sessionId);
         if (!session) return issue(`Ukendt session: ${ss.sessionId}`, path);
-        if (session.kind !== 'styrke') return;
+        if (session.kind !== 'styrke' || checked.has(session.id)) return;
+        checked.add(session.id);
         // Hver plads må højst have én variant der dækker ugen, og mindst én plads skal være aktiv.
         let active = 0;
         for (const slot of session.slots) {

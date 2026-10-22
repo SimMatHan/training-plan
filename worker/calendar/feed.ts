@@ -5,8 +5,8 @@
 //   sprunget over / misset  "– " foran titlen (misset = ugen er passeret uden træning)
 //   løbet og planens mål    heldagsevents (løbet kun når planen har raceDate)
 //
-// UID er stabilt pr. session og uge, så kalenderen opdaterer eventet i stedet for at lave
-// dubletter. SEQUENCE og LAST-MODIFIED afledes af det seneste tidsstempel blandt alt, der
+// UID er stabilt pr. session og uge (og planens dag, når sessionen står flere gange i ugen), så
+// kalenderen opdaterer eventet i stedet for at lave dubletter. SEQUENCE og LAST-MODIFIED afledes af det seneste tidsstempel blandt alt, der
 // påvirker eventet (planskift, træning, sæt, smerte, flytning, indstilling), så de stiger
 // ved hver ændring uden at noget skal gemmes.
 import { defaultSetting, type CalendarSetting } from '../../shared/calendar';
@@ -16,7 +16,7 @@ import { formatDuration, formatPace } from '../../shared/pace';
 import type { Plan, RunSession, ScheduledSession, Session, StrengthSession, Week } from '../../shared/plan.schema';
 import type { PainScore, ScheduleOverride, SetLog, Workout } from '../../shared/records.schema';
 import { dateOfDay, formatDose, formatIntensity, formatNumber, formatRange, getExercise, getSession, resolveStrengthSession } from '../../shared/resolve';
-import { effectiveSessions } from '../../shared/schedule';
+import { assignToOccurrences, effectiveSessions, occurrenceKey } from '../../shared/schedule';
 import { copenhagenDate, copenhagenMidnight, copenhagenTimezone, icalDate, icalLocal, icalUtc, serialize, text, TZID, type Component, type Prop } from './ical';
 
 export interface FeedInput {
@@ -60,7 +60,12 @@ export interface CalendarEvent {
 }
 
 export const UID_DOMAIN = 'traeningsnav';
-export const sessionUid = (sessionId: string, weekNo: number) => `${sessionId}-uge${weekNo}@${UID_DOMAIN}`;
+/**
+ * Stabilt pr. session og uge. Står sessionen flere gange i ugen, kommer planens dag med (`-d<dag>`); ellers er
+ * UID'et det samme som altid, så eksisterende kalendere ikke får dubletter.
+ */
+export const sessionUid = (sessionId: string, weekNo: number, plannedDay?: number) =>
+  `${sessionId}-uge${weekNo}${plannedDay ? `-d${plannedDay}` : ''}@${UID_DOMAIN}`;
 
 /** SEQUENCE = sekunder fra 1/1 2026 til seneste ændring: stiger altid, passer i 32 bit til 2094. */
 const SEQUENCE_EPOCH = Date.UTC(2026, 0, 1);
@@ -194,13 +199,6 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
   const planChanged = ts(input.planChangedAt);
   const settingFor = (type: Session['kind']) => input.settings.find((s) => s.session_type === type) ?? defaultSetting(type);
 
-  const key = (weekNo: number | null, sessionId: string | null) => `${weekNo}|${sessionId}`;
-  const workoutsBySlot = new Map<string, Workout[]>();
-  for (const w of input.workouts) {
-    if (!w.planned_session_id) continue;
-    const k = key(w.week_no, w.planned_session_id);
-    workoutsBySlot.set(k, [...(workoutsBySlot.get(k) ?? []), w]);
-  }
   const setsByWorkout = new Map<string, SetLog[]>();
   for (const s of input.sets) setsByWorkout.set(s.workout_uuid, [...(setsByWorkout.get(s.workout_uuid) ?? []), s]);
   const liveWorkouts = input.workouts.filter(alive);
@@ -215,10 +213,24 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
   for (const week of plan.weeks) {
     const weekEnd = dateOfDay(week, 7);
     const weekOverrides = input.overrides.filter((o) => o.week_no === week.weekNo);
+    // Træninger og flytninger (med tombstones) pr. forekomst af sessionen i ugen.
+    const workoutsOf = assignToOccurrences(
+      week,
+      input.workouts.filter((w) => w.week_no === week.weekNo),
+      (w) => w.planned_session_id,
+      (w) => w.planned_day ?? null,
+    );
+    const overridesOf = assignToOccurrences(
+      week,
+      weekOverrides,
+      (o) => o.session_id,
+      (o) => o.planned_day ?? null,
+    );
     for (const scheduled of effectiveSessions(week, weekOverrides)) {
       const session = getSession(plan, scheduled.sessionId);
       if (!session) continue;
-      const all = workoutsBySlot.get(key(week.weekNo, session.id)) ?? [];
+      const occurrence = occurrenceKey(session.id, scheduled.plannedDay);
+      const all = workoutsOf.get(occurrence) ?? [];
       const workout = pickWorkout(all);
       const plannedDate = dateOfDay(week, scheduled.day);
 
@@ -233,7 +245,7 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
       // fortrudt flytning eller en slettet træning også giver en højere SEQUENCE.
       const setting = settingFor(session.kind);
       const stamps = [planChanged, ts(setting.updated_at)];
-      for (const o of weekOverrides) if (o.session_id === session.id) stamps.push(ts(o.updated_at));
+      for (const o of overridesOf.get(occurrence) ?? []) stamps.push(ts(o.updated_at));
       for (const w of all) {
         stamps.push(ts(w.updated_at));
         for (const s of setsByWorkout.get(w.uuid) ?? []) stamps.push(ts(s.updated_at));
@@ -243,7 +255,7 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
       if (state === 'misset') stamps.push(copenhagenMidnight(nextDay(weekEnd)));
       const lastModified = Math.max(...stamps);
 
-      const url = `${origin}/session/${encodeURIComponent(session.id)}?uge=${week.weekNo}`;
+      const url = `${origin}/session/${encodeURIComponent(session.id)}?uge=${week.weekNo}${scheduled.repeated ? `&dag=${scheduled.plannedDay}` : ''}`;
       const lines = [`Uge ${week.weekNo} af ${lastWeekNo} — ${week.phase}`];
       if (scheduled.optional) lines.push('Valgfri');
       if (scheduled.condition) lines.push(ucFirst(scheduled.condition));
@@ -266,7 +278,7 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
       const prefix = state === 'lavet' ? '✓ ' : state === 'sprunget-over' || state === 'misset' ? '– ' : '';
       const timed = !setting.all_day && setting.start_time && setting.duration_min;
       events.push({
-        uid: sessionUid(session.id, week.weekNo),
+        uid: sessionUid(session.id, week.weekNo, scheduled.repeated ? scheduled.plannedDay : undefined),
         summary: prefix + sessionSummary(session, scheduled),
         description: lines.join('\n'),
         date,

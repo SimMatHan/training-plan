@@ -9,18 +9,21 @@ import { startSession, statusOf, type SessionStatus } from '../data/workouts';
 import { SmallButton } from '../ui/Button';
 import { StatusLight } from '../ui/StatusLight';
 
-/** Status for en planlagt session og en funktion, der starter eller åbner ugens træning. */
-export function useSessionOpener(session: Session, week: Week, workouts: Workout[] | undefined) {
+/**
+ * Status for en planlagt session og en funktion, der starter eller åbner ugens træning.
+ * `plannedDay` er planens dag og skelner forekomsterne, når sessionen står flere gange i ugen.
+ */
+export function useSessionOpener(session: Session, week: Week, workouts: Workout[] | undefined, plannedDay?: number) {
   const { active } = usePlan();
   const [, navigate] = useLocation();
   const [busy, setBusy] = useState(false);
-  const { status, workout } = statusOf(workouts ?? [], session.id);
+  const { status, workout } = statusOf(workouts ?? [], { week, sessionId: session.id, plannedDay });
 
   async function open() {
     if (busy || !active) return;
     setBusy(true);
     try {
-      const uuid = workout?.uuid ?? (await startSession({ session, weekNo: week.weekNo, planVersion: active.meta.version }));
+      const uuid = workout?.uuid ?? (await startSession({ session, week, plannedDay, planVersion: active.meta.version }));
       navigate(`/session/${uuid}`);
     } finally {
       setBusy(false);
@@ -36,17 +39,20 @@ export const actionLabel: Record<SessionStatus, string> = { 'ikke-lavet': 'Start
 export function SessionAction({
   session,
   week,
+  plannedDay,
   workouts,
   groin,
 }: {
   session: Session;
   week: Week;
+  /** Planens dag for forekomsten. */
+  plannedDay: number;
   /** undefined mens ugens træninger indlæses — så vises ingen knap, så en lavet session ikke ligner "Start". */
   workouts: Workout[] | undefined;
   /** Det værste trafiklys pr. træning (alle monitors). */
   groin?: Map<string, PainAssessment>;
 }) {
-  const { status, workout, open, busy } = useSessionOpener(session, week, workouts);
+  const { status, workout, open, busy } = useSessionOpener(session, week, workouts, plannedDay);
   if (!workouts) return <div className="min-h-11 min-w-16" />;
   if (status === 'sprunget-over') return null;
   const light = workout && groin?.get(workout.uuid)?.light;

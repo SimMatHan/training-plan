@@ -73,7 +73,7 @@ export function TodayPage() {
             </Card>
           ) : (
             todays.map((s) => (
-              <TodayCard key={s.sessionId} plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
+              <TodayCard key={`${s.sessionId}-${s.plannedDay}`} plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
             ))
           )}
           <MorningPainCards />
@@ -86,9 +86,9 @@ export function TodayPage() {
               <InsetList>
                 {rest.map((s) => {
                   const session = getSession(plan, s.sessionId)!;
-                  const { status } = workouts ? statusOf(workouts, s.sessionId, today) : { status: undefined };
+                  const { status } = workouts ? statusOf(workouts, { week, sessionId: s.sessionId, plannedDay: s.plannedDay }, today) : { status: undefined };
                   return (
-                    <InsetRow key={s.sessionId} href="/uge" chevron={false}>
+                    <InsetRow key={`${s.sessionId}-${s.plannedDay}`} href="/uge" chevron={false}>
                       <span className="w-10 shrink-0 text-secondary text-ink-2">{WEEKDAYS_SHORT[s.day].replace(/^./, (c) => c.toUpperCase())}</span>
                       <RowText title={sessionTitle(session)} detail={sessionDetail(s, session) || undefined} />
                       <StatusIcon status={status} />

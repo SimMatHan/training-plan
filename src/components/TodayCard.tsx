@@ -2,7 +2,8 @@ import { Check, ListBullets } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { ExerciseHistoryEntry } from '../../shared/history';
 import type { PainAssessment } from '../../shared/pain';
-import type { Plan, ScheduledSession, Session, Week } from '../../shared/plan.schema';
+import type { Plan, Session, Week } from '../../shared/plan.schema';
+import type { EffectiveSession } from '../../shared/schedule';
 import { useWorkoutLogs } from '../data/workouts';
 import type { Workout } from '../../shared/records.schema';
 import { formatDose, formatIntensity, formatRange, resolveStrengthSession } from '../../shared/resolve';
@@ -44,14 +45,14 @@ export function TodayCard({
 }: {
   plan: Plan;
   week: Week;
-  scheduled: ScheduledSession;
+  scheduled: EffectiveSession;
   session: Session;
   workouts: Workout[] | undefined;
   groin: Map<string, PainAssessment>;
   /** Seneste gang pr. øvelse. */
   last: Map<string, ExerciseHistoryEntry>;
 }) {
-  const { status, workout, open, busy } = useSessionOpener(session, week, workouts);
+  const { status, workout, open, busy } = useSessionOpener(session, week, workouts, scheduled.plannedDay);
   const [overview, setOverview] = useState(false);
   const logs = useWorkoutLogs(workout?.uuid);
   const strength = session.kind === 'styrke' ? resolveStrengthSession(plan, session.id, week.weekNo) : undefined;

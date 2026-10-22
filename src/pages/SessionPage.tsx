@@ -5,6 +5,7 @@ import type { Exercise, Plan, Session } from '../../shared/plan.schema';
 import { newExerciseId } from '../../shared/planEdit';
 import type { MobilityCheck, SetLog, Workout } from '../../shared/records.schema';
 import { formatRange, getExercise, getSession, resolveStrengthSession } from '../../shared/resolve';
+import { scheduledOf } from '../../shared/schedule';
 import { CoachNotes } from '../components/CoachNotes';
 import { ExerciseBlock } from '../components/ExerciseBlock';
 import { ExercisePicker } from '../components/ExercisePicker';
@@ -274,7 +275,7 @@ export function SessionPage() {
 
       {!stepped && session && (session.kind === 'løb' || session.kind === 'cardio') && <RunHeader workout={workout} plan={plan} session={session} />}
       {!stepped && (session?.kind === 'løb' || session?.kind === 'cardio') && (
-        <RunLog workout={workout} session={session} scheduled={plan.weeks.find((w) => w.weekNo === workout.week_no)?.sessions.find((s) => s.sessionId === session.id)} />
+        <RunLog workout={workout} session={session} scheduled={scheduledOf(plan.weeks.find((w) => w.weekNo === workout.week_no), session.id, workout.planned_day)} />
       )}
       {!stepped && !session && workout.activity && <RunLog workout={workout} />}
 
@@ -425,7 +426,7 @@ function MobilitySection({ plan, workoutUuid, checks, progress }: { plan: Plan; 
 
 /** Løb: målet som heltetal. */
 function RunHeader({ workout, plan, session }: { workout: Workout; plan: Plan; session: Session }) {
-  const scheduled = plan.weeks.find((w) => w.weekNo === workout.week_no)?.sessions.find((s) => s.sessionId === session.id);
+  const scheduled = scheduledOf(plan.weeks.find((w) => w.weekNo === workout.week_no), session.id, workout.planned_day);
   const km = scheduled?.targetKm;
   const min = scheduled?.targetMin;
   if (!km && !min) return null;

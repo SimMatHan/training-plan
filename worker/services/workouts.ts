@@ -4,10 +4,11 @@ import { IsoDate } from '../../shared/plan.schema';
 import type { PainScore, Workout, WorkoutType } from '../../shared/records.schema';
 import { listMonitors } from './athletes';
 import { weekForDate } from '../../shared/resolve';
+import { assignToOccurrences, effectiveSessions, occurrenceKey } from '../../shared/schedule';
 import { todayInCopenhagen } from './clock';
 import { ConflictError, ValidationError } from './errors';
 import { readTable } from './history';
-import { getActivePlan } from './plan';
+import { getActivePlan, getScheduleOverrides } from './plan';
 import { pushChanges } from './sync';
 
 /** Ikke-slettede træninger, ældste først. */
@@ -46,7 +47,8 @@ export type RunInput = z.input<typeof RunInput>;
 /**
  * Opretter et løb med source = 'claude'. Er sessionId sat, knyttes det til ugens planlagte
  * løbesession (der ikke må være logget i forvejen); ellers er det et løb uden for planen.
- * Gemmes via sync-servicen, så appen henter det ved næste sync.
+ * Står sessionen flere gange i ugen, bruges forekomsten på løbets ugedag (efter flytninger),
+ * ellers den første, der ikke er logget. Gemmes via sync-servicen, så appen henter det ved næste sync.
  */
 export async function logRun(db: D1Database, athleteId: number, raw: RunInput, now = new Date()): Promise<{ workout: Workout; pain: PainScore[] }> {
   const input = RunInput.parse(raw);
@@ -54,21 +56,30 @@ export async function logRun(db: D1Database, athleteId: number, raw: RunInput, n
   const { meta, plan } = await getActivePlan(db, athleteId);
   const week = weekForDate(plan, input.date);
 
+  let plannedDay: number | null = null;
   if (input.sessionId) {
     if (!week) throw new ValidationError(`${input.date} ligger uden for planen, så løbet kan ikke knyttes til en session`);
     const session = plan.sessions.find((s) => s.id === input.sessionId);
     if (!session || session.kind !== 'løb') throw new ValidationError(`"${input.sessionId}" er ikke en løbesession i planen`);
-    if (!week.sessions.some((s) => s.sessionId === input.sessionId))
-      throw new ValidationError(`${session.name} står ikke i uge ${week.weekNo}`);
-    const existing = await listWorkouts(db, athleteId, { weekNo: week.weekNo });
-    if (existing.some((w) => w.planned_session_id === input.sessionId))
-      throw new ConflictError(`${session.name} i uge ${week.weekNo} er allerede logget`);
+    const occurrences = effectiveSessions(week, await getScheduleOverrides(db, athleteId, week.weekNo)).filter((s) => s.sessionId === input.sessionId);
+    if (!occurrences.length) throw new ValidationError(`${session.name} står ikke i uge ${week.weekNo}`);
+    const logged = assignToOccurrences(
+      week,
+      await listWorkouts(db, athleteId, { weekNo: week.weekNo }),
+      (w) => w.planned_session_id,
+      (w) => w.planned_day,
+    );
+    const free = occurrences.filter((s) => !logged.has(occurrenceKey(s.sessionId, s.plannedDay)));
+    if (!free.length) throw new ConflictError(`${session.name} i uge ${week.weekNo} er allerede logget`);
+    const weekday = ((new Date(input.date + 'T00:00:00Z').getUTCDay() + 6) % 7) + 1;
+    plannedDay = (free.find((s) => s.day === weekday) ?? free[0]).plannedDay;
   }
 
   const ts = now.toISOString();
   const record: Workout = {
     uuid: crypto.randomUUID(),
     planned_session_id: input.sessionId,
+    planned_day: plannedDay,
     plan_version: meta.version,
     week_no: week?.weekNo ?? null,
     date: input.date,
