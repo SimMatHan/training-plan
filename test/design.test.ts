@@ -140,6 +140,8 @@ describe('øvelsesillustrationer', () => {
 
   it('genkender øvelser fra andre planer på navnet', () => {
     expect(illustrationFor('ukendt-id', 'Goblet split squat')).toBe(ILLUSTRATIONS['bulgarian-split-squat']);
+    expect(illustrationFor('ukendt-id', 'Skråbænkspres, håndvægt')).toBe(ILLUSTRATIONS['skraapres-haandvaegt']);
+    expect(illustrationFor('ukendt-id', 'Dead bug')).toBe(ILLUSTRATIONS['dead-bug']);
     expect(illustrationFor('ukendt-id', 'Noget helt andet')).toBeUndefined();
   });
 
