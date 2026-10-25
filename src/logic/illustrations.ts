@@ -193,6 +193,12 @@ export const ILLUSTRATIONS: Record<string, Illustration> = {
     props: [{ kind: 'bench', x: 30, y: 116, w: 100, h: 34 }, { kind: 'barbell' }],
     seconds: 2.6,
   },
+  'skraapres-haandvaegt': {
+    from: pose('hip', [112, 116], { torso: -132, head: 6, thN: 82, shN: 2, thF: 82, shF: 2, uaN: -4, laN: 172, uaF: -4, laF: 172 }),
+    to: pose('hip', [112, 116], { torso: -132, head: 6, thN: 82, shN: 2, thF: 82, shF: 2, uaN: 166, laN: 170, uaF: 166, laF: 170 }),
+    props: [{ kind: 'bench', x: 92, y: 122, w: 36, h: 28 }, { kind: 'incline', from: [104, 124], to: [70, 90] }, { kind: 'dumbbell' }],
+    seconds: 2.6,
+  },
   'biceps-curl': curl,
   'hammer-curl': curl,
   'triceps-pushdown': {
@@ -219,6 +225,11 @@ export const ILLUSTRATIONS: Record<string, Illustration> = {
     from: pose('elbowN', [44, 146], { torso: -100, uaN: 0, laN: 90, uaF: 120, laF: 160, thN: 82, shN: 70, thF: 82, shF: 70, ftN: 160, ftF: 160 }),
     to: pose('elbowN', [44, 146], { torso: -107, uaN: 0, laN: 90, uaF: 120, laF: 160, thN: 76, shN: 76, thF: 76, shF: 76, ftN: 166, ftF: 166 }),
     seconds: 3,
+  },
+  'dead-bug': {
+    from: pose('hip', [96, 142], { torso: -90, head: 0, uaN: 180, laN: 180, uaF: 180, laF: 180, thN: 180, shN: 90, ftN: 180, thF: 180, shF: 90, ftF: 180 }),
+    to: pose('hip', [96, 142], { torso: -90, head: 0, uaN: 265, laN: 265, uaF: 180, laF: 180, thN: 180, shN: 90, ftN: 180, thF: 98, shF: 94, ftF: 170 }),
+    seconds: 3.6,
   },
 
   // ─── Mobilitet ────────────────────────────────────────────────────────────
@@ -247,6 +258,44 @@ export const ILLUSTRATIONS: Record<string, Illustration> = {
     to: pose('shoulder', [56, 142], { ...SUPINE, torso: -66, thN: 104, shN: 6, thF: 104, shF: 6 }, SUPINE),
     seconds: 3,
   },
+  'bro-hold-mavevejrtraekning': {
+    from: pose('shoulder', [56, 142], { ...SUPINE, torso: -66, thN: 104, shN: 6, thF: 104, shF: 6 }, SUPINE),
+    to: pose('shoulder', [56, 142], { ...SUPINE, torso: -63, thN: 102, shN: 5, thF: 102, shF: 5 }, SUPINE),
+    seconds: 5,
+  },
+  'baldestraek-figur-4': {
+    from: pose('hip', [100, 141], { ...SUPINE, thN: 170, shN: 57, ftN: 150, thF: 125, shF: 25 }, SUPINE),
+    to: pose('hip', [100, 141], { ...SUPINE, thN: 200, shN: 90, ftN: 180, thF: 160, shF: 70, uaN: 150, laN: 130, uaF: 150, laF: 130 }, SUPINE),
+    seconds: 4,
+  },
+  'lyskestraek-sommerfugl': {
+    from: pose('hip', [84, 142], { torso: 180, thN: 112, shN: -62, ftN: 100, thF: 112, shF: -62, ftF: 100, uaN: 30, laN: 70, uaF: 30, laF: 50 }),
+    to: pose('hip', [84, 142], { torso: 156, thN: 104, shN: -62, ftN: 100, thF: 104, shF: -62, ftF: 100, uaN: 40, laN: 60, uaF: 20, laF: 40 }),
+    seconds: 4.4,
+  },
+  'baglaarsstraek-elastik': {
+    from: pose('hip', [96, 142], { torso: -90, head: 0, thF: 90, shF: 90, ftF: 180, thN: 140, shN: 140, ftN: -130, uaN: 150, laN: 160, uaF: 150, laF: 160 }),
+    to: pose('hip', [96, 142], { torso: -90, head: 0, thF: 90, shF: 90, ftF: 180, thN: 172, shN: 172, ftN: -98, uaN: 160, laN: 172, uaF: 160, laF: 172 }),
+    props: [{ kind: 'band', a: 'wristN', b: 'toeN' }],
+    seconds: 4,
+  },
+  'aaben-bog': {
+    from: pose('hip', [100, 142], { torso: -90, head: 0, thN: 150, shN: 60, thF: 150, shF: 60, uaN: 175, laN: 175, uaF: 175, laF: 175 }),
+    to: pose('hip', [100, 142], { torso: -90, head: 0, thN: 150, shN: 60, thF: 150, shF: 60, uaN: 262, laN: 262, uaF: 175, laF: 175 }),
+    seconds: 4.4,
+  },
+  'brystmuskelstraek-doeraabning': {
+    from: pose('ankleF', [96, 147], { torso: 180, thN: 2, shN: -2, thF: -2, shF: 2, uaN: -90, laN: 180, uaF: 4, laF: 2 }),
+    to: pose('ankleF', [96, 147], { torso: 172, thN: 26, shN: 0, thF: -14, shF: -14, uaN: -112, laN: 180, uaF: 4, laF: 2 }),
+    props: [{ kind: 'wall', x: 75 }],
+    seconds: 4,
+  },
+  'vaeg-engle': {
+    from: pose('ankleN', [104, 147], { torso: 184, thN: -4, shN: 0, thF: -4, shF: 0, uaN: 118, laN: 184, uaF: 118, laF: 184 }),
+    to: pose('ankleN', [104, 147], { torso: 184, thN: -4, shN: 0, thF: -4, shF: 0, uaN: 178, laN: 180, uaF: 178, laF: 180 }),
+    props: [{ kind: 'wall', x: 93 }],
+    seconds: 3.6,
+  },
 };
 
 // Øvelser i andre planer: genkendes på navnet, så de også får en figur.
@@ -266,6 +315,7 @@ const BY_NAME: [RegExp, string][] = [
   [/row/i, 'rows'],
   [/face pull/i, 'face-pull'],
   [/skulderpres|shoulder press/i, 'skulderpres'],
+  [/skrå.*pres|incline.*press/i, 'skraapres-haandvaegt'],
   [/bænkpres|bench|armstræk|push-?up/i, 'baenkpres-eller-armstraekninger'],
   [/pushdown/i, 'triceps-pushdown'],
   [/triceps/i, 'overhead-triceps-extension'],
@@ -273,6 +323,7 @@ const BY_NAME: [RegExp, string][] = [
   [/sideplank/i, 'sideplanke'],
   [/copenhagen/i, 'copenhagen-plank'],
   [/pallof/i, 'pallof-press'],
+  [/dead ?bug/i, 'dead-bug'],
 ];
 
 /** Illustrationen til en øvelse eller et mobilitetspunkt: på id, ellers på navnet. */
