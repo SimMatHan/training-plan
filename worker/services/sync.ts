@@ -10,7 +10,7 @@ import { ValidationError } from './errors';
 export const TABLES = Object.keys(SyncTables) as SyncTable[];
 
 const BOOLEAN_COLUMNS: Partial<Record<SyncTable, string[]>> = {
-  set_logs: ['done'],
+  set_logs: ['done', 'skipped'],
   mobility_checks: ['done'],
   mobility_round_checks: ['done'],
 };

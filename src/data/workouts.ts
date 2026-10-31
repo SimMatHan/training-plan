@@ -122,7 +122,7 @@ export const setUuid = (workoutUuid: string, exerciseId: string, side: Side | nu
 
 export async function upsertSet(
   key: { workoutUuid: string; exerciseId: string; side: Side | null; setNo: number },
-  patch: Partial<Pick<SetLog, 'weight_kg' | 'reps' | 'seconds' | 'rpe' | 'done'>>,
+  patch: Partial<Pick<SetLog, 'weight_kg' | 'reps' | 'seconds' | 'rpe' | 'done' | 'skipped'>>,
 ) {
   const uuid = await setUuid(key.workoutUuid, key.exerciseId, key.side, key.setNo);
   return upsertRecord(
@@ -139,6 +139,7 @@ export async function upsertSet(
       seconds: null,
       rpe: null,
       done: false,
+      skipped: false,
     },
     { ...patch, deleted_at: null },
   );

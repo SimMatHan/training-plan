@@ -67,6 +67,8 @@ export const SetLog = z.object({
   seconds: z.int().nonnegative().nullable(),
   rpe: Rpe.nullable(),
   done: z.boolean(),
+  /** Et planlagt sæt fjernet i træningen: vises ikke og tæller ikke med. */
+  skipped: z.boolean().default(false),
 });
 export type SetLog = z.infer<typeof SetLog>;
 

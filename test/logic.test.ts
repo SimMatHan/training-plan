@@ -46,6 +46,7 @@ const set = (workout_uuid: string, set_no: number, side: 'H' | 'V' | null, weigh
   seconds: null,
   rpe: null,
   done,
+  skipped: false,
   updated_at: ts,
   deleted_at: null,
 });
@@ -154,6 +155,14 @@ describe('fremskridt og sammenfoldning', () => {
     expect(slotProgress(plan, slot, []).total).toBe(6);
     expect(slotSetProgress(plan, slot, [])).toEqual({ done: 0, total: 3 });
     expect(slotSetProgress(plan, slot, [s('enbens-tahaev', 1, 'H'), s('enbens-tahaev', 1, 'V'), s('enbens-tahaev', 2, 'H')])).toEqual({ done: 1, total: 3 });
+  });
+
+  it('tæller ikke sæt, der er fjernet i træningen', () => {
+    const slot = resolveStrengthSession(plan, 'styrke-a', 6).slots.find((x) => x.exercises.some((e) => e.exercise.id === 'enbens-tahaev'))!;
+    const gone = (side: 'H' | 'V') => ({ ...s('enbens-tahaev', 3, side, false), skipped: true });
+    const sets = [s('enbens-tahaev', 1, 'H'), s('enbens-tahaev', 1, 'V'), s('enbens-tahaev', 2, 'H'), s('enbens-tahaev', 2, 'V'), gone('H'), gone('V')];
+    expect(slotSetProgress(plan, slot, sets)).toEqual({ done: 2, total: 2 });
+    expect(slotProgress(plan, slot, sets)).toEqual({ done: 4, total: 4 });
   });
 
   it('finder næste ufærdige sektion', () => {

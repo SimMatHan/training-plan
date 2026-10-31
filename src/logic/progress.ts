@@ -1,6 +1,7 @@
 import type { Plan } from '../../shared/plan.schema';
 import type { MobilityCheck, SetLog } from '../../shared/records.schema';
 import { getExercise, setRows, type ResolvedSlot, type SetRow } from '../../shared/resolve';
+import { keptRows } from './extras';
 import { toRounds } from './rounds';
 
 export interface Progress {
@@ -10,12 +11,13 @@ export interface Progress {
 
 export const isComplete = (p: Progress) => p.total > 0 && p.done >= p.total;
 
-/** Øvelsen og sætrækkerne der faktisk logges: alternativets, hvis det er logget. */
+/** Øvelsen og sætrækkerne der faktisk logges: alternativets, hvis det er logget, uden fjernede sæt. */
 function inUse(plan: Plan, ex: ResolvedSlot['exercises'][number], sets: SetLog[]) {
   const alt = ex.planned.alternative;
   const altExercise = alt && getExercise(plan, alt.exerciseId);
   const useAlt = !!alt && !!altExercise && sets.some((s) => s.exercise_id === alt.exerciseId && !s.deleted_at);
-  return { exercise: useAlt ? altExercise! : ex.exercise, rows: useAlt ? setRows(altExercise!, alt!.dose) : ex.rows };
+  const exercise = useAlt ? altExercise! : ex.exercise;
+  return { exercise, rows: keptRows(useAlt ? setRows(altExercise!, alt!.dose) : ex.rows, sets, exercise.id) };
 }
 
 const isDone = (sets: SetLog[], exerciseId: string, r: SetRow) =>

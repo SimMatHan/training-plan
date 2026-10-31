@@ -9,7 +9,7 @@ import { useExerciseHistory } from '../data/history';
 import { startTimer } from '../data/timer';
 import { deleteRecord } from '../data/records';
 import { upsertExerciseNote, upsertSet, useLastTime } from '../data/workouts';
-import { extraSetRows, nextSetNo, sidesOf } from '../logic/extras';
+import { extraSetRows, firstSkipped, keptRows, nextSetNo, sidesOf } from '../logic/extras';
 import { ghostFor, previousSet } from '../logic/lastTime';
 import { formatDecimal } from '../logic/numbers';
 import { restAfter } from '../logic/rest';
@@ -50,8 +50,8 @@ function Chip({ icon, children, onClick, pressed }: { icon: ReactNode; children:
 
 /**
  * Én øvelse i logningen, som hos Hevy: figur og navn, pause/note/RPE som piller, og sættene som
- * en tabel (sæt · sidst · kg · reps · ✓) med "Tilføj sæt" under. Resten (samme som sidst,
- * alternativ, pr. side, fjern) ligger i ⋯-menuen. Slår et sæt rekorden, vises "Ny rekord".
+ * en tabel (sæt · sidst · kg · reps · ✓) med "Fjern sæt" og "Tilføj sæt" under. Resten (samme
+ * som sidst, alternativ, pr. side, fjern) ligger i ⋯-menuen. Slår et sæt rekorden, vises "Ny rekord".
  */
 export function ExerciseBlock({
   plan,
@@ -82,9 +82,11 @@ export function ExerciseBlock({
   const label = useAlt && alt ? (alt.label ?? altExercise!.name) : resolved.label;
   const plannedRows = useAlt ? setRows(exercise, dose) : resolved.rows;
   const mine = sets.filter((s) => s.exercise_id === exercise.id);
-  // Planens sæt og de sæt, der er tilføjet ud over planen i denne træning.
+  // Planens sæt (uden dem, der er fjernet) og de sæt, der er tilføjet ud over planen i denne træning.
+  const keptPlanned = keptRows(plannedRows, mine, exercise.id);
   const extraRows = extraSetRows(plannedRows, mine, exercise, dose);
-  const rows = [...plannedRows, ...extraRows];
+  const rows = [...keptPlanned, ...extraRows];
+  const setNos = [...new Set(rows.map((r) => r.setNo))];
   const note = notes.find((n) => n.exercise_id === exercise.id);
   const last = useLastTime(exercise.id, workoutUuid);
   const history = useExerciseHistory(exercise.id);
@@ -116,27 +118,38 @@ export function ExerciseBlock({
 
   const meta = [formatDose(exercise, dose), formatIntensity(dose)].filter(Boolean).join(' · ');
   const intensity = dose.intensity?.kind === 'rpe' ? formatRange(dose.intensity) : undefined;
-  const canCopy = !!last && plannedRows.some((r) => !logFor(r.side, r.setNo)?.done && ghostFor(last, r.side, r.setNo));
+  const canCopy = !!last && keptPlanned.some((r) => !logFor(r.side, r.setNo)?.done && ghostFor(last, r.side, r.setNo));
   const fields = fieldsOf(exercise.kind);
 
-  /** Et sæt mere ud over planen: tomt, med sidste gangs tal som forslag. */
+  /** Et sæt mere: et fjernet sæt fra planen kommer tilbage, ellers et tomt sæt ud over planen. */
   async function addSet() {
+    const skipped = firstSkipped(plannedRows, mine, exercise.id);
+    if (skipped != null) {
+      const back = plannedRows.filter((r) => r.setNo === skipped);
+      await Promise.all(back.map((r) => upsertSet(key(r.side, r.setNo), { skipped: false })));
+      return;
+    }
     const setNo = nextSetNo(plannedRows, mine, exercise.id);
     await Promise.all(sidesOf(exercise, dose).map((side) => upsertSet(key(side, setNo), { done: false, weight_kg: null, reps: null, seconds: null })));
   }
 
-  /** Fjerner det sidste ekstra sæt. */
+  /** Fjerner det sidste sæt (begge sider): et ekstra sæt slettes, et af planens markeres som fjernet. Ét sæt bliver altid. */
   async function removeSet() {
-    const setNo = extraRows.at(-1)?.setNo;
-    if (setNo == null) return;
-    const logs = mine.filter((s) => s.set_no === setNo);
+    const setNo = setNos.at(-1);
+    if (setNo == null || setNos.length < 2) return;
+    const logs = mine.filter((s) => s.set_no === setNo && !s.deleted_at);
     if (logs.some((s) => s.done) && !confirm(`Fjerne sæt ${setNo}? Det er logget.`)) return;
-    await Promise.all(logs.map((s) => deleteRecord('set_logs', s.uuid)));
+    if (extraRows.some((r) => r.setNo === setNo)) {
+      await Promise.all(logs.map((s) => deleteRecord('set_logs', s.uuid)));
+      return;
+    }
+    const gone = keptPlanned.filter((r) => r.setNo === setNo);
+    await Promise.all(gone.map((r) => upsertSet(key(r.side, r.setNo), { skipped: true, done: false, weight_kg: null, reps: null, seconds: null })));
   }
 
   /** Alle ufærdige sæt som sidst, markeret færdige. */
   function sameAsLast() {
-    for (const r of plannedRows) {
+    for (const r of keptPlanned) {
       const g = ghostFor(last, r.side, r.setNo);
       if (!g || logFor(r.side, r.setNo)?.done || r.optional) continue;
       void upsertSet(key(r.side, r.setNo), { weight_kg: g.weight_kg, reps: g.reps, seconds: g.seconds, done: true });
@@ -262,11 +275,19 @@ export function ExerciseBlock({
         })}
       </ul>
 
-      <div className="p-3">
+      <div className="flex gap-2 p-3">
+        <button
+          type="button"
+          onClick={() => void removeSet()}
+          disabled={setNos.length < 2}
+          className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-fill text-body font-semibold text-ink transition-transform duration-150 ease-ios active:scale-[.98] disabled:opacity-40"
+        >
+          <Minus size={18} weight="bold" aria-hidden="true" /> Fjern sæt
+        </button>
         <button
           type="button"
           onClick={() => void addSet()}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-[10px] bg-fill text-body font-semibold text-ink transition-transform duration-150 ease-ios active:scale-[.98]"
+          className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-fill text-body font-semibold text-ink transition-transform duration-150 ease-ios active:scale-[.98]"
         >
           <Plus size={18} weight="bold" aria-hidden="true" /> Tilføj sæt
         </button>
@@ -296,12 +317,6 @@ export function ExerciseBlock({
             <ChartLineUp size={22} className="shrink-0 text-ink-2" aria-hidden="true" />
             <span className="flex-1 text-row">Se historik</span>
           </InsetRow>
-          {extraRows.length > 0 && (
-            <InsetRow onClick={act(() => void removeSet())} chevron={false}>
-              <Minus size={22} className="shrink-0 text-ink-2" aria-hidden="true" />
-              <span className="flex-1 text-row">Fjern ekstra sæt</span>
-            </InsetRow>
-          )}
           {onRemove && (
             <InsetRow onClick={act(onRemove)} chevron={false}>
               <Trash size={22} className="shrink-0 text-danger" aria-hidden="true" />
