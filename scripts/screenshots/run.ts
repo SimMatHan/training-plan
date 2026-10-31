@@ -124,6 +124,16 @@ const scenarios: Scenario[] = [
     },
   },
   {
+    name: '4g2-fjern-saet',
+    run: async (p) => {
+      const card = await toExercise(p, /Rumænsk dødløft/);
+      const rows = card.getByRole('list', { name: /^Sæt,/ }).getByRole('listitem');
+      const before = await rows.count();
+      await card.getByRole('button', { name: 'Fjern sæt' }).click();
+      await rows.nth(before - 1).waitFor({ state: 'detached' });
+    },
+  },
+  {
     name: '4h-ekstra-oevelse',
     run: async (p) => {
       await toFirstExercise(p);

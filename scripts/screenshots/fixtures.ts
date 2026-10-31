@@ -110,6 +110,7 @@ for (const week of plan.weeks.filter((w) => w.weekNo <= 5)) {
               seconds: ex.exercise.kind === 'time' ? (row.seconds?.max ?? 30) : null,
               rpe: null,
               done: true,
+              skipped: false,
             });
           notes.push({ uuid: uuid(), updated_at: w.updated_at, deleted_at: null, workout_uuid: w.uuid, exercise_id: ex.exercise.id, note: null, rpe: 7 });
         }

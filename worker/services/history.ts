@@ -9,7 +9,7 @@ import { getActivePlan } from './plan';
 
 type Row = Record<string, unknown>;
 
-const BOOL_COLUMNS: Partial<Record<SyncTable, string[]>> = { set_logs: ['done'], mobility_checks: ['done'], mobility_round_checks: ['done'] };
+const BOOL_COLUMNS: Partial<Record<SyncTable, string[]>> = { set_logs: ['done', 'skipped'], mobility_checks: ['done'], mobility_round_checks: ['done'] };
 
 /**
  * Læser en atlets rækker i en tabel som validerede poster (booleans konverteret, server_updated_at

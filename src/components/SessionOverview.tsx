@@ -7,7 +7,7 @@ import { formatDose, formatIntensity, getExercise, resolveStrengthSession, setRo
 import { useLastEntries } from '../data/history';
 import { formatShort } from '../lib/dates';
 import { summarizeSets } from '../logic/lastTime';
-import { EXTRA_STEP } from '../logic/extras';
+import { EXTRA_STEP, keptRows } from '../logic/extras';
 import { toRounds } from '../logic/rounds';
 import { illustrationFor } from '../logic/illustrations';
 import { ButtonLink } from '../ui/Button';
@@ -29,14 +29,14 @@ interface Progress {
   total: number;
 }
 
-/** Øvelsen der faktisk logges: alternativet, hvis det er brugt i dag. */
+/** Øvelsen der faktisk logges: alternativet, hvis det er brugt i dag. Fjernede sæt er ikke med. */
 function inUse(plan: Plan, ex: ResolvedExercise, sets: SetLog[]) {
   const alt = ex.planned.alternative;
   const altExercise = alt && getExercise(plan, alt.exerciseId);
   if (alt && altExercise && sets.some((s) => s.exercise_id === alt.exerciseId)) {
-    return { exercise: altExercise, dose: alt.dose, label: alt.label ?? altExercise.name, rows: setRows(altExercise, alt.dose) };
+    return { exercise: altExercise, dose: alt.dose, label: alt.label ?? altExercise.name, rows: keptRows(setRows(altExercise, alt.dose), sets, altExercise.id) };
   }
-  return { exercise: ex.exercise, dose: ex.planned.dose, label: ex.label, rows: ex.rows };
+  return { exercise: ex.exercise, dose: ex.planned.dose, label: ex.label, rows: keptRows(ex.rows, sets, ex.exercise.id) };
 }
 
 /** Færdige runder (begge sider af et sæt) ud af de planlagte, uden valgfrie. */

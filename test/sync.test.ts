@@ -55,7 +55,7 @@ describe('sync-service', () => {
     await pushChanges(db, { workouts: [workout('2026-10-05T16:00:00.000Z')], set_logs: [setLog('2026-10-05T16:05:00.000Z')] }, '2026-10-05T16:05:01.000Z');
     const { changes, cursor } = await pullChanges(db, 1, null, new Date('2026-10-06T00:00:00Z'));
     expect(changes.workouts).toHaveLength(1);
-    expect(changes.set_logs![0]).toMatchObject({ weight_kg: 12.5, done: true, side: 'H', deleted_at: null });
+    expect(changes.set_logs![0]).toMatchObject({ weight_kg: 12.5, done: true, skipped: false, side: 'H', deleted_at: null });
     expect(cursor).toBe('2026-10-05T16:05:01.000Z');
     // Baseline-målingen fra seed kommer også med ved første pull.
     expect(changes.mobility_measurements![0]).toMatchObject({ value_right: 5, value_left: 7 });

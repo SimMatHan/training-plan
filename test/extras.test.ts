@@ -3,7 +3,7 @@ import planJson from '../plan/plan.v1.json';
 import { PlanSchema } from '../shared/plan.schema';
 import type { SetLog } from '../shared/records.schema';
 import { getExercise, resolveStrengthSession, setRows } from '../shared/resolve';
-import { EXTRA_STEP, extraSetRows, extraSlots, nextSetNo, plannedExerciseIds } from '../src/logic/extras';
+import { EXTRA_STEP, extraSetRows, extraSlots, firstSkipped, keptRows, nextSetNo, plannedExerciseIds } from '../src/logic/extras';
 
 const plan = PlanSchema.parse(planJson);
 const W = '10000000-0000-4000-8000-000000000001';
@@ -19,6 +19,7 @@ const log = (exercise_id: string, set_no: number, side: 'H' | 'V' | null, values
   seconds: null,
   rpe: null,
   done: false,
+  skipped: false,
   updated_at: '2026-11-02T16:00:00.000Z',
   deleted_at: null,
   ...values,
@@ -44,6 +45,31 @@ describe('ekstra sæt', () => {
     expect(nextSetNo(rows, [], 'rdl')).toBe(4);
     expect(nextSetNo(rows, [log('rdl', 5, null)], 'rdl')).toBe(6);
     expect(nextSetNo(rows, [log('andet', 9, null)], 'rdl')).toBe(4);
+  });
+});
+
+describe('fjernede sæt', () => {
+  const rdl = getExercise(plan, 'rdl')!;
+  const bss = getExercise(plan, 'bulgarian-split-squat')!;
+  const dose = { sets: 3, optionalSets: 0, reps: { min: 8, max: 8 }, restSec: 90 };
+  const gone = { skipped: true };
+
+  it('er ikke med i planens rækker og bliver ikke til ekstra sæt', () => {
+    const rows = setRows(rdl, dose);
+    const logs = [log('rdl', 3, null, gone)];
+    expect(keptRows(rows, logs, 'rdl').map((r) => r.setNo)).toEqual([1, 2]);
+    expect(extraSetRows(keptRows(rows, logs, 'rdl'), logs, rdl, dose)).toEqual([]);
+    expect(extraSetRows(rows, logs, rdl, dose)).toEqual([]);
+    // En slettet markering eller en anden øvelses tæller ikke.
+    expect(keptRows(rows, [log('rdl', 3, null, { ...gone, deleted_at: '2026-11-02T16:01:00.000Z' }), log('andet', 2, null, gone)], 'rdl')).toHaveLength(3);
+  });
+
+  it('fjerner hver side for sig og henter det laveste tilbage først', () => {
+    const rows = setRows(bss, dose);
+    const logs = [log('bulgarian-split-squat', 3, 'H', gone), log('bulgarian-split-squat', 3, 'V', gone), log('bulgarian-split-squat', 2, 'H', gone)];
+    expect(keptRows(rows, logs, 'bulgarian-split-squat').map((r) => `${r.setNo}${r.side}`)).toEqual(['1H', '1V', '2V']);
+    expect(firstSkipped(rows, logs, 'bulgarian-split-squat')).toBe(2);
+    expect(firstSkipped(rows, [], 'bulgarian-split-squat')).toBeUndefined();
   });
 });
 
