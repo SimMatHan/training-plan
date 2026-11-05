@@ -124,6 +124,14 @@ const scenarios: Scenario[] = [
     },
   },
   {
+    name: '4i-saetur',
+    run: async (p) => {
+      const card = await toExercise(p, /Copenhagen plank/);
+      await card.getByRole('button', { name: /Start uret, sæt 1/ }).first().click();
+      await card.getByRole('timer').first().waitFor();
+    },
+  },
+  {
     name: '4h-ekstra-oevelse',
     run: async (p) => {
       await toFirstExercise(p);

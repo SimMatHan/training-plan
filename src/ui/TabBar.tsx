@@ -1,5 +1,6 @@
 import type { Icon } from '@phosphor-icons/react';
 import { Link } from 'wouter';
+import { useFixedBottom } from '../lib/viewport';
 
 export interface Tab {
   href: string;
@@ -10,8 +11,9 @@ export interface Tab {
 
 /** 4 faner, gennemsigtig med blur, hårfin topkant, safe-area i bunden. Aktiv = --brand-red. */
 export function TabBar({ tabs }: { tabs: Tab[] }) {
+  const { shift } = useFixedBottom();
   return (
-    <nav aria-label="Hovedmenu" className="pb-safe blur-chrome fixed inset-x-0 bottom-0 z-20 border-t-[0.5px] border-separator">
+    <nav aria-label="Hovedmenu" className="pb-safe blur-chrome fixed inset-x-0 bottom-0 z-20 border-t-[0.5px] border-separator" style={shift ? { translate: `0 ${shift}px` } : undefined}>
       <ul className="mx-auto flex max-w-xl">
         {tabs.map(({ href, label, icon: Glyph, active }) => (
           <li key={label} className="flex-1">

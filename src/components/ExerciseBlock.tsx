@@ -233,6 +233,7 @@ export function ExerciseBlock({
             {COLUMN[f]}
           </span>
         ))}
+        {exercise.kind === 'time' && <span className="text-center">Ur</span>}
         <span className="text-center">✓</span>
       </div>
       <ul aria-label={`Sæt, ${label}`}>
