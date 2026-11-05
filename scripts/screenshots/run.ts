@@ -124,6 +124,25 @@ const scenarios: Scenario[] = [
     },
   },
   {
+    name: '4j-fjern-saet',
+    run: async (p) => {
+      const card = await toExercise(p, /Rumænsk dødløft/);
+      const rows = card.getByRole('list', { name: /^Sæt,/ }).getByRole('listitem');
+      const before = await rows.count();
+      await card.getByRole('button', { name: /^Fjern sæt/ }).click();
+      await card.getByRole('listitem').nth(before - 1).waitFor({ state: 'detached' });
+    },
+  },
+  {
+    name: '4k-flyt-oevelse',
+    run: async (p) => {
+      const card = await toExercise(p, /Rumænsk dødløft/);
+      await card.getByRole('button', { name: /^Mere for/ }).click();
+      await p.getByRole('dialog').getByText('Flyt ned', { exact: true }).click();
+      await p.waitForTimeout(800);
+    },
+  },
+  {
     name: '4i-saetur',
     run: async (p) => {
       const card = await toExercise(p, /Copenhagen plank/);

@@ -1,6 +1,7 @@
 import type { Plan } from '../../shared/plan.schema';
 import type { MobilityCheck, SetLog } from '../../shared/records.schema';
 import { getExercise, setRows, type ResolvedSlot, type SetRow } from '../../shared/resolve';
+import { keptRows } from './layout';
 import { toRounds } from './rounds';
 
 export interface Progress {
@@ -10,12 +11,16 @@ export interface Progress {
 
 export const isComplete = (p: Progress) => p.total > 0 && p.done >= p.total;
 
-/** Øvelsen og sætrækkerne der faktisk logges: alternativets, hvis det er logget. */
-function inUse(plan: Plan, ex: ResolvedSlot['exercises'][number], sets: SetLog[]) {
+/** Fjernede planlagte sætnumre pr. øvelse i dagens træning (workouts.layout). */
+export type Removed = Record<string, number[]> | undefined;
+
+/** Øvelsen og sætrækkerne der faktisk logges: alternativets, hvis det er logget, uden fjernede sæt. */
+function inUse(plan: Plan, ex: ResolvedSlot['exercises'][number], sets: SetLog[], removed: Removed) {
   const alt = ex.planned.alternative;
   const altExercise = alt && getExercise(plan, alt.exerciseId);
   const useAlt = !!alt && !!altExercise && sets.some((s) => s.exercise_id === alt.exerciseId && !s.deleted_at);
-  return { exercise: useAlt ? altExercise! : ex.exercise, rows: useAlt ? setRows(altExercise!, alt!.dose) : ex.rows };
+  const exercise = useAlt ? altExercise! : ex.exercise;
+  return { exercise, rows: keptRows(useAlt ? setRows(altExercise!, alt!.dose) : ex.rows, removed?.[exercise.id]) };
 }
 
 const isDone = (sets: SetLog[], exerciseId: string, r: SetRow) =>
@@ -25,11 +30,11 @@ const isDone = (sets: SetLog[], exerciseId: string, r: SetRow) =>
  * Færdige ikke-valgfrie sætrækker på en plads (begge øvelser i et superset).
  * Er alternativ-øvelsen logget, tælles dens rækker i stedet.
  */
-export function slotProgress(plan: Plan, slot: ResolvedSlot, sets: SetLog[]): Progress {
+export function slotProgress(plan: Plan, slot: ResolvedSlot, sets: SetLog[], removed?: Removed): Progress {
   let done = 0;
   let total = 0;
   for (const ex of slot.exercises) {
-    const { exercise, rows } = inUse(plan, ex, sets);
+    const { exercise, rows } = inUse(plan, ex, sets, removed);
     const required = rows.filter((r) => !r.optional);
     total += required.length;
     done += required.filter((r) => isDone(sets, exercise.id, r)).length;
@@ -38,11 +43,11 @@ export function slotProgress(plan: Plan, slot: ResolvedSlot, sets: SetLog[]): Pr
 }
 
 /** Som slotProgress, men pr. sæt: højre og venstre i samme sæt tæller som ét, som i oversigten. */
-export function slotSetProgress(plan: Plan, slot: ResolvedSlot, sets: SetLog[]): Progress {
+export function slotSetProgress(plan: Plan, slot: ResolvedSlot, sets: SetLog[], removed?: Removed): Progress {
   let done = 0;
   let total = 0;
   for (const ex of slot.exercises) {
-    const { exercise, rows } = inUse(plan, ex, sets);
+    const { exercise, rows } = inUse(plan, ex, sets, removed);
     const rounds = toRounds(rows).filter((r) => !r.optional);
     total += rounds.length;
     done += rounds.filter((r) => r.rows.every((row) => isDone(sets, exercise.id, row))).length;

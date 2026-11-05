@@ -17,6 +17,7 @@ import { ExerciseRow, TILE_INSET } from '../ui/ExerciseRow';
 import { HeroNumber } from '../ui/HeroNumber';
 import { Card, Group, InsetList } from '../ui/InsetList';
 import { StatusLight } from '../ui/StatusLight';
+import { parseLayout } from '../logic/layout';
 import { useSessionOpener } from './SessionAction';
 import { aboutMinutes, SessionOverview } from './SessionOverview';
 
@@ -153,6 +154,7 @@ export function TodayCard({
           workoutUuid={workout && !workout.skipped_at ? workout.uuid : undefined}
           sets={logs?.sets}
           mobilityChecks={warmup ? rounds?.filter((c) => c.round === 'morgen') : logs?.mobility}
+          layout={workout && !workout.skipped_at ? parseLayout(workout.layout) : undefined}
         />
       )}
     </>

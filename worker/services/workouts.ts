@@ -96,6 +96,7 @@ export async function logRun(db: D1Database, athleteId: number, raw: RunInput, n
     activity: input.sessionId ? null : 'Løb',
     skipped_at: null,
     skip_reason: null,
+    layout: null,
     updated_at: ts,
     deleted_at: null,
   };

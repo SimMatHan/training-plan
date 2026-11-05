@@ -53,6 +53,11 @@ export const Workout = z.object({
   skipped_at: IsoTimestamp.nullable().default(null),
   /** Kort årsag til at sessionen blev sprunget over, fx "Lyske/smerte". */
   skip_reason: z.string().trim().min(1).max(60).nullable().default(null),
+  /**
+   * Dagens opsætning ud over planen som JSON: øvelsernes rækkefølge og fjernede planlagte sæt,
+   * fx {"order":["s2","s1"],"removed":{"rdl":[3]}}. Null = som planen. Se src/logic/layout.ts.
+   */
+  layout: z.string().max(4000).nullable().default(null),
 });
 export type Workout = z.infer<typeof Workout>;
 

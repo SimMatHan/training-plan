@@ -75,6 +75,7 @@ export function emptyWorkout(fields: Pick<Workout, 'date' | 'type'> & Partial<Wo
     activity: null,
     skipped_at: null,
     skip_reason: null,
+    layout: null,
     ...fields,
   };
 }

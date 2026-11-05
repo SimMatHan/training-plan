@@ -70,6 +70,7 @@ const workout = (w: Partial<Workout> & Pick<Workout, 'date' | 'type'>): Workout 
   activity: null,
   skipped_at: null,
   skip_reason: null,
+  layout: null,
   ...w,
 });
 
