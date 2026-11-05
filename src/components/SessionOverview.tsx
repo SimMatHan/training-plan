@@ -8,6 +8,7 @@ import { useLastEntries } from '../data/history';
 import { formatShort } from '../lib/dates';
 import { summarizeSets } from '../logic/lastTime';
 import { EXTRA_STEP } from '../logic/extras';
+import { keptRows, orderSlots, type Layout } from '../logic/layout';
 import { toRounds } from '../logic/rounds';
 import { illustrationFor } from '../logic/illustrations';
 import { ButtonLink } from '../ui/Button';
@@ -29,14 +30,14 @@ interface Progress {
   total: number;
 }
 
-/** Øvelsen der faktisk logges: alternativet, hvis det er brugt i dag. */
-function inUse(plan: Plan, ex: ResolvedExercise, sets: SetLog[]) {
+/** Øvelsen der faktisk logges: alternativet, hvis det er brugt i dag, uden fjernede sæt. */
+function inUse(plan: Plan, ex: ResolvedExercise, sets: SetLog[], removed: Layout['removed']) {
   const alt = ex.planned.alternative;
   const altExercise = alt && getExercise(plan, alt.exerciseId);
   if (alt && altExercise && sets.some((s) => s.exercise_id === alt.exerciseId)) {
-    return { exercise: altExercise, dose: alt.dose, label: alt.label ?? altExercise.name, rows: setRows(altExercise, alt.dose) };
+    return { exercise: altExercise, dose: alt.dose, label: alt.label ?? altExercise.name, rows: keptRows(setRows(altExercise, alt.dose), removed?.[altExercise.id]) };
   }
-  return { exercise: ex.exercise, dose: ex.planned.dose, label: ex.label, rows: ex.rows };
+  return { exercise: ex.exercise, dose: ex.planned.dose, label: ex.label, rows: keptRows(ex.rows, removed?.[ex.exercise.id]) };
 }
 
 /** Færdige runder (begge sider af et sæt) ud af de planlagte, uden valgfrie. */
@@ -79,6 +80,7 @@ export function SessionOverview({
   onPick,
   footer,
   extraSlots = [],
+  layout = {},
 }: {
   open: boolean;
   onClose: () => void;
@@ -96,12 +98,14 @@ export function SessionOverview({
   footer?: ReactNode;
   /** Øvelser ud over planen i dagens træning. */
   extraSlots?: ResolvedSlot[];
+  /** Dagens rækkefølge og fjernede sæt. */
+  layout?: Layout;
 }) {
   const [location] = useLocation();
   const strength = session.kind === 'styrke' ? resolveStrengthSession(plan, session.id, weekNo) : undefined;
-  const slots = [...(strength?.slots ?? []), ...extraSlots];
+  const slots = orderSlots([...(strength?.slots ?? []), ...extraSlots], layout.order);
   const showMobility = !!plan.mobility && (session.kind === 'mobilitet' || (session.kind === 'styrke' && session.mobility === 'before'));
-  const exercises = slots.flatMap((s) => s.exercises.map((ex) => inUse(plan, ex, sets)));
+  const exercises = slots.flatMap((s) => s.exercises.map((ex) => inUse(plan, ex, sets, layout.removed)));
   const last = useLastEntries(
     exercises.map((e) => e.exercise.id),
     workoutUuid,
@@ -109,7 +113,7 @@ export function SessionOverview({
 
   const slotProgress = slots.map((slot) =>
     slot.exercises
-      .map((ex) => inUse(plan, ex, sets))
+      .map((ex) => inUse(plan, ex, sets, layout.removed))
       .reduce<Progress>(
         (acc, e) => {
           const p = roundProgress(e.rows, e.exercise.id, sets);
@@ -165,7 +169,7 @@ export function SessionOverview({
 
         {slots.map((slot, si) =>
           slot.exercises.map((ex, ei) => {
-            const e = inUse(plan, ex, sets);
+            const e = inUse(plan, ex, sets, layout.removed);
             const ill = illustrationFor(e.exercise.id, e.exercise.name);
             const prev = last?.get(e.exercise.id);
             const today = sets.filter((s) => s.exercise_id === e.exercise.id && s.done);

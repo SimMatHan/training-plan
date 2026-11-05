@@ -1,4 +1,4 @@
-import { ArrowUp, ChartLineUp, Copy, DotsThreeVertical, Minus, NotePencil, Plus, Swap, Timer, Trash } from '@phosphor-icons/react';
+import { ArrowDown, ArrowUp, ChartLineUp, Copy, DotsThreeVertical, Minus, NotePencil, Plus, Swap, Timer, Trash } from '@phosphor-icons/react';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
 import type { Exercise, Plan } from '../../shared/plan.schema';
@@ -19,6 +19,7 @@ import { NoteField } from './NoteField';
 import { ExerciseIllustration } from './ExerciseIllustration';
 import { RpePicker } from './RpePicker';
 import { usePerSidePref } from '../data/sidePrefs';
+import { keptRows, type Layout } from '../logic/layout';
 import { sidesDiffer, toRounds, type Round } from '../logic/rounds';
 import { Switch } from '../ui/Field';
 import { InsetList, InsetRow } from '../ui/InsetList';
@@ -50,8 +51,8 @@ function Chip({ icon, children, onClick, pressed }: { icon: ReactNode; children:
 
 /**
  * Én øvelse i logningen, som hos Hevy: figur og navn, pause/note/RPE som piller, og sættene som
- * en tabel (sæt · sidst · kg · reps · ✓) med "Tilføj sæt" under. Resten (samme som sidst,
- * alternativ, pr. side, fjern) ligger i ⋯-menuen. Slår et sæt rekorden, vises "Ny rekord".
+ * en tabel (sæt · sidst · kg · reps · ✓) med "Fjern sæt" og "Tilføj sæt" under. Resten (samme som
+ * sidst, alternativ, pr. side, flyt op/ned, fjern) ligger i ⋯-menuen. Slår et sæt rekorden, vises "Ny rekord".
  */
 export function ExerciseBlock({
   plan,
@@ -61,6 +62,11 @@ export function ExerciseBlock({
   notes,
   supersetFirst,
   onRemove,
+  removed,
+  onRemovedChange,
+  superset = false,
+  onMoveUp,
+  onMoveDown,
 }: {
   plan: Plan;
   workoutUuid: string;
@@ -70,6 +76,15 @@ export function ExerciseBlock({
   supersetFirst: boolean;
   /** En øvelse ud over planen: fjerner den fra træningen. */
   onRemove?: () => void;
+  /** Planlagte sæt fjernet i dag, pr. øvelse. */
+  removed?: Layout['removed'];
+  /** Fjerner (true) eller sætter et planlagt sæt tilbage (false) i dagens træning. */
+  onRemovedChange?: (exerciseId: string, setNo: number, remove: boolean) => Promise<unknown>;
+  /** Øvelsen er en del af et superset: flyt op/ned flytter hele supersettet. */
+  superset?: boolean;
+  /** Flyt øvelsen (pladsen) én op eller ned i dagens rækkefølge. Mangler øverst/nederst. */
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }) {
   const alt = resolved.planned.alternative;
   const altExercise = alt && getExercise(plan, alt.exerciseId);
@@ -80,10 +95,13 @@ export function ExerciseBlock({
   const exercise: Exercise = useAlt && altExercise ? altExercise : resolved.exercise;
   const dose = useAlt && alt ? alt.dose : resolved.planned.dose;
   const label = useAlt && alt ? (alt.label ?? altExercise!.name) : resolved.label;
-  const plannedRows = useAlt ? setRows(exercise, dose) : resolved.rows;
+  const allPlanned = useAlt ? setRows(exercise, dose) : resolved.rows;
+  // Planens sæt, undtagen dem der er fjernet i dag.
+  const removedHere = removed?.[exercise.id] ?? [];
+  const plannedRows = keptRows(allPlanned, removedHere);
   const mine = sets.filter((s) => s.exercise_id === exercise.id);
   // Planens sæt og de sæt, der er tilføjet ud over planen i denne træning.
-  const extraRows = extraSetRows(plannedRows, mine, exercise, dose);
+  const extraRows = extraSetRows(allPlanned, mine, exercise, dose);
   const rows = [...plannedRows, ...extraRows];
   const note = notes.find((n) => n.exercise_id === exercise.id);
   const last = useLastTime(exercise.id, workoutUuid);
@@ -119,19 +137,29 @@ export function ExerciseBlock({
   const canCopy = !!last && plannedRows.some((r) => !logFor(r.side, r.setNo)?.done && ghostFor(last, r.side, r.setNo));
   const fields = fieldsOf(exercise.kind);
 
-  /** Et sæt mere ud over planen: tomt, med sidste gangs tal som forslag. */
+  /**
+   * Et sæt mere: er et af planens sæt fjernet i dag, kommer det første af dem tilbage; ellers et
+   * tomt sæt ud over planen, med sidste gangs tal som forslag.
+   */
   async function addSet() {
-    const setNo = nextSetNo(plannedRows, mine, exercise.id);
+    const restore = removedHere[0];
+    if (restore != null && onRemovedChange) return void (await onRemovedChange(exercise.id, restore, false));
+    const setNo = nextSetNo(allPlanned, mine, exercise.id);
     await Promise.all(sidesOf(exercise, dose).map((side) => upsertSet(key(side, setNo), { done: false, weight_kg: null, reps: null, seconds: null })));
   }
 
-  /** Fjerner det sidste ekstra sæt. */
+  // Der er altid mindst ét sæt tilbage; planens sæt kan kun fjernes, når der kan gemmes.
+  const lastRow = rows.at(-1);
+  const canRemoveSet = new Set(rows.map((r) => r.setNo)).size > 1 && !!lastRow && (lastRow.extra || !!onRemovedChange);
+
+  /** Fjerner det sidste sæt: et ekstra sæt slettes, et af planens sæt springes over i dag. */
   async function removeSet() {
-    const setNo = extraRows.at(-1)?.setNo;
-    if (setNo == null) return;
+    if (!canRemoveSet || !lastRow) return;
+    const setNo = lastRow.setNo;
     const logs = mine.filter((s) => s.set_no === setNo);
     if (logs.some((s) => s.done) && !confirm(`Fjerne sæt ${setNo}? Det er logget.`)) return;
     await Promise.all(logs.map((s) => deleteRecord('set_logs', s.uuid)));
+    if (!lastRow.extra) await onRemovedChange!(exercise.id, setNo, true);
   }
 
   /** Alle ufærdige sæt som sidst, markeret færdige. */
@@ -263,11 +291,21 @@ export function ExerciseBlock({
         })}
       </ul>
 
-      <div className="p-3">
+      <div className="flex gap-2 p-3">
+        {canRemoveSet && (
+          <button
+            type="button"
+            onClick={() => void removeSet()}
+            aria-label={`Fjern sæt ${lastRow!.setNo}, ${label}`}
+            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-fill text-body font-semibold text-ink transition-transform duration-150 ease-ios active:scale-[.98]"
+          >
+            <Minus size={18} weight="bold" aria-hidden="true" /> Fjern sæt
+          </button>
+        )}
         <button
           type="button"
           onClick={() => void addSet()}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-[10px] bg-fill text-body font-semibold text-ink transition-transform duration-150 ease-ios active:scale-[.98]"
+          className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-[10px] bg-fill text-body font-semibold text-ink transition-transform duration-150 ease-ios active:scale-[.98]"
         >
           <Plus size={18} weight="bold" aria-hidden="true" /> Tilføj sæt
         </button>
@@ -297,10 +335,16 @@ export function ExerciseBlock({
             <ChartLineUp size={22} className="shrink-0 text-ink-2" aria-hidden="true" />
             <span className="flex-1 text-row">Se historik</span>
           </InsetRow>
-          {extraRows.length > 0 && (
-            <InsetRow onClick={act(() => void removeSet())} chevron={false}>
-              <Minus size={22} className="shrink-0 text-ink-2" aria-hidden="true" />
-              <span className="flex-1 text-row">Fjern ekstra sæt</span>
+          {onMoveUp && (
+            <InsetRow onClick={act(onMoveUp)} chevron={false}>
+              <ArrowUp size={22} className="shrink-0 text-ink-2" aria-hidden="true" />
+              <span className="flex-1 text-row">{superset ? 'Flyt supersettet op' : 'Flyt op'}</span>
+            </InsetRow>
+          )}
+          {onMoveDown && (
+            <InsetRow onClick={act(onMoveDown)} chevron={false}>
+              <ArrowDown size={22} className="shrink-0 text-ink-2" aria-hidden="true" />
+              <span className="flex-1 text-row">{superset ? 'Flyt supersettet ned' : 'Flyt ned'}</span>
             </InsetRow>
           )}
           {onRemove && (

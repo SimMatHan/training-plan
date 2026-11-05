@@ -642,10 +642,11 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
 - **Logning** er bygget som Hevy: hele træningen på én side. Øverst varighed, volumen (kg × reps) og sæt; toppen har
   pausetimeren og **Afslut** (smerte, RPE og note). Mobiliteten står først og kan foldes sammen. Hver øvelse er et kort
   med figur, navn (tryk: historik), piller for pause, note og RPE, og sættene som en tabel **Sæt · Sidst · Kg · Reps · ✓**
-  med **Tilføj sæt** under. Felterne viser sidste gangs tal (ellers planens mål) i gråt, så et sæt magen til sidst er ét
+  med **Fjern sæt** og **Tilføj sæt** under. Felterne viser sidste gangs tal (ellers planens mål) i gråt, så et sæt magen til sidst er ét
   tryk på ✓; skriver man et tal, gemmes det i stedet. Et færdigt sæt bliver grønt. Ensidige øvelser logges som runder
   (sæt 1, 2, 3) med samme tal på begge sider; i ⋯-menuen viser **Forskellig vægt eller reps pr. side** siderne hver for
-  sig (valget huskes pr. øvelse på telefonen). Menuen har også "Samme som sidst", alternativet og historikken. Slår et
+  sig (valget huskes pr. øvelse på telefonen). Menuen har også "Samme som sidst", alternativet, historikken og **Flyt
+  op/ned** (dagens rækkefølge, fx flere øvelser ved samme maskine i træk; et superset flyttes samlet). Slår et
   sæt rekorden (vægt × reps), får øvelsen "Ny rekord".
 - **Hele træningen:** "Se hele træningen" ved Øvelser på I dag viser hele sessionen i ét ark: figur, dosering, sidste
   gang og fremskridt pr. øvelse, talt i runder.
@@ -677,6 +678,10 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
   en øvelse med sætlogs, som sessionen ikke har i ugen (`src/logic/extras.ts`). De oprettes som tomme sætlogs, som
   historikken først tæller, når der er logget noget. En helt ny øvelse kommer først i planens katalog (ny planversion,
   kræver net). Ekstra sæt og øvelser kan fjernes igen; en planlagt øvelse fjernes for en uge i planen (**Kun uge N**).
+- **Dagens opsætning:** **Fjern sæt** fjerner det sidste sæt, også et af planens (der er altid mindst ét tilbage), og
+  **Tilføj sæt** sætter først de fjernede tilbage. Rækkefølgen ændres med **Flyt op/ned**. Begge dele gælder kun den
+  træning og gemmes som JSON i `workouts.layout` (`{"order":[pladser],"removed":{øvelse:[sætnumre]}}`,
+  `src/logic/layout.ts`); planen ændres ikke. Fremskridt og "Hele træningen" følger opsætningen.
 
 ### Flytning og andre aktiviteter
 

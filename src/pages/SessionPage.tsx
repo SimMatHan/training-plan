@@ -27,6 +27,7 @@ import { skipTimer, startTimer, useTimer } from '../data/timer';
 import { finishWorkout, patchWorkout, setMobilityCheck, setRoundCheck, upsertSet, useRoundChecks, useWorkout, useWorkoutLogs } from '../data/workouts';
 import { OfflineError } from '../lib/api';
 import { EXTRA_STEP, extraSlots, plannedExerciseIds } from '../logic/extras';
+import { moveSlot, orderSlots, parseLayout, serializeLayout, withRemoved, type Layout } from '../logic/layout';
 import { formatLong } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
 import { useWakeLock } from '../lib/wakeLock';
@@ -61,6 +62,8 @@ export function SessionPage() {
   const [timerPicker, setTimerPicker] = useState(false);
   const [adding, setAdding] = useState(false);
   const [scrollTo, setScrollTo] = useState<string>();
+  // En flyttet øvelse: følg med, når den nye rækkefølge er gemt og vist.
+  const [follow, setFollow] = useState<{ slotId: string; layout: string | null }>();
   const scrolled = useRef(false);
   useWakeLock(true);
 
@@ -75,9 +78,11 @@ export function SessionPage() {
   // Øvelser ud over planen: logget i træningen, men ikke på sessionens pladser i ugen.
   const planned = strength ? plannedExerciseIds(strength.slots) : new Set<string>();
   const extras = plan && strength && logs ? extraSlots(plan, planned, logs.sets) : [];
-  const slots = [...(strength?.slots ?? []), ...extras];
+  // Dagens rækkefølge og fjernede planlagte sæt (workouts.layout).
+  const layout = parseLayout(workout?.layout);
+  const slots = orderSlots([...(strength?.slots ?? []), ...extras], layout.order);
   const progress: Record<string, Progress> = {};
-  if (plan && logs) for (const slot of slots) progress[slot.slotId] = slotProgress(plan, slot, logs.sets);
+  if (plan && logs) for (const slot of slots) progress[slot.slotId] = slotProgress(plan, slot, logs.sets, layout.removed);
 
   // Er der allerede logget noget, så til den første ufærdige øvelse, når data er indlæst.
   useEffect(() => {
@@ -100,6 +105,12 @@ export function SessionPage() {
     setScrollTo(undefined);
   }, [scrollTo, logs]);
 
+  useEffect(() => {
+    if (!follow || (workout?.layout ?? null) !== follow.layout) return;
+    document.getElementById(slotDomId(follow.slotId))?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    setFollow(undefined);
+  }, [follow, workout?.layout]);
+
   if (workout === undefined || logs === undefined || !active || !plan) return <main className="pt-safe p-4 text-ink-2">Henter …</main>;
   if (workout === null || workout.deleted_at)
     return (
@@ -115,7 +126,7 @@ export function SessionPage() {
   const listing = stepped && !finishing;
   const name = session ? sessionTitle(session) : (workout.activity ?? 'Træning');
   // Sæt som i oversigten: højre og venstre i samme sæt er ét.
-  const setCount = slots.map((slot) => slotSetProgress(plan, slot, logs.sets)).reduce((a, p) => ({ done: a.done + p.done, total: a.total + p.total }), { done: 0, total: 0 });
+  const setCount = slots.map((slot) => slotSetProgress(plan, slot, logs.sets, layout.removed)).reduce((a, p) => ({ done: a.done + p.done, total: a.total + p.total }), { done: 0, total: 0 });
   const mobilityChecks = warmup ? (roundChecks ?? []).filter((c) => c.round === 'morgen') : logs.mobility;
   const mobility = showMobility ? mobilityProgress(plan, mobilityChecks) : undefined;
   const toggleMobility = (itemId: string, done: boolean) =>
@@ -175,9 +186,20 @@ export function SessionPage() {
     const note = logs!.notes.find((n) => n.exercise_id === exerciseId);
     if ((own.some((s) => s.done || s.reps != null || s.weight_kg != null || s.seconds != null) || note) && !confirm('Fjerne øvelsen fra træningen? Det loggede slettes.')) return;
     await Promise.all([...own.map((s) => deleteRecord('set_logs', s.uuid)), ...(note ? [deleteRecord('exercise_notes', note.uuid)] : [])]);
+    // Tilføjes den igen, starter den med alle sine sæt.
+    if (layout.removed?.[exerciseId]?.length) await saveLayout({ ...layout, removed: { ...layout.removed, [exerciseId]: [] } });
   }
 
   const canAdd = !!strength;
+
+  const saveLayout = (next: Layout) => patchWorkout(workout.uuid, { layout: serializeLayout(next) });
+
+  /** Flytter en plads (øvelse eller superset) én op eller ned i dagens rækkefølge, og følger med den. */
+  function move(slotId: string, dir: -1 | 1) {
+    const next = serializeLayout({ ...layout, order: moveSlot(slots.map((s) => s.slotId), slotId, dir) });
+    setFollow({ slotId, layout: next });
+    void patchWorkout(workout!.uuid, { layout: next });
+  }
 
   return (
     <main className={`mx-auto max-w-xl px-4 ${timerFor ? (timerCompact ? 'pb-36' : 'pb-[24rem]') : 'pb-12'}`}>
@@ -230,7 +252,7 @@ export function SessionPage() {
           <div className="flex flex-col gap-4">
             {mobility && plan.mobility && <MobilitySection plan={plan} checks={mobilityChecks} onToggle={toggleMobility} progress={mobility} warmup={warmup} />}
 
-            {slots.map((slot) => (
+            {slots.map((slot, si) => (
               <section key={slot.slotId} id={slotDomId(slot.slotId)} aria-label={slot.superset ? 'Superset' : undefined} className="flex scroll-mt-24 flex-col gap-2">
                 {slot.superset && (
                   <p className="px-1 text-footnote">
@@ -248,6 +270,11 @@ export function SessionPage() {
                     notes={logs.notes}
                     supersetFirst={slot.superset && i === 0}
                     onRemove={slot.slotId.startsWith(EXTRA_STEP) ? () => void removeExtra(ex.exercise.id) : undefined}
+                    removed={layout.removed}
+                    onRemovedChange={(exerciseId, setNo, remove) => saveLayout(withRemoved(layout, exerciseId, setNo, remove))}
+                    superset={slot.superset}
+                    onMoveUp={si > 0 ? () => move(slot.slotId, -1) : undefined}
+                    onMoveDown={si < slots.length - 1 ? () => move(slot.slotId, 1) : undefined}
                   />
                 ))}
               </section>
