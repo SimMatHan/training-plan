@@ -130,7 +130,7 @@ const scenarios: Scenario[] = [
       const rows = card.getByRole('list', { name: /^Sæt,/ }).getByRole('listitem');
       const before = await rows.count();
       await card.getByRole('button', { name: /^Fjern sæt/ }).click();
-      await p.waitForFunction(([n]) => document.querySelectorAll('article ul[aria-label^="Sæt, Rumænsk"] > li').length === n, [before - 1]);
+      await card.getByRole('listitem').nth(before - 1).waitFor({ state: 'detached' });
     },
   },
   {
