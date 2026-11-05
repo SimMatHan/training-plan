@@ -86,19 +86,44 @@ function scheduleBeep() {
   const delay = (current.endsAt - Date.now()) / 1000;
   if (delay < -1) return;
   const start = audio.currentTime + Math.max(0, delay);
-  for (let i = 0; i < 3; i++) {
-    const osc = audio.createOscillator();
-    const gain = audio.createGain();
-    osc.frequency.value = 880;
-    const t = start + i * 0.25;
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(0.4, t + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
-    osc.connect(gain).connect(audio.destination);
-    osc.start(t);
-    osc.stop(t + 0.16);
-    scheduled.push(osc);
-  }
+  for (let i = 0; i < 3; i++) scheduled.push(tone(audio, start + i * 0.25));
+}
+
+/** Ét kort bip på lydurets tidspunkt `t`. */
+function tone(ctx: AudioContext, t: number, freq = 880) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.4, t + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + 0.16);
+  return osc;
+}
+
+/**
+ * Lyde til sætuseret: et lavt bip pr. sekund i nedtællingen før start, et højt ved start og
+ * tre ved slut. Skal kaldes fra en brugerhandling (iOS). Giver en funktion, der aflyser dem.
+ */
+export function cueSetClock(startsAt: number, endsAt: number | null) {
+  unlockAudio();
+  if (!audio) return () => {};
+  const ctx = audio;
+  const at = (ms: number) => ctx.currentTime + Math.max(0, (ms - Date.now()) / 1000);
+  const oscs: OscillatorNode[] = [];
+  for (let s = 3; s >= 1; s--) if (startsAt - s * 1000 > Date.now() - 50) oscs.push(tone(ctx, at(startsAt - s * 1000), 660));
+  oscs.push(tone(ctx, at(startsAt), 1100));
+  if (endsAt != null) for (let i = 0; i < 3; i++) oscs.push(tone(ctx, at(endsAt) + i * 0.25));
+  return () =>
+    oscs.forEach((o) => {
+      try {
+        o.stop();
+      } catch {
+        // Allerede stoppet.
+      }
+    });
 }
 
 // Efter genstart findes ingen AudioContext. Første berøring låser lyden op igen.
