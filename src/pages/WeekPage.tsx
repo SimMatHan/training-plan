@@ -59,7 +59,7 @@ const subtitle = (week: Week) => `${formatShort(week.startDate)}–${formatShort
 
 /** Hvordan går ugen? Sessioner lavet ud af planlagte i en ring, løbe-km og lysken. */
 function WeekProgress({ week }: { week: Week }) {
-  const workouts = useWeekWorkouts(week.weekNo);
+  const workouts = useWeekWorkouts(week);
   const overrides = useWeekOverrides(week.weekNo);
   const groin = useWorstLights();
   if (!workouts) return null;

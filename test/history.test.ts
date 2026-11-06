@@ -110,6 +110,29 @@ describe('historik-services (uden HTTP)', () => {
     expect(w.lights).toEqual(['ukendt', 'ukendt', 'gul']);
   });
 
+  it('getWeeklySummary: en tidligere plans uge med samme nummer tælles ikke med', async () => {
+    // Uge 2 i en tidligere plan: før denne plans uge 2, med løb, sæt og smerte.
+    const oldRun = workout('2026-09-09', 2, 'rh', { type: 'løb', distance_km: 8 });
+    const oldStrength = workout('2026-09-10', 2, 'rehab-a');
+    // Sessionen lavet dagen efter sin uge hører stadig til ugen.
+    const late = workout('2026-10-12', 2, 'ct', { type: 'løb', distance_km: 3 });
+    await pushChanges(db, 1, {
+      workouts: [oldRun, oldStrength, late],
+      pain_scores: [pain(oldRun, 6), pain(oldStrength, 7)],
+      set_logs: [set(oldStrength.uuid, 'biceps-curl', 1, null, 10, 10)],
+    });
+    const w = await getWeeklySummary(db, 1, 2, '2026-10-14');
+    expect(w.sessions.map((s) => [s.sessionId, s.status])).toEqual([
+      ['rehab-a', 'ikke-lavet'],
+      ['rh', 'lavet'],
+      ['rehab-b', 'lavet'],
+      ['ct', 'lavet'],
+    ]);
+    expect(w.runKm).toBe(8.05);
+    expect(w.volume.map((v) => v.exerciseId)).toEqual(['rows']);
+    expect(w.lights).not.toContain('rød');
+  });
+
   it('exportAll indeholder planversioner og alle tabeller', async () => {
     const data = await exportAll(db, 1);
     expect(data.planVersions[0]).toMatchObject({ version: 1, is_active: true, source: 'seed' });

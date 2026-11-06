@@ -5,7 +5,15 @@
 // sessionen flyttes. Står en session kun én gang i ugen, er dagen ligegyldig: træninger og flytninger uden
 // dag (alt fra før gentagne sessioner) hører til den, præcis som før.
 import type { ScheduledSession, Week } from './plan.schema';
-import type { ScheduleOverride } from './records.schema';
+import type { ScheduleOverride, Workout } from './records.schema';
+
+/**
+ * Træningen hører til planens uge: samme ugenummer, og ikke dateret før ugen starter. En ny plan tæller
+ * forfra fra uge 1, så en tidligere plans "uge 3" har samme nummer; den ligger før den nye uge 3 og tælles ikke med.
+ * En session lavet efter sin uge (fx søndagens på mandag) hører stadig til ugen.
+ */
+export const inPlanWeek = (w: Pick<Workout, 'week_no' | 'date'>, week: Pick<Week, 'weekNo' | 'startDate'>) =>
+  w.week_no === week.weekNo && w.date >= week.startDate;
 
 export interface EffectiveSession extends ScheduledSession {
   /** Dagen i planen. `day` er den faktiske dag efter en eventuel flytning. */

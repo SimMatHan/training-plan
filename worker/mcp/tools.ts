@@ -15,7 +15,7 @@ import { readyForMoreWeight, findPlannedDose } from '../../shared/progression';
 import type { PainScore, Workout } from '../../shared/records.schema';
 import { dateOfDay, formatDose, formatIntensity, getExercise, getSession, planEndDate, weekForDate } from '../../shared/resolve';
 import { getAt, JsonPatch, PatchError } from '../../shared/jsonPatch';
-import { assignToOccurrences, isRepeated, occurrenceKey } from '../../shared/schedule';
+import { assignToOccurrences, inPlanWeek, isRepeated, occurrenceKey } from '../../shared/schedule';
 import { getSharing, listMobilityTests, listMonitors, type Athlete } from '../services/athletes';
 import { recordMcpCall, type McpErrorKind } from '../services/audit';
 import { addDays, todayInCopenhagen } from '../services/clock';
@@ -373,10 +373,12 @@ export const TOOLS: ToolDef[] = [
         listCoachNotes(db, athlete.id, { weekNo: uge }),
         painLookup(ctx),
       ]);
+      // Kun denne plans uge: en tidligere plans uge med samme nummer ligger før den.
+      const weekWorkouts = workouts.filter((w) => inPlanWeek(w, view.week));
       // Træningerne pr. forekomst: en session der står flere gange i ugen, har en status pr. dag.
       const byOccurrence = assignToOccurrences(
         view.week,
-        workouts,
+        weekWorkouts,
         (x) => x.planned_session_id,
         (x) => x.planned_day,
       );

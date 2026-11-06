@@ -4,7 +4,7 @@ import { worstByWorkout, type PainAssessment, type PainLight } from './pain';
 import type { MobilityRound, Plan } from './plan.schema';
 import type { ExerciseNote, MobilityRoundCheck, ScheduleOverride, SetLog, Workout } from './records.schema';
 import { dateOfDay, getExercise, getSession } from './resolve';
-import { assignToOccurrences, effectiveSessions, occurrenceKey } from './schedule';
+import { assignToOccurrences, effectiveSessions, inPlanWeek, occurrenceKey } from './schedule';
 
 const alive = <T extends { deleted_at: string | null }>(r: T) => !r.deleted_at;
 const hasValue = (s: SetLog) => s.done || s.reps != null || s.seconds != null || s.weight_kg != null;
@@ -116,7 +116,7 @@ export function weeklySummary(
 ): WeeklySummary {
   const week = plan.weeks.find((w) => w.weekNo === weekNo);
   if (!week) throw new Error(`Uge ${weekNo} findes ikke i planen`);
-  const inWeek = workouts.filter((w) => alive(w) && w.week_no === weekNo);
+  const inWeek = workouts.filter((w) => alive(w) && inPlanWeek(w, week));
   // Det værste lys på tværs af monitors pr. træning.
   const lightOf = new Map([...worstByWorkout(pain)].map(([uuid, a]) => [uuid, a.light]));
 
