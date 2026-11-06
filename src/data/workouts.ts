@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MobilityRound, Session, Side, Week } from '../../shared/plan.schema';
 import type { ExerciseNote, MobilityCheck, MobilityRoundCheck, SetLog, Workout, WorkoutType } from '../../shared/records.schema';
-import { assignToOccurrences, occurrenceKey } from '../../shared/schedule';
+import { assignToOccurrences, inPlanWeek, occurrenceKey } from '../../shared/schedule';
 import { todayIso } from '../lib/dates';
 import { pickLastTime, type LastTime } from '../logic/lastTime';
 import { deterministicUuid } from '../logic/uuid';
@@ -29,7 +29,7 @@ export interface Occurrence {
  * (shared/schedule.ts). Står sessionen kun én gang, er det den første træning med sessionens id, som altid.
  */
 function findWorkout(workouts: Workout[], o: Occurrence, today: string): Workout | undefined {
-  const live = workouts.filter((w) => !w.deleted_at && w.week_no === o.week.weekNo);
+  const live = workouts.filter((w) => !w.deleted_at && inPlanWeek(w, o.week));
   if (o.sessionId === MOBILITY_SESSION) return live.find((w) => w.planned_session_id === MOBILITY_SESSION && w.date === today);
   const day = o.plannedDay ?? o.week.sessions.find((s) => s.sessionId === o.sessionId)?.day;
   if (day === undefined) return undefined;
@@ -67,11 +67,13 @@ export function useWorkout(uuid: string | undefined) {
   return useLiveQuery(async () => (uuid ? ((await db.workouts.get(uuid)) ?? null) : null), [uuid]);
 }
 
-/** Ugens træninger (til status pr. session). undefined mens de indlæses. */
-export function useWeekWorkouts(weekNo: number | undefined): Workout[] | undefined {
+/** Ugens træninger (til status pr. session), uden en tidligere plans uge med samme nummer. undefined mens de indlæses. */
+export function useWeekWorkouts(week: Pick<Week, 'weekNo' | 'startDate'> | undefined): Workout[] | undefined {
+  const weekNo = week?.weekNo;
+  const start = week?.startDate;
   return useLiveQuery(
-    async () => (weekNo ? (await db.workouts.where('week_no').equals(weekNo).toArray()).filter(alive) : []),
-    [weekNo],
+    async () => (weekNo && start ? (await db.workouts.where('week_no').equals(weekNo).toArray()).filter((w) => alive(w) && inPlanWeek(w, { weekNo, startDate: start })) : []),
+    [weekNo, start],
   );
 }
 

@@ -34,7 +34,7 @@ function Day({ date, today }: { date: string; today: boolean }) {
  * session står som prik + tekst. Aktiviteter uden for planen (padel o.l.) står nederst.
  */
 export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; week: Week; today?: string }) {
-  const workouts = useWeekWorkouts(week.weekNo);
+  const workouts = useWeekWorkouts(week);
   const overrides = useWeekOverrides(week.weekNo);
   const groin = useWorstLights();
   const [options, setOptions] = useState<{ scheduled: EffectiveSession; session: Session; skipped?: Workout; taken: number[] } | null>(null);

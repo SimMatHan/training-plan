@@ -16,7 +16,7 @@ import { formatDuration, formatPace } from '../../shared/pace';
 import type { Plan, RunSession, ScheduledSession, Session, StrengthSession, Week } from '../../shared/plan.schema';
 import type { PainScore, ScheduleOverride, SetLog, Workout } from '../../shared/records.schema';
 import { dateOfDay, formatDose, formatIntensity, formatNumber, formatRange, getExercise, getSession, resolveStrengthSession } from '../../shared/resolve';
-import { assignToOccurrences, effectiveSessions, occurrenceKey } from '../../shared/schedule';
+import { assignToOccurrences, effectiveSessions, inPlanWeek, occurrenceKey } from '../../shared/schedule';
 import { copenhagenDate, copenhagenMidnight, copenhagenTimezone, icalDate, icalLocal, icalUtc, serialize, text, TZID, type Component, type Prop } from './ical';
 
 export interface FeedInput {
@@ -216,7 +216,7 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
     // Træninger og flytninger (med tombstones) pr. forekomst af sessionen i ugen.
     const workoutsOf = assignToOccurrences(
       week,
-      input.workouts.filter((w) => w.week_no === week.weekNo),
+      input.workouts.filter((w) => inPlanWeek(w, week)),
       (w) => w.planned_session_id,
       (w) => w.planned_day ?? null,
     );

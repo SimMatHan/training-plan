@@ -65,7 +65,7 @@ export async function logRun(db: D1Database, athleteId: number, raw: RunInput, n
     if (!occurrences.length) throw new ValidationError(`${session.name} står ikke i uge ${week.weekNo}`);
     const logged = assignToOccurrences(
       week,
-      await listWorkouts(db, athleteId, { weekNo: week.weekNo }),
+      await listWorkouts(db, athleteId, { weekNo: week.weekNo, from: week.startDate }),
       (w) => w.planned_session_id,
       (w) => w.planned_day,
     );

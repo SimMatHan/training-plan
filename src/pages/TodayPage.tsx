@@ -36,7 +36,7 @@ export function TodayPage() {
   const me = useMe();
   const today = todayIso();
   const week = active ? weekForDate(active.plan, today) : undefined;
-  const workouts = useWeekWorkouts(week?.weekNo);
+  const workouts = useWeekWorkouts(week);
   const groin = useWorstLights();
   const overrides = useWeekOverrides(week?.weekNo);
   const notes = useCoachNotes(week?.weekNo, { general: true });

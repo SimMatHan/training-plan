@@ -25,8 +25,8 @@ function SessionLink({ sessionId }: { sessionId: string | undefined }) {
   const plannedDay = Number(search.get('dag')) || undefined;
   const [, navigate] = useLocation();
   const { active, loading } = usePlan();
-  const workouts = useWeekWorkouts(weekNo);
   const week = active?.plan.weeks.find((w) => w.weekNo === weekNo);
+  const workouts = useWeekWorkouts(week);
 
   useEffect(() => {
     if (!workouts || (loading && !active)) return;
