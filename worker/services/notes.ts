@@ -4,7 +4,7 @@ import { Slug } from '../../shared/plan.schema';
 import type { CoachNote } from '../../shared/records.schema';
 import { ValidationError } from './errors';
 import { readTable } from './history';
-import { getActivePlan } from './plan';
+import { findActivePlan, getActivePlan } from './plan';
 import { pushChanges } from './sync';
 
 export const NoteInput = z.object({
@@ -39,11 +39,29 @@ export async function createCoachNote(db: D1Database, athleteId: number, raw: No
   return note;
 }
 
-/** Noter der ikke er slettet, ældste først. Lukkede noter kun med `includeDismissed`. */
-export async function listCoachNotes(db: D1Database, athleteId: number, opts: { weekNo?: number; includeDismissed?: boolean } = {}): Promise<CoachNote[]> {
+/**
+ * Noter der ikke er slettet, ældste først. Lukkede noter kun med `includeDismissed`. Noter til en uge fra en
+ * tidligere plan (skrevet før den aktive plan begyndte, se planStartedAt) er med kun med `includeOtherPlans`.
+ */
+export async function listCoachNotes(
+  db: D1Database,
+  athleteId: number,
+  opts: { weekNo?: number; includeDismissed?: boolean; includeOtherPlans?: boolean } = {},
+): Promise<CoachNote[]> {
   const where = ['deleted_at IS NULL'];
+  const params: unknown[] = [];
   if (!opts.includeDismissed) where.push('dismissed_at IS NULL');
-  if (opts.weekNo !== undefined) where.push('week_no = ?');
-  const notes = (await readTable(db, athleteId, 'coach_notes', where.join(' AND '), ...(opts.weekNo !== undefined ? [opts.weekNo] : []))) as CoachNote[];
+  if (opts.weekNo !== undefined) {
+    where.push('week_no = ?');
+    params.push(opts.weekNo);
+  }
+  if (!opts.includeOtherPlans) {
+    const active = await findActivePlan(db, athleteId);
+    if (active) {
+      where.push('(week_no IS NULL OR created_at >= ?)');
+      params.push(active.startedAt);
+    }
+  }
+  const notes = (await readTable(db, athleteId, 'coach_notes', where.join(' AND '), ...params)) as CoachNote[];
   return notes.sort((a, b) => a.created_at.localeCompare(b.created_at));
 }

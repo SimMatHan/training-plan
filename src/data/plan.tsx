@@ -11,6 +11,8 @@ import { kvGet, kvSet } from './db';
 export interface ActivePlan {
   meta: PlanVersionMeta;
   plan: Plan;
+  /** Hvornår planen begyndte; noter og flytninger til en uge fra før er en tidligere plans. Mangler i en ældre cache. */
+  startedAt?: string;
 }
 
 interface PlanState {

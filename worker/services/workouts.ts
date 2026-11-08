@@ -53,7 +53,7 @@ export type RunInput = z.input<typeof RunInput>;
 export async function logRun(db: D1Database, athleteId: number, raw: RunInput, now = new Date()): Promise<{ workout: Workout; pain: PainScore[] }> {
   const input = RunInput.parse(raw);
   if (input.date > todayInCopenhagen(now)) throw new ValidationError('Datoen ligger i fremtiden');
-  const { meta, plan } = await getActivePlan(db, athleteId);
+  const { meta, plan, startedAt } = await getActivePlan(db, athleteId);
   const week = weekForDate(plan, input.date);
 
   let plannedDay: number | null = null;
@@ -61,7 +61,7 @@ export async function logRun(db: D1Database, athleteId: number, raw: RunInput, n
     if (!week) throw new ValidationError(`${input.date} ligger uden for planen, så løbet kan ikke knyttes til en session`);
     const session = plan.sessions.find((s) => s.id === input.sessionId);
     if (!session || session.kind !== 'løb') throw new ValidationError(`"${input.sessionId}" er ikke en løbesession i planen`);
-    const occurrences = effectiveSessions(week, await getScheduleOverrides(db, athleteId, week.weekNo)).filter((s) => s.sessionId === input.sessionId);
+    const occurrences = effectiveSessions(week, await getScheduleOverrides(db, athleteId, week.weekNo, startedAt)).filter((s) => s.sessionId === input.sessionId);
     if (!occurrences.length) throw new ValidationError(`${session.name} står ikke i uge ${week.weekNo}`);
     const logged = assignToOccurrences(
       week,
