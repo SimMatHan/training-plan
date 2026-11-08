@@ -1,15 +1,19 @@
 // Flytning af planlagte sessioner til en anden dag i samme uge.
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { ScheduleOverride } from '../../shared/records.schema';
+import { sincePlanStart } from '../../shared/schedule';
 import { deterministicUuid } from '../logic/uuid';
 import { db } from './db';
+import { usePlan } from './plan';
 import { upsertRecord } from './records';
 
-/** Ugens flytninger (aktive). undefined mens de indlæses. */
+/** Ugens flytninger (aktive), uden en tidligere plans flytninger i samme ugenummer. undefined mens de indlæses. */
 export function useWeekOverrides(weekNo: number | undefined): ScheduleOverride[] | undefined {
+  const startedAt = usePlan().active?.startedAt;
   return useLiveQuery(
-    async () => (weekNo ? (await db.schedule_overrides.where('week_no').equals(weekNo).toArray()).filter((o) => !o.deleted_at) : []),
-    [weekNo],
+    async () =>
+      weekNo ? (await db.schedule_overrides.where('week_no').equals(weekNo).toArray()).filter((o) => !o.deleted_at && sincePlanStart(o.updated_at, startedAt)) : [],
+    [weekNo, startedAt],
   );
 }
 

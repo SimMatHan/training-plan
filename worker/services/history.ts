@@ -69,7 +69,7 @@ export const readPainScores = (db: D1Database, athleteId: number) => readTable(d
 
 /** Ugens sessioner, volumen pr. øvelse, løbe-km og trafiklys. */
 export async function getWeeklySummary(db: D1Database, athleteId: number, weekNo: number, asOf = today()): Promise<WeeklySummary> {
-  const { plan } = await getActivePlan(db, athleteId);
+  const { plan, startedAt } = await getActivePlan(db, athleteId);
   const week = plan.weeks.find((w) => w.weekNo === weekNo);
   if (!week) throw new NotFoundError(`Uge ${weekNo} findes ikke i planen`);
   const workouts = (await readTable(db, athleteId, 'workouts', 'deleted_at IS NULL')) as Workout[];
@@ -78,7 +78,8 @@ export async function getWeeklySummary(db: D1Database, athleteId: number, weekNo
       SetLog[]
     >,
     readPainScores(db, athleteId),
-    readTable(db, athleteId, 'schedule_overrides', 'deleted_at IS NULL AND week_no = ?', weekNo) as Promise<ScheduleOverride[]>,
+    // Kun denne plans flytninger: en tidligere plans uge med samme nummer er ældre end planen.
+    readTable(db, athleteId, 'schedule_overrides', 'deleted_at IS NULL AND week_no = ? AND updated_at >= ?', weekNo, startedAt) as Promise<ScheduleOverride[]>,
     listMonitors(db, athleteId),
     readTable(db, athleteId, 'mobility_round_checks', 'deleted_at IS NULL AND date >= ? AND date <= ?', week.startDate, dateOfDay(week, 7)) as Promise<
       MobilityRoundCheck[]

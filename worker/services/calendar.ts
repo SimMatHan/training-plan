@@ -67,7 +67,7 @@ export async function setCalendarSetting(
 export async function buildCalendarFeed(db: D1Database, athleteId: number, opts: { origin: string; now?: Date }): Promise<string> {
   const active = await findActivePlan(db, athleteId);
   if (!active) return renderEmptyFeed();
-  const { meta, plan } = active;
+  const { meta, plan, startedAt } = active;
   const planned = 'planned_session_id IS NOT NULL';
   const [activation, workouts, sets, painScores, overrides, settings, monitors] = await Promise.all([
     db.prepare('SELECT activated_at FROM plan_versions WHERE athlete_id = ? AND version = ?').bind(athleteId, meta.version).first<string | null>('activated_at'),
@@ -75,7 +75,8 @@ export async function buildCalendarFeed(db: D1Database, athleteId: number, opts:
     readTable(db, athleteId, 'workouts', planned) as Promise<Workout[]>,
     readTable(db, athleteId, 'set_logs', `workout_uuid IN (SELECT uuid FROM workouts WHERE athlete_id = ? AND ${planned})`, athleteId) as Promise<SetLog[]>,
     readTable(db, athleteId, 'pain_scores') as Promise<PainScore[]>,
-    readTable(db, athleteId, 'schedule_overrides') as Promise<ScheduleOverride[]>,
+    // Kun denne plans flytninger (også tombstones); en tidligere plans har samme ugenumre.
+    readTable(db, athleteId, 'schedule_overrides', 'updated_at >= ?', startedAt) as Promise<ScheduleOverride[]>,
     getCalendarSettings(db, athleteId),
     listMonitors(db, athleteId),
   ]);

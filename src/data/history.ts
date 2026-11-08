@@ -3,9 +3,10 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { assessAllPain } from '../../shared/pain';
 import { exerciseHistory, weeklySummary, type ExerciseHistoryEntry, type WeeklySummary } from '../../shared/history';
 import type { Plan } from '../../shared/plan.schema';
+import { sincePlanStart } from '../../shared/schedule';
 import { todayIso } from '../lib/dates';
 import { db } from './db';
-import { useMonitors } from './plan';
+import { useMonitors, usePlan } from './plan';
 
 /** Samme form som serverens /history/exercises (trænervisningen). */
 export interface ExerciseOverview {
@@ -43,6 +44,7 @@ export function useWeeklySummaries(plan: Plan | undefined, untilWeek: number): W
   const today = todayIso();
   const ids = useMonitors().map((m) => m.id);
   const key = ids.join(',');
+  const startedAt = usePlan().active?.startedAt;
   return useLiveQuery(async () => {
     if (!plan) return undefined;
     const [workouts, sets, scores, overrides] = await Promise.all([
@@ -54,9 +56,10 @@ export function useWeeklySummaries(plan: Plan | undefined, untilWeek: number): W
     const groin = assessAllPain(workouts, scores, ids, today);
     return plan.weeks
       .filter((w) => w.weekNo <= untilWeek)
-      .map((w) => weeklySummary(plan, w.weekNo, workouts, sets, groin, overrides))
+      // En tidligere plans flytninger har samme ugenumre: kun dem fra efter planen begyndte.
+      .map((w) => weeklySummary(plan, w.weekNo, workouts, sets, groin, overrides.filter((o) => sincePlanStart(o.updated_at, startedAt))))
       .reverse();
-  }, [plan, untilWeek, today, key]);
+  }, [plan, untilWeek, today, key, startedAt]);
 }
 
 /**

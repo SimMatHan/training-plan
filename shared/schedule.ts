@@ -12,6 +12,13 @@ import type { ScheduleOverride, Workout } from './records.schema';
  * forfra fra uge 1, så en tidligere plans "uge 3" har samme nummer; den ligger før den nye uge 3 og tælles ikke med.
  * En session lavet efter sin uge (fx søndagens på mandag) hører stadig til ugen.
  */
+/**
+ * En flytning eller en note til en uge hører til den nuværende plan, hvis den er skrevet efter, planen begyndte
+ * (`startedAt`, se planStartedAt i worker/services/plan.ts). En tidligere plans "uge 3" har samme nummer, men er ældre.
+ * Uden starttidspunkt (fx en gammel cache i appen) tæller alt som før.
+ */
+export const sincePlanStart = (at: string, startedAt: string | undefined) => !startedAt || at >= startedAt;
+
 export const inPlanWeek = (w: Pick<Workout, 'week_no' | 'date'>, week: Pick<Week, 'weekNo' | 'startDate'>) =>
   w.week_no === week.weekNo && w.date >= week.startDate;
 
