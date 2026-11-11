@@ -1,6 +1,7 @@
 // Planens struktur. Én plan-JSON = én række i plan_versions.plan_json.
 // Skemaet deles af seed-scriptet, Worker'en og frontenden.
 import { z } from 'zod';
+import { catalogPose, YOGA_AREAS } from './yoga';
 
 /** Stabil slug: små bogstaver, tal og bindestreg. Må aldrig ændres for en øvelse. */
 export const Slug = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Ugyldigt id (slug)');
@@ -160,8 +161,41 @@ export const RunSession = SessionBase.extend({
 });
 export type RunSession = z.infer<typeof RunSession>;
 
+// ─── Yoga ───────────────────────────────────────────────────────────────────
+
+/** Områder en yogarutine kan fokusere på (shared/yoga.ts har navne og stillinger). */
+export const YogaArea = z.enum(YOGA_AREAS);
+export type YogaArea = z.infer<typeof YogaArea>;
+
+const Hold = z.int().min(5).max(600);
+
+export const YogaPose = z.object({
+  /** Stilling fra kataloget i shared/yoga.ts (giver navn, figur og udførelse), eller en egen med navn. */
+  poseId: Slug,
+  name: z.string().trim().min(1).max(80).optional(),
+  /** Sekunder pr. side (ensidige stillinger) eller i alt. */
+  seconds: Hold,
+  /** Tages på hver side. Udeladt: som i kataloget. */
+  perSide: z.boolean().optional(),
+  /** Afvigende tid for én side, fx længere på den stramme side. Den længste side tages først. */
+  sideSeconds: z.object({ H: Hold, V: Hold }).partial().optional(),
+  cue: z.string().trim().max(300).optional(),
+});
+export type YogaPose = z.infer<typeof YogaPose>;
+
+export const YogaRoutine = z.object({
+  /** Områderne rutinen skal gøre mere mobile, vigtigste først. */
+  areas: z.array(YogaArea).default([]),
+  /** Sekunder til at gå fra én stilling til den næste. */
+  transitionSec: z.int().min(0).max(30).default(6),
+  poses: z.array(YogaPose).min(1).max(60),
+});
+export type YogaRoutine = z.infer<typeof YogaRoutine>;
+
 export const MobilitySession = SessionBase.extend({
   kind: z.literal('mobilitet'),
+  /** En yogarutine med tid pr. stilling. Udeladt: sessionen er planens mobilitetsblok (tjekliste). */
+  yoga: YogaRoutine.optional(),
 });
 
 export const Session = z.discriminatedUnion('kind', [StrengthSession, RunSession, MobilitySession]);
@@ -296,6 +330,10 @@ export const PlanSchema = z
     };
 
     plan.sessions.forEach((s, si) => {
+      if (s.kind === 'mobilitet' && s.yoga)
+        s.yoga.poses.forEach((p, pi) => {
+          if (!catalogPose(p.poseId) && !p.name) issue(`Ukendt yogastilling ${p.poseId}: angiv name (og evt. perSide og cue)`, ['sessions', si, 'yoga', 'poses', pi]);
+        });
       if (s.kind !== 'styrke') return;
       const slotIds = new Set<string>();
       s.slots.forEach((slot, sli) => {

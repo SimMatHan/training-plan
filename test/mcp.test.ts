@@ -247,10 +247,12 @@ describe('læseværktøjer', () => {
       'foreslaa_planaendring',
       'foreslaa_ny_plan',
       'foreslaa_overvaagning',
+      'list_yogastillinger',
+      'foreslaa_yogarutine',
       'log_lob',
       'skriv_note',
     ]);
-    expect(TOOLS.filter((t) => !t.readOnly).map((t) => t.name)).toEqual(['foreslaa_planaendring', 'foreslaa_ny_plan', 'foreslaa_overvaagning', 'log_lob', 'skriv_note']);
+    expect(TOOLS.filter((t) => !t.readOnly).map((t) => t.name)).toEqual(['foreslaa_planaendring', 'foreslaa_ny_plan', 'foreslaa_overvaagning', 'foreslaa_yogarutine', 'log_lob', 'skriv_note']);
     expect(TOOLS.filter((t) => t.ownerOnly).map((t) => t.name)).toEqual(['log_lob']);
   });
 

@@ -15,6 +15,7 @@ import { ProposalPage, ProposalsPage } from './pages/ProposalPage';
 import { SessionRoute } from './pages/SessionLinkPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TodayPage } from './pages/TodayPage';
+import { TvPage } from './pages/TvPage';
 import { WeekPage } from './pages/WeekPage';
 
 // Primitiverne i lys og mørk. Kun i dev-build: import.meta.env.DEV er false i produktion, så
@@ -52,6 +53,10 @@ export function App() {
         <DevUi />
       </Suspense>
     );
+
+  // TV-visning af en yogarutine: uden login (koden eller tokenet fra telefonen giver adgang til netop den cast).
+  const tv = location.match(/^\/tv(?:\/([0-9a-f]{32}))?\/?$/);
+  if (tv) return <TvPage token={tv[1]} />;
 
   // /invite/<token> virker, uanset om nogen er logget ind.
   const invite = location.match(/^\/invite\/([^/?#]+)/);

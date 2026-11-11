@@ -59,6 +59,7 @@ træning i min egen app, Træningsnav, og du har adgang til den gennem connector
 | Løb: distance, tid, tempo, puls, RPE | `hent_lob` |
 | Planen, mål, faser, doseringer, regler og porte | `hent_plan` (med `sti` for rå JSON, når du skal skrive en patch) |
 | Monitors, tests, tærskelpuls, hvem har adgang | `hent_profil` |
+| Yoga/mobilitetsrutine: lav eller ret (tid, områder, hvor ofte) | `foreslaa_yogarutine` (stillinger: `list_yogastillinger`) |
 
 ## Reglerne i appen (dem du skal regne med)
 
@@ -88,6 +89,14 @@ svarer med.
 - `foreslaa_ny_plan`: en komplet plan (`schemaVersion: 1`, samme format som `hent_plan` med `"sti": ""`), fx en ny blok
   med et nyt mål. Hent `hent_profil` først. Højst 300 KB.
 - `foreslaa_overvaagning`: tilføj eller deaktivér en smerte-monitor eller mobilitetstest (id'er fra `hent_profil`).
+- `foreslaa_yogarutine`: en yoga-/mobilitetsrutine som en session i planen. Spørg (eller brug det jeg har sagt) om
+  **hvor lang tid** (`minutter`), **hvilke områder** der skal blive mere mobile (`omraader`: hofter, hoftebojere, baglaar,
+  lyske, ankler, laend, brystryg, skuldre, nakke) og **hvor ofte** (`gangePrUge`, eller faste `dage`). Siger jeg, at jeg
+  er stiv/immobil et sted, så kommer området med. Mobilitetstestene tages automatisk med: et område med en test er
+  med, og den strammeste side får længere tid og tages først. Appen bygger rutinen, så den rammer tiden, og lægger den
+  på jævnt fordelte dage, helst uden styrke. Vil du selv vælge stillingerne, så hent dem med `list_yogastillinger` og
+  send `stillinger`. Vis rutinen (stillinger og tider) og diffen. Rutinen afspilles i appen med figur, nedtælling og
+  lyde ved skift, og kan castes til et TV. Ret en eksisterende rutine med `sessionId`.
 - `summary` er kort og bliver noten på den nye planversion (fx "Enbens RDL 3 × 10 i uge 5–8"). `rationale` siger
   hvorfor, ud fra data (datoer, tal, trafiklys).
 - **Saml ændringer, der hører sammen, i ét forslag.** Når jeg godkender ét planforslag, bliver de andre ventende

@@ -17,6 +17,7 @@ import {
   updateMonitor,
 } from '../services/athletes';
 import { calendarRoutes } from './calendar';
+import { castRoutes } from './cast';
 import { exportRoutes, historyRoutes } from './history';
 import { planRoutes } from './plan';
 import { mcpRoutes, proposalRoutes } from './proposals';
@@ -65,4 +66,5 @@ export const athleteRoutes = new Hono<AppEnv>()
   .route('/export', exportRoutes)
   .route('/calendar', calendarRoutes)
   .route('/proposals', proposalRoutes)
-  .route('/mcp', mcpRoutes);
+  .route('/mcp', mcpRoutes)
+  .route('/cast', castRoutes);

@@ -8,6 +8,7 @@ import type { McpAuditEntry } from '../../shared/proposals';
 import type { ExerciseNote, MobilityMeasurement, PainScore, PlanVersionMeta, SetLog, Workout } from '../../shared/records.schema';
 import { dateOfDay, resolveStrengthSession } from '../../shared/resolve';
 import { weightStep } from '../../src/logic/wheel';
+import { buildYogaRoutine } from '../../shared/yoga';
 
 export const NOW = '2026-11-02T08:30:00+01:00';
 export const plan = PlanSchema.parse(planJson);
@@ -139,3 +140,23 @@ export const audit: McpAuditEntry[] = [
   { at: '2026-11-01T19:02:00.000Z', tool: 'get_week', ok: true, error: null, durationMs: 40 },
   { at: '2026-11-01T19:03:00.000Z', tool: 'add_note', ok: true, error: null, durationMs: 51 },
 ];
+
+// Yoga: en rutine på 20 min til hofter og ankler (knee-to-wall: højre er strammest), mandag i uge 6.
+export const yogaRoutine = buildYogaRoutine({ minutes: 20, areas: ['hofter', 'ankler'], tight: { ankler: 'H' } });
+export const planWithYoga = PlanSchema.parse({
+  ...planJson,
+  sessions: [
+    ...planJson.sessions,
+    {
+      id: 'yoga',
+      name: 'Yoga · hofter og ankler',
+      colorKey: 'mobility',
+      kind: 'mobilitet',
+      durationMin: { min: 20, max: 20 },
+      notes: ['Knee-to-wall: højre 6 cm, venstre 6,5 cm → højre side er strammest og får længere tid'],
+      yoga: yogaRoutine,
+    },
+  ],
+  weeks: planJson.weeks.map((w) => (w.weekNo === 6 ? { ...w, sessions: [{ sessionId: 'yoga', day: 1, label: 'Yoga · hofter og ankler (20 min)' }, ...w.sessions] } : w)),
+});
+export const castToken = 'a1b2c3d4e5f60718293a4b5c6d7e8f90';

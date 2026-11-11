@@ -35,6 +35,7 @@ import { mobilityProgress, nextIncomplete, slotProgress, slotSetProgress, type P
 import { ButtonLink, PrimaryButton, SecondaryButton, smallButton, TextButton } from '../ui/Button';
 import { HeroNumber } from '../ui/HeroNumber';
 import { Sheet } from '../ui/Sheet';
+import { YogaPage } from './YogaPage';
 
 const MOBILITY = STEP_MOBILITY;
 /** Id'et på en plads på siden, så der kan scrolles til den. */
@@ -121,6 +122,9 @@ export function SessionPage() {
         </Link>
       </main>
     );
+
+  // En yogarutine har sin egen afspiller (med TV-visning).
+  if (session?.kind === 'mobilitet' && session.yoga) return <YogaPage workout={workout} session={{ ...session, yoga: session.yoga }} slug={slug} />;
 
   const timerFor = timer.state?.workoutUuid === workout.uuid;
   const listing = stepped && !finishing;

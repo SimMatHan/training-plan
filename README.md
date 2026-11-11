@@ -472,6 +472,8 @@ Projektinstruktionerne ligger i [`docs/claude-projekt-simon.md`](docs/claude-pro
 | `foreslaa_planaendring` | JSON Patch mod aktiv version → gemmes som `afventer`. Uden aktiv plan: fejl der henviser til `foreslaa_ny_plan` |
 | `foreslaa_ny_plan` | En komplet plan (første plan eller ny blok), valideret mod plan-skemaet → forslag |
 | `foreslaa_overvaagning` | Tilføj/deaktivér en monitor eller mobilitetstest → forslag |
+| `list_yogastillinger` | Katalog over yogastillinger (med figur i appen) og hvilke områder de gør mere mobile |
+| `foreslaa_yogarutine` | Yogarutine som session i planen: `minutter`, `omraader`, `gangePrUge` (eller `dage`), evt. egne `stillinger` → patch-forslag. Mobilitetstestene giver områder og ekstra tid på den stramme side |
 | `log_lob` | Opretter et løb med `source = 'claude'` og evt. smerte pr. monitor. Kræver rollen ejer |
 | `skriv_note` | Note til en uge, en session i en uge, eller generel |
 
@@ -716,6 +718,32 @@ services, MCP og kalenderfeedet:
 
 En session kan ikke afsluttes uden en score for hver aktiv monitor. Ugeprikker og status viser det værste lys pr. træning.
 
+### Yoga og TV
+
+En yogarutine er en mobilitetssession med `yoga` i planen (`shared/plan.schema.ts`): områder, tid til overgange og
+stillinger med sekunder (pr. side for ensidige, evt. længere på den ene side). Kataloget, generatoren og tidslinjen
+ligger i `shared/yoga.ts`, så appen, TV'et og MCP regner ens.
+
+- **Claude laver den** med `foreslaa_yogarutine`: hvor lang tid, hvilke områder og hvor ofte. Generatoren tager en
+  åbning, fokusområdernes stillinger på skift (vigtigste først), og en afslutning, og skalerer holdetiderne, så rutinen
+  rammer tiden (fokusstillinger holdes op til dobbelt så længe, før resten af kroppen kommer med). Aktive
+  mobilitetstests giver et område (fx knee-to-wall → ankler), og den side med lavest værdi får 1,5 × tid og tages først.
+  Dagene vælges jævnt fordelt og helst uden styrke. Det er et almindeligt patch-forslag, som godkendes på **I dag**.
+- **Afspilleren** (`src/pages/YogaPage.tsx`): oversigt før start, så figur, stillingens navn, side, nedtælling, cue og
+  hvad der kommer bagefter. ⏮ ⏯ ⏭, og **Afslut** gemmer træningen med varighed og note. Tilstanden (spiller, hvor langt)
+  ligger i localStorage som pausetimeren og overlever slukket skærm. Skærmen holdes tændt.
+- **Lyde** (`src/lib/yogaSound.ts`, Web Audio, ingen filer): klokke + oplæsning af næste stilling, ding-dong +
+  "Skift side" ved skift af side, tre tik før en stilling, en lys tone ved start, en blød tone halvvejs i hold på
+  mindst 60 s, og en gong til sidst. Lydene planlægges på lydurets tidslinje, så de kommer præcist. Lyd og stemme slås
+  til og fra under højttaler-ikonet. iPhone spiller ikke app-lyde med lydløs-knappen slået til.
+- **Cast til TV:** TV-ikonet → **Start TV-visning** giver en kode på seks cifre. Åbn `<domæne>/tv` i TV'ets browser (eller
+  på en computer med HDMI) og skriv koden; **Del link** sender det direkte link. I Chrome (Android/computer) caster
+  **Cast til Chromecast** siden direkte. Telefonen er fjernbetjening: TV'et henter tilstanden hvert 1,5 s og regner selv
+  nedtællingen ud fra serverens ur, så kun start/pause/spring skal over nettet. Med **Lyd på TV'et** er telefonen stille.
+  TV'et er altid mørkt; første tryk på OK slår lyden til. Casten (`cast_sessions`) udløber efter 3 timer uden opdatering.
+- **Apple TV/AirPlay:** skærmspejling fra Kontrolcenter. Vendes telefonen på langs, viser afspilleren en TV-visning i
+  fuld skærm.
+
 ### Mobilitetstests
 
 Knee-to-wall er en test (`mobility_tests`) med enhed og "pr. side"; målingerne har `test_id` og `value_right`/`value_left`
@@ -763,6 +791,10 @@ atlet) giver **404**, for lav rolle (træner der vil ændre noget) **403**. Muta
 | POST | `/api/a/:slug/proposals/:id/approve` | Godkend (ejer). 409 hvis forslaget er afgjort eller forældet |
 | POST | `/api/a/:slug/proposals/:id/reject` | Afvis (ejer) |
 | GET | `/api/a/:slug/mcp/audit` | De seneste 20 MCP-kald på atleten (ejer) |
+| POST | `/api/a/:slug/cast` | `{ title, routine, state }`: start TV-visning af en yogarutine → `{ token, code }` (ejer) |
+| PUT/DELETE | `/api/a/:slug/cast/:token` | Telefonens tilstand `{ playing, elapsedMs, tvSound }` → `{ serverNow, tvSeenAt }`; afslut (ejer) |
+| GET | `/api/cast/:token` | TV'et (uden login): rutinen og tilstanden med serverens ur |
+| GET | `/api/cast/kode/:code` | Koden på seks cifre → token. Forkerte koder tæller i rate limit pr. IP |
 | GET | `/cal/:slug/:token.ics` | Kalenderfeedet (`text/calendar`). Forkert atlet eller token giver 404 |
 | POST | `/mcp/:slug` | MCP (Streamable HTTP). Kræver et OAuth-token til netop den atlet |
 

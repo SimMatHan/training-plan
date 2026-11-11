@@ -17,6 +17,7 @@ import type { Plan, RunSession, ScheduledSession, Session, StrengthSession, Week
 import type { PainScore, ScheduleOverride, SetLog, Workout } from '../../shared/records.schema';
 import { dateOfDay, formatDose, formatIntensity, formatNumber, formatRange, getExercise, getSession, resolveStrengthSession } from '../../shared/resolve';
 import { assignToOccurrences, effectiveSessions, inPlanWeek, occurrenceKey } from '../../shared/schedule';
+import { poseName, poseSides, routineSeconds } from '../../shared/yoga';
 import { copenhagenDate, copenhagenMidnight, copenhagenTimezone, icalDate, icalLocal, icalUtc, serialize, text, TZID, type Component, type Prop } from './ical';
 
 export interface FeedInput {
@@ -267,6 +268,11 @@ export function buildEvents(input: FeedInput): CalendarEvent[] {
       lines.push('');
       if (session.kind === 'styrke') lines.push(...strengthLines(plan, session, week.weekNo));
       else if (session.kind === 'løb' || session.kind === 'cardio') lines.push(...runLines(session, scheduled));
+      else if (session.kind === 'mobilitet' && session.yoga)
+        lines.push(
+          `Yoga, ${Math.round(routineSeconds(session.yoga) / 60)} min (kan vises på TV fra appen):`,
+          ...session.yoga.poses.map((p) => `• ${poseName(p)} ${p.seconds} s${poseSides(p).length > 1 ? '/side' : ''}`),
+        );
       if (workout && (state === 'lavet' || state === 'i-gang')) {
         const result = resultLines(plan, session, week.weekNo, workout, (setsByWorkout.get(workout.uuid) ?? []).filter(alive), painOf(workout.uuid));
         if (result.length) lines.push('', 'Resultat:', ...result);
