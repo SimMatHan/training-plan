@@ -296,7 +296,139 @@ export const ILLUSTRATIONS: Record<string, Illustration> = {
     props: [{ kind: 'wall', x: 93 }],
     seconds: 3.6,
   },
+
+  // ─── Yoga (shared/yoga.ts) ────────────────────────────────────────────────
+  'kat-ko': {
+    from: pose('kneeN', [86, 146], { torso: 100, head: 40, uaN: 0, laN: 0, uaF: 0, laF: 0, thN: 0, shN: -90, ftN: -90, thF: 0, shF: -90, ftF: -90 }),
+    to: pose('kneeN', [86, 146], { torso: 112, head: -60, uaN: 6, laN: 6, uaF: 6, laF: 6, thN: 4, shN: -90, ftN: -90, thF: 4, shF: -90, ftF: -90 }),
+    seconds: 5,
+  },
+  'barnets-stilling': {
+    from: pose('kneeN', [104, 146], { torso: 84, head: 8, uaN: 98, laN: 94, uaF: 98, laF: 94, thN: 60, shN: -90, ftN: -90, thF: 60, shF: -90, ftF: -90 }),
+    to: pose('kneeN', [104, 146], { torso: 80, head: 12, uaN: 96, laN: 92, uaF: 96, laF: 92, thN: 64, shN: -90, ftN: -90, thF: 64, shF: -90, ftF: -90 }),
+    seconds: 6,
+  },
+  'nedadgaaende-hund': {
+    from: pose('ankleN', [62, 147], { torso: 48, head: -8, uaN: 46, laN: 46, uaF: 46, laF: 46, thN: -32, shN: -32, ftN: 62, thF: -32, shF: -32, ftF: 62 }),
+    to: pose('ankleN', [62, 147], { torso: 48, head: -8, uaN: 46, laN: 46, uaF: 46, laF: 46, thN: -32, shN: -32, ftN: 62, thF: -14, shF: -54, ftF: 120 }),
+    seconds: 4,
+  },
+  'traad-naalen': {
+    from: pose('kneeN', [86, 146], { torso: 100, head: 0, uaN: 0, laN: 0, uaF: 175, laF: 178, thN: 0, shN: -90, ftN: -90, thF: 0, shF: -90, ftF: -90 }),
+    to: pose('kneeN', [86, 146], { torso: 66, head: 30, uaN: -60, laN: -85, uaF: 8, laF: 95, thN: 0, shN: -90, ftN: -90, thF: 0, shF: -90, ftF: -90 }),
+    seconds: 5,
+  },
+  'lavt-udfald': {
+    from: pose('ankleN', [134, 147], { torso: 178, uaN: 170, laN: 176, uaF: 170, laF: 176, thN: 90, shN: 0, thF: -26, shF: -90, ftF: -90 }),
+    to: pose('ankleN', [134, 147], { torso: 184, uaN: 176, laN: 180, uaF: 176, laF: 180, thN: 104, shN: 18, thF: -44, shF: -90, ftF: -90 }),
+    seconds: 5,
+  },
+  'couch-straek': {
+    from: pose('ankleN', [130, 147], { torso: 160, uaN: 40, laN: 30, uaF: 40, laF: 30, thN: 92, shN: 2, thF: -18, shF: 180, ftF: -90 }),
+    to: pose('ankleN', [130, 147], { torso: 182, uaN: 10, laN: 20, uaF: 10, laF: 20, thN: 100, shN: 12, thF: -24, shF: 180, ftF: -90 }),
+    props: [{ kind: 'wall', x: 79 }],
+    seconds: 5,
+  },
+  'halv-split': {
+    from: pose('kneeF', [80, 146], { torso: 150, uaN: 20, laN: 10, uaF: 20, laF: 10, thN: 60, shN: 60, ftN: 180, thF: 0, shF: -90, ftF: -90 }),
+    to: pose('kneeF', [80, 146], { torso: 104, head: -10, uaN: 40, laN: 30, uaF: 40, laF: 30, thN: 60, shN: 60, ftN: 180, thF: 0, shF: -90, ftF: -90 }),
+    seconds: 5,
+  },
+  'staaende-fremadboejning': {
+    from: standing({ torso: 96, uaN: 10, laN: 10, uaF: 10, laF: 10, thN: 8, shN: -6, thF: 8, shF: -6 }),
+    to: standing({ torso: 14, head: -10, uaN: 4, laN: 4, uaF: 4, laF: 4, thN: 14, shN: -10, thF: 14, shF: -10 }),
+    seconds: 5,
+  },
+  due: {
+    from: pose('hip', [92, 132], { torso: 176, uaN: 14, laN: 6, uaF: 14, laF: 6, thN: 100, shN: -70, ftN: -60, thF: -84, shF: -88, ftF: -90 }),
+    to: pose('hip', [92, 134], { torso: 98, head: 10, uaN: 98, laN: 94, uaF: 98, laF: 94, thN: 100, shN: -70, ftN: -60, thF: -84, shF: -88, ftF: -90 }),
+    seconds: 6,
+  },
+  firben: {
+    from: pose('ankleN', [134, 147], { torso: 118, uaN: 6, laN: 0, uaF: 6, laF: 0, thN: 96, shN: 8, thF: -32, shF: -90, ftF: -90 }),
+    to: pose('ankleN', [134, 147], { torso: 96, head: 10, uaN: 0, laN: 92, uaF: 0, laF: 92, thN: 112, shN: 24, thF: -50, shF: -90, ftF: -90 }),
+    seconds: 5,
+  },
+  'glad-baby': {
+    from: pose('hip', [104, 141], { torso: -90, head: 0, thN: 206, shN: 182, ftN: 90, thF: 206, shF: 182, ftF: 90, uaN: 160, laN: 186, uaF: 160, laF: 186 }),
+    to: pose('hip', [104, 141], { torso: -96, head: 0, thN: 216, shN: 186, ftN: 96, thF: 216, shF: 186, ftF: 96, uaN: 168, laN: 192, uaF: 168, laF: 192 }),
+    seconds: 4,
+  },
+  froe: {
+    from: pose('elbowN', [140, 146], { torso: 94, head: 8, uaN: 0, laN: 92, uaF: 0, laF: 92, thN: 0, shN: -90, ftN: -90, thF: 0, shF: -90, ftF: -90 }),
+    to: pose('elbowN', [140, 146], { torso: 92, head: 8, uaN: 0, laN: 92, uaF: 0, laF: 92, thN: -24, shN: -90, ftN: -90, thF: -24, shF: -90, ftF: -90 }),
+    seconds: 5,
+  },
+  'bred-fremadboejning': {
+    from: pose('hip', [70, 142], { torso: 170, uaN: 30, laN: 50, uaF: 30, laF: 50, thN: 90, shN: 90, ftN: 180, thF: 90, shF: 90, ftF: 180 }),
+    to: pose('hip', [70, 142], { torso: 120, head: -6, uaN: 104, laN: 96, uaF: 104, laF: 96, thN: 90, shN: 90, ftN: 180, thF: 90, shF: 90, ftF: 180 }),
+    seconds: 5,
+  },
+  malasana: {
+    from: pose('ankleN', [104, 147], { torso: 168, uaN: 30, laN: 150, uaF: 30, laF: 150, thN: 104, shN: -24, ftN: 90, thF: 104, shF: -24, ftF: 90 }),
+    to: pose('ankleN', [104, 147], { torso: 172, uaN: 30, laN: 150, uaF: 30, laF: 150, thN: 108, shN: -30, ftN: 90, thF: 108, shF: -30, ftF: 90 }),
+    seconds: 5,
+  },
+  diamantsiddende: {
+    from: pose('kneeN', [112, 146], { torso: 180, uaN: 20, laN: 90, uaF: 20, laF: 90, thN: 62, shN: -90, ftN: -90, thF: 62, shF: -90, ftF: -90 }),
+    to: pose('kneeN', [112, 146], { torso: 196, uaN: -30, laN: -20, uaF: -30, laF: -20, thN: 62, shN: -90, ftN: -90, thF: 62, shF: -90, ftF: -90 }),
+    seconds: 5,
+  },
+  sfinks: {
+    from: pose('hip', [96, 143], { torso: 106, head: 0, uaN: 0, laN: 90, uaF: 0, laF: 90, thN: -88, shN: -90, ftN: -90, thF: -88, shF: -90, ftF: -90 }),
+    to: pose('hip', [96, 143], { torso: 116, head: 6, uaN: 4, laN: 90, uaF: 4, laF: 90, thN: -88, shN: -90, ftN: -90, thF: -88, shF: -90, ftF: -90 }),
+    seconds: 5,
+  },
+  hvalp: {
+    from: pose('kneeN', [80, 146], { torso: 70, head: 20, uaN: 94, laN: 92, uaF: 94, laF: 92, thN: 0, shN: -90, ftN: -90, thF: 0, shF: -90, ftF: -90 }),
+    to: pose('kneeN', [80, 146], { torso: 52, head: 34, uaN: 98, laN: 94, uaF: 98, laF: 94, thN: 2, shN: -90, ftN: -90, thF: 2, shF: -90, ftF: -90 }),
+    seconds: 5,
+  },
+  'koe-ansigt-arme': {
+    from: standing({ uaN: 170, laN: -20, uaF: -14, laF: 150 }),
+    to: standing({ uaN: 176, laN: -40, uaF: -24, laF: 170 }),
+    seconds: 5,
+  },
+  nakkestraek: {
+    from: standing({ head: -10, uaN: 150, laN: -100, uaF: -6, laF: -2 }),
+    to: standing({ head: -40, uaN: 140, laN: -120, uaF: -6, laF: -2 }),
+    seconds: 5,
+  },
+  'siddende-sidebojning': {
+    from: pose('hip', [92, 142], { torso: 180, uaN: 20, laN: 60, uaF: 175, laF: 178, thN: 96, shN: -100, ftN: -60, thF: 96, shF: -100, ftF: -60 }),
+    to: pose('hip', [92, 142], { torso: 168, uaN: 20, laN: 60, uaF: 150, laF: 140, thN: 96, shN: -100, ftN: -60, thF: 96, shF: -100, ftF: -60 }),
+    seconds: 5,
+  },
+  'liggende-twist': {
+    from: pose('hip', [104, 141], { ...SUPINE, uaN: -100, laN: -95, uaF: -100, laF: -95, thN: 150, shN: 60, thF: 150, shF: 60 }, SUPINE),
+    to: pose('hip', [104, 141], { ...SUPINE, uaN: -100, laN: -95, uaF: -100, laF: -95, thN: 118, shN: 40, ftN: 120, thF: 118, shF: 40, ftF: 120 }, SUPINE),
+    seconds: 6,
+  },
+  'ben-op-ad-vaeggen': {
+    from: pose('hip', [140, 141], { torso: -90, head: 0, uaN: -100, laN: -95, uaF: -100, laF: -95, thN: 178, shN: 178, ftN: 90, thF: 178, shF: 178, ftF: 90 }),
+    to: pose('hip', [140, 141], { torso: -92, head: 0, uaN: -110, laN: -100, uaF: -110, laF: -100, thN: 176, shN: 176, ftN: 96, thF: 176, shF: 176, ftF: 96 }),
+    props: [{ kind: 'wall', x: 150 }],
+    seconds: 7,
+  },
+  savasana: {
+    from: pose('hip', [104, 142], { torso: -90, head: 0, uaN: 88, laN: 88, uaF: 88, laF: 88, thN: 90, shN: 90, ftN: 160, thF: 90, shF: 90, ftF: 160 }),
+    to: pose('hip', [104, 142], { torso: -92, head: 0, uaN: 86, laN: 86, uaF: 86, laF: 86, thN: 90, shN: 90, ftN: 160, thF: 90, shF: 90, ftF: 160 }),
+    seconds: 8,
+  },
 };
+
+// Yogastillinger der er samme bevægelse som et mobilitetspunkt.
+ILLUSTRATIONS['hofte-90-90'] = ILLUSTRATIONS['hofteskift-90-90'];
+ILLUSTRATIONS['liggende-figur-4'] = ILLUSTRATIONS['baldestraek-figur-4'];
+ILLUSTRATIONS['sommerfugl'] = ILLUSTRATIONS['lyskestraek-sommerfugl'];
+ILLUSTRATIONS['liggende-baglaarsstraek'] = ILLUSTRATIONS['baglaarsstraek-elastik'];
+ILLUSTRATIONS['brystaabner-vaeg'] = ILLUSTRATIONS['brystmuskelstraek-doeraabning'];
+{
+  // Knæ over tå uden væg: hænderne hviler på det forreste knæ.
+  const k = kneeToWall(true);
+  const hands = { uaN: 50, laN: 110, uaF: 50, laF: 110 };
+  ILLUSTRATIONS['ankel-udfald'] = { ...k, from: { ...k.from, ...hands }, to: { ...k.to, ...hands }, props: [] };
+}
 
 // Øvelser i andre planer: genkendes på navnet, så de også får en figur.
 const BY_NAME: [RegExp, string][] = [

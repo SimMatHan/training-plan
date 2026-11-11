@@ -20,6 +20,7 @@ import { StatusLight } from '../ui/StatusLight';
 import { parseLayout } from '../logic/layout';
 import { useSessionOpener } from './SessionAction';
 import { aboutMinutes, SessionOverview } from './SessionOverview';
+import { AREA_SHORT, routineSeconds } from '../../shared/yoga';
 
 const about = aboutMinutes;
 
@@ -65,9 +66,11 @@ export function TodayCard({
   const exercises = strength?.slots.flatMap((s) => s.exercises) ?? [];
   const light = workout && groin.get(workout.uuid)?.light;
 
-  const detail =
-    strength
-      ? `${exercises.length} øvelser${session.kind === 'styrke' && session.mobility === 'before' && plan.mobility ? ' + mobilitet' : ''}`
+  const yoga = session.kind === 'mobilitet' ? session.yoga : undefined;
+  const detail = strength
+    ? `${exercises.length} øvelser${session.kind === 'styrke' && session.mobility === 'before' && plan.mobility ? ' + mobilitet' : ''}`
+    : yoga
+      ? [`${yoga.poses.length} stillinger`, yoga.areas.length && `fokus på ${yoga.areas.map((a) => AREA_SHORT[a]).join(', ')}`, sessionDetail(scheduled, session)].filter(Boolean).join(' · ')
       : sessionDetail(scheduled, session);
 
   const first = exercises[0];
@@ -76,7 +79,9 @@ export function TodayCard({
     ? firstLast
       ? { label: `Sidst · ${first.label}`, ...firstLast }
       : first && { label: `Første øvelse · ${first.label}`, value: formatRange(first.planned.dose.reps ?? first.planned.dose.seconds), unit: first.planned.dose.seconds ? 'sek' : 'reps' }
-    : scheduled.targetKm
+    : yoga
+      ? { label: 'Yoga og mobilitet · kan vises på TV', value: String(Math.round(routineSeconds(yoga) / 60)), unit: 'min' }
+      : scheduled.targetKm
       ? { label: 'Mål', value: formatRange(scheduled.targetKm), unit: 'km' }
       : scheduled.targetMin
         ? { label: 'Mål', value: formatRange(scheduled.targetMin), unit: 'min' }
@@ -87,7 +92,7 @@ export function TodayCard({
       <Card className="mb-10">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-title">{sessionTitle(session)}</h2>
-          {about(session.durationMin) && <span className="shrink-0 text-secondary text-ink-2">{about(session.durationMin)}</span>}
+          {!yoga && about(session.durationMin) && <span className="shrink-0 text-secondary text-ink-2">{about(session.durationMin)}</span>}
         </div>
         {detail && <p className="num text-secondary text-ink-2">{detail}</p>}
         {hero && <HeroNumber className="mt-4" label={hero.label} value={hero.value} unit={hero.unit} />}
@@ -109,7 +114,7 @@ export function TodayCard({
             </>
           ) : (
             <PrimaryButton onClick={() => void open()} disabled={busy || !workouts}>
-              {status === 'i-gang' ? 'Fortsæt session' : 'Start session'}
+              {status === 'i-gang' ? (yoga ? 'Fortsæt rutinen' : 'Fortsæt session') : yoga ? 'Start yoga' : 'Start session'}
             </PrimaryButton>
           )}
         </div>

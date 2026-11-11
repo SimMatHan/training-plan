@@ -26,6 +26,9 @@ import { findActivePlan, getActivePlan, getPlanVersion, getWeek } from '../servi
 import { createMonitoringProposal, createNewPlanProposal, createProposal, listProposals, MAX_PATCH_BYTES, MAX_PLAN_BYTES, MonitoringChange } from '../services/proposals';
 import { getMobilityTrend, getPainTrend } from '../services/trends';
 import { listWorkouts, logRun } from '../services/workouts';
+import { proposeYogaRoutine } from '../services/yoga';
+import { AREA_LABEL, AREA_POSES, catalogPose, poseName, poseSides, routineSeconds, YOGA_AREAS, YOGA_POSES } from '../../shared/yoga';
+import { YogaArea, type YogaRoutine } from '../../shared/plan.schema';
 
 const DAG = ['', 'man', 'tir', 'ons', 'tor', 'fre', 'lør', 'søn'];
 const UGEDAG = ['', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag', 'søndag'];
@@ -90,6 +93,22 @@ function parseTid(tid: string): number {
   return Number(m[1] ?? 0) * 3600 + Number(m[2]) * 60 + Number(m[3]);
 }
 
+const SIDE = { H: 'højre', V: 'venstre' } as const;
+
+/** "Due 60 s/side (venstre 90 s)" pr. stilling, og den samlede tid. */
+function yogaOut(routine: YogaRoutine) {
+  return {
+    minutter: Math.round(routineSeconds(routine) / 60),
+    områder: routine.areas,
+    stillinger: routine.poses.map((p) => {
+      const sides = poseSides(p);
+      if (sides.length === 1) return `${poseName(p)} ${p.seconds} s`;
+      const odd = sides.filter((s) => s.seconds !== p.seconds).map((s) => `${SIDE[s.side!]} ${s.seconds} s`);
+      return `${poseName(p)} ${p.seconds} s/side${odd.length ? ` (${odd.join(', ')}, tages først)` : ''}`;
+    }),
+  };
+}
+
 const genitive = (name: string) => (/[sxz]$/i.test(name) ? `${name}'` : `${name}s`);
 
 // ─── Værktøjer ──────────────────────────────────────────────────────────────
@@ -129,7 +148,9 @@ const PLAN_FORMAT =
   'colorKey for styrkesessioner er A, B, C eller D (løb og cardio "run", mobilitet "mobility"). ' +
   'Samme session må stå flere gange i en uges sessions på forskellige dage (fx gang man, ons og fre); (sessionId, day) skal være unik i ugen. ' +
   'mobility.schedule (valgfri), fx ["morgen", "aften"], gør mobilitetsblokken til runder, der krydses af hver dag uden for sessionerne ' +
-  '(morgenrunden tæller som opvarmning i en styrkesession med mobility "before"); udeladt tages blokken én gang dagligt som før.';
+  '(morgenrunden tæller som opvarmning i en styrkesession med mobility "before"); udeladt tages blokken én gang dagligt som før. ' +
+  'En mobilitetssession kan have "yoga": { areas, transitionSec, poses: [{ poseId, seconds, sideSeconds?: { H?, V? } }] } — en tidsstyret rutine ' +
+  'som appen afspiller (også på TV); brug foreslaa_yogarutine til at lave eller ændre den.';
 
 const smerteTrend = tool({
   name: 'hent_smertetrend',
@@ -330,7 +351,7 @@ export const TOOLS: ToolDef[] = [
               })),
               progression: s.progression.map((p) => `uge ${weeksText([p.weeks])}: ${p.sets} sæt, RPE ${p.rpe}${p.note ? ` (${p.note})` : ''}`),
             };
-          if (s.kind === 'mobilitet') return base;
+          if (s.kind === 'mobilitet') return s.yoga ? { ...base, yoga: yogaOut(s.yoga) } : base;
           return { ...base, kode: s.code, hovedsæt: s.mainSet, tempo: s.targetPace, total: s.totalApprox, formål: s.purpose };
         }),
         uger: plan.weeks.map((w, wi) => ({
@@ -390,7 +411,7 @@ export const TOOLS: ToolDef[] = [
           session.kind === 'styrke'
             ? ws.strength?.slots.flatMap((slot) => slot.exercises.map((e) => `${e.label}: ${doseText(plan, e.exercise.id, e.planned.dose)}`))
             : session.kind === 'mobilitet'
-              ? null
+              ? session.yoga && `${yogaOut(session.yoga).minutter} min yoga: ${session.yoga.poses.map(poseName).join(', ')}`
               : [ws.scheduled.label, session.mainSet, session.targetPace && `tempo ${session.targetPace}`].filter(Boolean).join(' · ');
         return {
           sessionId: session.id,
@@ -603,6 +624,120 @@ export const TOOLS: ToolDef[] = [
   }),
 
   tool({
+    name: 'list_yogastillinger',
+    title: 'Yogastillinger',
+    description:
+      'Katalog over yoga- og mobilitetsstillinger appen kan afspille (med figur, udførelse og lyd ved skift), og hvilke områder de gør mere mobile. ' +
+      'Brug poseId herfra, hvis du selv vælger stillingerne i foreslaa_yogarutine.',
+    input: z.object({ omraade: YogaArea.optional().describe('Kun stillinger til dette område') }),
+    readOnly: true,
+    async run(_ctx, { omraade }) {
+      return {
+        områder: YOGA_AREAS.map((a) => ({ id: a, navn: AREA_LABEL[a], stillinger: AREA_POSES[a] })),
+        stillinger: YOGA_POSES.filter((p) => !omraade || p.areas.includes(omraade)).map((p) => ({
+          poseId: p.id,
+          navn: p.name,
+          alias: p.alias,
+          områder: p.areas,
+          prSide: p.perSide || null,
+          standardSek: p.seconds,
+          rolle: p.role,
+        })),
+      };
+    },
+  }),
+
+  tool({
+    name: 'foreslaa_yogarutine',
+    title: 'Foreslå en yogarutine',
+    description:
+      'Laver en yoga-/mobilitetsrutine og lægger den i planen som en session, ligesom resten af træningen: hvor lang tid (minutter), hvilke områder ' +
+      'der skal blive mere mobile (omraader), og hvor ofte (gangePrUge, evt. faste dage). Appen afspiller rutinen med figur, nedtælling og lyde ' +
+      'ved skift, på telefonen eller castet til et TV. Mobilitetstestene (fx knee-to-wall) tages automatisk med: et område med en test kommer med, ' +
+      'og den strammeste side får længere tid og tages først. Spørger atleten om immobilitet et sted, så tag området med i omraader. ' +
+      'Uden stillinger bygger appen rutinen selv (åbning, fokusområderne på skift, afslutning) så den rammer tiden; med stillinger (poseId fra ' +
+      'list_yogastillinger) bruges din rækkefølge og dine tider. Dagene vælges jævnt fordelt og helst på dage uden styrke. Angiv sessionId for at ' +
+      'erstatte en eksisterende yogasession. Bliver et forslag, som atleten godkender i appen; vis diffen og rutinen.',
+    input: z.object({
+      minutter: z.int().min(5).max(90).optional().describe('Rutinens længde. Påkrævet, medmindre stillinger er angivet.'),
+      omraader: z.array(YogaArea).max(9).default([]).describe('Områder der skal blive mere mobile, vigtigste først'),
+      gangePrUge: z.int().min(1).max(7).describe('Hvor mange gange om ugen'),
+      dage: z.array(z.int().min(1).max(7)).min(1).max(7).optional().describe('Faste ugedage (1 = mandag … 7 = søndag). Erstatter gangePrUge.'),
+      fraUge: Uge.optional().describe('Første uge. Standard: denne uge'),
+      tilUge: Uge.optional().describe('Sidste uge. Standard: planens sidste'),
+      navn: Tekst(60).optional().describe('Sessionens navn, fx "Yoga · hofter og ankler"'),
+      sessionId: Slug.max(80).optional().describe('Eksisterende yogasession der skal erstattes (fra hent_plan)'),
+      brugTests: z.boolean().default(true).describe('Brug mobilitetstestene til områder og stram side (standard ja)'),
+      stillinger: z
+        .array(
+          z.object({
+            poseId: Slug.max(80),
+            sekunder: z.int().min(5).max(600).describe('Pr. side for ensidige stillinger'),
+            navn: Tekst(80).optional().describe('Kun for en stilling uden for kataloget'),
+            prSide: z.boolean().optional(),
+            hoejreSek: z.int().min(5).max(600).optional().describe('Afvigende tid på højre side'),
+            venstreSek: z.int().min(5).max(600).optional().describe('Afvigende tid på venstre side'),
+            cue: Tekst(300).optional(),
+          }),
+        )
+        .min(1)
+        .max(60)
+        .optional()
+        .describe('Egen rækkefølge af stillinger. Udelades for at lade appen bygge rutinen.'),
+      summary: Summary.optional().describe('Kort titel. Standard: navn, minutter og hvor ofte'),
+      rationale: Rationale,
+    }),
+    readOnly: false,
+    async run({ db, now, athlete }, i) {
+      for (const p of i.stillinger ?? [])
+        if (!catalogPose(p.poseId) && !p.navn) throw new ValidationError(`Ukendt poseId "${p.poseId}". Brug list_yogastillinger, eller angiv navn`);
+      const routine: YogaRoutine | undefined = i.stillinger && {
+        areas: i.omraader,
+        transitionSec: 6,
+        poses: i.stillinger.map((p) => ({
+          poseId: p.poseId,
+          seconds: p.sekunder,
+          ...(p.navn && { name: p.navn }),
+          ...(p.prSide !== undefined && { perSide: p.prSide }),
+          ...(p.cue && { cue: p.cue }),
+          ...((p.hoejreSek || p.venstreSek) && { sideSeconds: { ...(p.hoejreSek && { H: p.hoejreSek }), ...(p.venstreSek && { V: p.venstreSek }) } }),
+        })),
+      };
+      const r = await proposeYogaRoutine(
+        db,
+        athlete.id,
+        {
+          minutes: i.minutter,
+          areas: i.omraader,
+          timesPerWeek: i.dage?.length ?? i.gangePrUge,
+          days: i.dage,
+          fromWeek: i.fraUge,
+          toWeek: i.tilUge,
+          name: i.navn,
+          sessionId: i.sessionId,
+          routine,
+          useTests: i.brugTests,
+          summary: i.summary,
+          rationale: i.rationale,
+        },
+        now,
+      );
+      const weekDays = [...new Set(r.schedule.map((s) => s.days.map((d) => DAG[d]).join(', ')))];
+      return {
+        id: r.proposal.id,
+        status: r.proposal.status,
+        diff: r.proposal.diff,
+        session: { sessionId: r.session.id, navn: r.session.name },
+        rutine: yogaOut(r.routine),
+        uger: `${r.fromWeek}–${r.toWeek}`,
+        dage: weekDays.length === 1 ? weekDays[0] : r.schedule.map((s) => `uge ${s.week}: ${s.days.map((d) => DAG[d]).join(', ')}`),
+        fraMobilitetstests: r.insights.map((x) => x.note),
+        besked: 'Rutinen venter på godkendelse i appen. Derefter står den på dagene og kan afspilles og castes til TV.',
+      };
+    },
+  }),
+
+  tool({
     name: 'log_lob',
     title: 'Log et løb',
     description:
@@ -680,6 +815,7 @@ export function serverInfo(athlete: Pick<Athlete, 'name'>, role: Role) {
       `Denne forbindelse indeholder kun ${whose} træningsdata (plan, logs, smerte og mobilitet). Brug den ikke til andres træning. ` +
       'Start med hent_status, og hent_profil når du skal kende monitors, tests og tærskelpuls. Datoer er YYYY-MM-DD i dansk tid. ' +
       `Ændringer foreslås med foreslaa_planaendring, foreslaa_ny_plan og foreslaa_overvaagning og godkendes af ${athlete.name} i appen. ` +
+      'Yoga- og mobilitetsrutiner (tid, områder, hvor ofte) laves med foreslaa_yogarutine. ' +
       (role === 'ejer'
         ? 'log_lob og skriv_note bruges kun, når der bliver bedt om det.'
         : `Du er forbundet som træner: du kan læse og foreslå, men ikke logge løb for ${athlete.name}.`),

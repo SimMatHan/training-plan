@@ -4,6 +4,7 @@
 import type { Plan, ScheduledSession, Session, StrengthSession, Week } from './plan.schema';
 import { formatDose, formatIntensity, getExercise, resolveStrengthSession } from './resolve';
 import { isRepeated } from './schedule';
+import { poseName, routineSeconds } from './yoga';
 
 const DAYS = ['', 'man', 'tir', 'ons', 'tor', 'fre', 'lør', 'søn'];
 
@@ -106,8 +107,34 @@ const RUN_FIELDS = [
   ['code', 'kode'],
 ] as const;
 
+/** "20 min, 12 stillinger: Barnets stilling, Kat-ko, Due (h/v) …". */
+function yogaSummary(s: Session): string | undefined {
+  if (s.kind !== 'mobilitet' || !s.yoga) return undefined;
+  const min = Math.round(routineSeconds(s.yoga) / 60);
+  return `${min} min, ${s.yoga.poses.length} stillinger: ${s.yoga.poses.map(poseName).join(', ')}`;
+}
+
+function diffYoga(b: Session | undefined, a: Session): string[] {
+  if (a.kind !== 'mobilitet') return [];
+  const was = b?.kind === 'mobilitet' ? b.yoga : undefined;
+  const now = a.yoga;
+  if (!was && !now) return [];
+  if (!now) return [`${a.name}: yogarutinen fjernet`];
+  if (!was) return [`${a.name}: yogarutine ${yogaSummary(a)}`];
+  if (same(was, now)) return [];
+  const names = (r: typeof was) => r.poses.map(poseName);
+  const added = names(now).filter((n) => !names(was).includes(n));
+  const removed = names(was).filter((n) => !names(now).includes(n));
+  const parts = [`${Math.round(routineSeconds(was) / 60)} → ${Math.round(routineSeconds(now) / 60)} min`];
+  if (added.length) parts.push(`+ ${added.join(', ')}`);
+  if (removed.length) parts.push(`− ${removed.join(', ')}`);
+  if (!added.length && !removed.length) parts.push('tider eller rækkefølge ændret');
+  return [`${a.name}: yogarutine ${parts.join('; ')}`];
+}
+
 function diffSession(before: Plan, after: Plan, b: Session | undefined, a: Session | undefined): string[] {
   if (!a) return b ? [`Session fjernet: ${b.name}`] : [];
+  if (a.kind === 'mobilitet' && a.yoga && !b) return [`Ny session: ${a.name} (${yogaSummary(a)})`];
   if (a.kind === 'styrke') {
     const prev = b?.kind === 'styrke' ? b : undefined;
     return [...(b ? [] : [`Ny session: ${a.name}`]), ...diffStrength(before, after, prev, a)];
@@ -118,6 +145,7 @@ function diffSession(before: Plan, after: Plan, b: Session | undefined, a: Sessi
   if (a.kind !== 'mobilitet' && b.kind !== 'mobilitet' && b.kind !== 'styrke')
     for (const [field, label] of RUN_FIELDS)
       if (b[field] !== a[field]) lines.push(`${a.name}: ${label} ${quote(b[field])} → ${quote(a[field])}`);
+  lines.push(...diffYoga(b, a));
   if (!same(b.notes, a.notes)) lines.push(`${a.name}: noter ændret`);
   if (!lines.length && !same(b, a)) lines.push(`${a.name}: ændret`);
   return lines;

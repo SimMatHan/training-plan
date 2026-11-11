@@ -8,6 +8,7 @@ import { isOAuthPath } from './oauth/redirects';
 import { athleteRoutes } from './routes/athlete';
 import { adminRoutes, authRoutes, meRoutes } from './routes/auth';
 import { feedRoutes } from './routes/calendar';
+import { publicCastRoutes } from './routes/cast';
 
 // Valideringsfejl på dansk (API og MCP-værktøjer).
 z.config(z.locales.da());
@@ -21,6 +22,8 @@ app.use('*', requireSameOrigin);
 app.route('/auth', authRoutes);
 app.route('/me', meRoutes);
 app.route('/admin', adminRoutes);
+// TV'et i cast-tilstand: ingen login, kun det hemmelige token (eller koden fra telefonen).
+app.route('/cast', publicCastRoutes);
 // Al data om en atlet: /api/a/<slug>/… Kun med en app-session; MCP-tokens gælder kun /mcp/<slug>,
 // så Claude aldrig kan godkende sine egne forslag eller aktivere en planversion via /api.
 app.use('/a/:slug/*', requireSession);

@@ -16,7 +16,25 @@ import * as f from './fixtures';
 const OUT = path.resolve(import.meta.dirname, '../../screenshots');
 const filter = process.argv.slice(2);
 
-type Scenario = { name: string; full?: boolean; loggedOut?: boolean; run: (page: Page) => Promise<void> };
+type Scenario = {
+  name: string;
+  full?: boolean;
+  loggedOut?: boolean;
+  /** Planen med en yogarutine mandag i uge 6. */
+  yoga?: boolean;
+  viewport?: { width: number; height: number };
+  run: (page: Page) => Promise<void>;
+};
+
+/** Starter yogarutinen og spoler `sec` sekunder frem (uret står ellers stille). */
+async function playYoga(page: Page, sec: number, pause = false) {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start yoga' }).click();
+  await page.getByRole('button', { name: 'Start rutinen' }).click();
+  await page.clock.setFixedTime(new Date(Date.parse(f.NOW) + sec * 1000));
+  if (pause) await page.getByRole('button', { name: 'Pause' }).first().click();
+  await page.waitForTimeout(400);
+}
 
 async function startSession(page: Page) {
   await page.goto('/');
@@ -246,17 +264,63 @@ const scenarios: Scenario[] = [
   { name: '9-uge-forrige', run: (p) => p.goto('/uge?uge=5').then(() => p.getByText('Styrke A').first().waitFor()) },
   { name: '10-indstillinger', full: true, run: (p) => p.goto('/indstillinger').then(() => p.getByText('Version 1').first().waitFor()) },
   { name: '11-mobilitet', run: (p) => p.goto('/mobilitet').then(() => p.getByText('Knee-to-wall').first().waitFor()) },
+  {
+    name: '15-yoga-i-dag',
+    yoga: true,
+    run: async (p) => {
+      await p.goto('/');
+      await p.getByRole('button', { name: 'Start yoga' }).evaluate((e) => e.scrollIntoView({ block: 'center' }));
+    },
+  },
+  {
+    name: '15b-yoga-oversigt',
+    yoga: true,
+    full: true,
+    run: async (p) => {
+      await p.goto('/');
+      await p.getByRole('button', { name: 'Start yoga' }).click();
+      await p.getByRole('button', { name: 'Start rutinen' }).waitFor();
+    },
+  },
+  { name: '15c-yoga-afspiller', yoga: true, run: (p) => playYoga(p, 95) },
+  { name: '15d-yoga-skift-side', yoga: true, run: (p) => playYoga(p, 209) },
+  {
+    name: '15e-yoga-cast',
+    yoga: true,
+    run: async (p) => {
+      await playYoga(p, 95);
+      await p.getByRole('button', { name: 'Vis på TV' }).click();
+      await p.getByRole('button', { name: 'Start TV-visning' }).click();
+      await p.getByText('TV’et er forbundet').waitFor();
+    },
+  },
+  { name: '15f-yoga-lyd', yoga: true, run: async (p) => {
+      await playYoga(p, 95);
+      await p.getByRole('button', { name: 'Lyd' }).click();
+      await p.getByRole('dialog').getByText('Lyde ved skift').waitFor();
+    } },
+  { name: '15g-yoga-liggende', yoga: true, viewport: { width: 844, height: 390 }, run: (p) => playYoga(p, 95) },
+  { name: '15h-yoga-tv', yoga: true, viewport: { width: 1280, height: 720 }, run: (p) => p.goto(`/tv/${f.castToken}`).then(() => p.getByText('Tryk OK for lyd').waitFor()) },
+  { name: '15i-yoga-tv-kode', viewport: { width: 1280, height: 720 }, run: (p) => p.goto('/tv').then(() => p.getByRole('textbox', { name: 'Kode fra telefonen' }).waitFor()) },
+  { name: '15j-yoga-faerdig', yoga: true, run: (p) => playYoga(p, 1300) },
   { name: '12-login', loggedOut: true, run: (p) => p.goto('/').then(() => p.getByRole('button', { name: /Face ID/ }).waitFor()) },
 ];
 
 let pulled = false;
-async function api(route: Route, loggedOut: boolean) {
+async function api(route: Route, loggedOut: boolean, yoga: boolean) {
   const url = new URL(route.request().url());
   const p = url.pathname.replace(/^\/api/, '').replace(/^\/a\/simon/, '');
   const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
+  // Cast til TV (yoga): opret, opdatér, TV'ets visning og kodeopslag.
+  const now = Date.parse(f.NOW);
+  if (p === '/cast' && route.request().method() === 'POST') return json({ token: f.castToken, code: '482913', expiresAt: f.NOW, serverNow: now });
+  if (p.startsWith('/cast/kode/')) return json({ token: f.castToken });
+  if (p.startsWith('/cast/') && route.request().method() === 'PUT') return json({ serverNow: now, tvSeenAt: now });
+  if (p === `/cast/${f.castToken}`)
+    return json({ title: 'Yoga · hofter og ankler', routine: f.yogaRoutine, state: { playing: true, elapsedMs: 95_000, tvSound: true }, stateAt: now, serverNow: now, tvSeenAt: now, ended: false });
   if (loggedOut) return json({ error: 'Ikke logget ind' }, 401);
   if (p === '/me') return json(f.me);
-  if (p === '/plan/active') return json({ meta: f.meta, plan: f.plan });
+  if (p === '/plan/active') return json({ meta: f.meta, plan: yoga ? f.planWithYoga : f.plan });
   if (p === '/plan/versions' && route.request().method() === 'POST') return json({ meta: { ...f.meta, version: 2 }, plan: f.plan, diff: [] });
   if (p === '/plan/versions') return json([f.meta]);
   if (p === '/profile') return json(f.profile);
@@ -280,7 +344,8 @@ async function api(route: Route, loggedOut: boolean) {
 
 const server = await createServer({ server: { port: 5199, strictPort: true }, logLevel: 'error' });
 await server.listen();
-const browser = await chromium.launch();
+// PW_CHROMIUM: en anden Chromium end Playwrights egen (fx en forudinstalleret).
+const browser = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
 mkdirSync(OUT, { recursive: true });
 
 try {
@@ -288,7 +353,7 @@ try {
     for (const colorScheme of ['light', 'dark'] as const) {
       const context = await browser.newContext({
         baseURL: 'http://localhost:5199',
-        viewport: { width: 390, height: 844 },
+        viewport: s.viewport ?? { width: 390, height: 844 },
         deviceScaleFactor: 2,
         isMobile: true,
         hasTouch: true,
@@ -299,7 +364,7 @@ try {
       });
       await context.clock.setFixedTime(new Date(f.NOW));
       pulled = false;
-      await context.route('**/api/**', (r) => api(r, !!s.loggedOut));
+      await context.route('**/api/**', (r) => api(r, !!s.loggedOut, !!s.yoga));
       // SF Pro findes ikke på Linux: Inter er den nærmeste stedfortræder.
       await context.addInitScript({
         content: `addEventListener('DOMContentLoaded', () => {
