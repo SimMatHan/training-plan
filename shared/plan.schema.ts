@@ -186,8 +186,8 @@ export type YogaPose = z.infer<typeof YogaPose>;
 export const YogaRoutine = z.object({
   /** Områderne rutinen skal gøre mere mobile, vigtigste først. */
   areas: z.array(YogaArea).default([]),
-  /** Sekunder til at gå fra én stilling til den næste. */
-  transitionSec: z.int().min(0).max(30).default(6),
+  /** Sekunder til at gå fra én stilling til den næste (nedtællingen "Næste øvelse"; højst 3 s i afspilningen). */
+  transitionSec: z.int().min(0).max(30).default(3),
   poses: z.array(YogaPose).min(1).max(60),
 });
 export type YogaRoutine = z.infer<typeof YogaRoutine>;

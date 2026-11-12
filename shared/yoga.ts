@@ -109,8 +109,8 @@ export const DEFAULT_AREAS: YogaArea[] = ['hofter', 'hoftebojere', 'baglaar', 'b
 /** "Gør dig klar" før første stilling. */
 export const READY_SEC = 10;
 /** Pause til at skifte side i en ensidig stilling. */
-export const SWITCH_SEC = 5;
-export const DEFAULT_TRANSITION_SEC = 6;
+export const SWITCH_SEC = 3;
+export const DEFAULT_TRANSITION_SEC = 3;
 export const MIN_HOLD = 20;
 export const MAX_HOLD = 180;
 /** Den stramme side får så meget længere tid. */
@@ -156,7 +156,8 @@ export function buildSteps(routine: YogaRoutine): YogaStep[] {
     steps.push({ kind, poseIndex, side, seconds, startMs: t });
     t += seconds * 1000;
   };
-  const transition = routine.transitionSec ?? DEFAULT_TRANSITION_SEC;
+  // Pausen mellem stillingerne er altid en kort nedtælling, også i rutiner gemt med en længere overgang.
+  const transition = Math.min(routine.transitionSec ?? DEFAULT_TRANSITION_SEC, DEFAULT_TRANSITION_SEC);
   routine.poses.forEach((pose, i) => {
     const sides = poseSides(pose);
     push(i === 0 ? 'klar' : 'overgang', i, sides[0].side, i === 0 ? READY_SEC : transition);

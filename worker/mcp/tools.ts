@@ -693,7 +693,7 @@ export const TOOLS: ToolDef[] = [
         if (!catalogPose(p.poseId) && !p.navn) throw new ValidationError(`Ukendt poseId "${p.poseId}". Brug list_yogastillinger, eller angiv navn`);
       const routine: YogaRoutine | undefined = i.stillinger && {
         areas: i.omraader,
-        transitionSec: 6,
+        transitionSec: 3,
         poses: i.stillinger.map((p) => ({
           poseId: p.poseId,
           seconds: p.sekunder,

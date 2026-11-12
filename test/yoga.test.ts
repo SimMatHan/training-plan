@@ -80,34 +80,34 @@ describe('tidslinje og lyde', () => {
   };
   const steps = buildSteps(routine);
 
-  it('har klar, stilling, overgang og skift i rækkefølge', () => {
+  it('har klar, stilling, overgang og skift i rækkefølge (pauserne er 3 s, også med en længere gemt overgang)', () => {
     expect(steps.map((s) => [s.kind, s.poseIndex, s.side, s.seconds])).toEqual([
       ['klar', 0, null, 10],
       ['stilling', 0, null, 30],
-      ['overgang', 1, 'V', 6],
+      ['overgang', 1, 'V', 3],
       ['stilling', 1, 'V', 90],
-      ['skift', 1, 'H', 5],
+      ['skift', 1, 'H', 3],
       ['stilling', 1, 'H', 60],
     ]);
-    expect(routineSeconds(routine)).toBe(201);
+    expect(routineSeconds(routine)).toBe(196);
   });
 
   it('finder positionen og springer mellem stillinger', () => {
     expect(positionAt(steps, 0)).toMatchObject({ index: 0, remainingMs: 10_000 });
-    expect(positionAt(steps, 45_000)).toMatchObject({ index: 2, remainingMs: 1_000 });
+    expect(positionAt(steps, 42_000)).toMatchObject({ index: 2, remainingMs: 1_000 });
     expect(positionAt(steps, 999_000)).toMatchObject({ done: true });
-    expect(skipTarget(steps, 12_000, 1)).toBe(46_000);
-    expect(skipTarget(steps, 50_000, -1)).toBe(46_000);
-    expect(skipTarget(steps, 47_000, -1)).toBe(10_000);
+    expect(skipTarget(steps, 12_000, 1)).toBe(43_000);
+    expect(skipTarget(steps, 50_000, -1)).toBe(43_000);
+    expect(skipTarget(steps, 45_000, -1)).toBe(10_000);
   });
 
   it('har lyd ved skift, næste stilling, nedtælling og slut', () => {
     const cues = cuesFor(routine, steps);
-    expect(cues.filter((c) => c.sound === 'skift')).toEqual([{ atMs: 136_000, sound: 'skift', say: 'Skift side' }]);
+    expect(cues.filter((c) => c.sound === 'skift')).toEqual([{ atMs: 133_000, sound: 'skift', say: 'Skift side' }]);
     expect(cues.find((c) => c.sound === 'naeste')?.say).toBe('Næste: Due. Venstre side');
-    expect(cues.filter((c) => c.sound === 'tick').map((c) => c.atMs)).toEqual([7_000, 8_000, 9_000, 43_000, 44_000, 45_000, 138_000, 139_000, 140_000]);
-    expect(cues.filter((c) => c.sound === 'halvvejs').map((c) => c.atMs)).toEqual([91_000, 171_000]);
-    expect(cues.at(-1)).toMatchObject({ atMs: 201_000, sound: 'faerdig' });
+    expect(cues.filter((c) => c.sound === 'tick').map((c) => c.atMs)).toEqual([7_000, 8_000, 9_000, 41_000, 42_000, 134_000, 135_000]);
+    expect(cues.filter((c) => c.sound === 'halvvejs').map((c) => c.atMs)).toEqual([88_000, 166_000]);
+    expect(cues.at(-1)).toMatchObject({ atMs: 196_000, sound: 'faerdig' });
   });
 });
 
