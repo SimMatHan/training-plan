@@ -79,6 +79,14 @@ export function TodayPage() {
               <TodayCard key={`${s.sessionId}-${s.plannedDay}`} plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
             ))
           )}
+          {/* Mobiliteten kan også tages på en dag med træning, når den ikke allerede står som dagens session. */}
+          {todays.length > 0 && mobility && plan.mobility && !rounds && !todays.some((s) => s.sessionId === mobility.id) && (
+            <Card className="mb-10">
+              <h2 className="text-title">{sessionTitle(mobility)}</h2>
+              <Muted className="mt-0.5">Kan tages ved siden af dagens træning.</Muted>
+              <RestDayMobility session={mobility} week={week} workouts={workouts} />
+            </Card>
+          )}
           {rounds && <MobilityRounds plan={plan} date={today} />}
           <MorningPainCards />
           <ProposalBanner />
