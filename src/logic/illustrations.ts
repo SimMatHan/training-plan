@@ -297,6 +297,57 @@ export const ILLUSTRATIONS: Record<string, Illustration> = {
     seconds: 3.6,
   },
 
+  // ─── Plan v12+ ────────────────────────────────────────────────────────────
+  crosstrainer: {
+    from: pose('hip', [100, 80], { torso: 176, uaN: 50, laN: 100, uaF: 20, laF: 80, thN: 28, shN: -12, ftN: 90, thF: -14, shF: -22, ftF: 80 }),
+    to: pose('hip', [100, 80], { torso: 176, uaN: 20, laN: 80, uaF: 50, laF: 100, thN: -14, shN: -22, ftN: 80, thF: 28, shF: -12, ftF: 90 }),
+    props: [
+      { kind: 'bench', x: 66, y: 143, w: 78, h: 7 },
+      { kind: 'incline', from: [140, 150], to: [146, 50] },
+    ],
+    seconds: 1.6,
+  },
+  'kropsvaegt-squat': {
+    from: standing({ uaN: 82, laN: 90, uaF: 82, laF: 90 }),
+    to: standing({ torso: 150, thN: 92, shN: -22, thF: 92, shF: -22, uaN: 92, laN: 92, uaF: 92, laF: 92 }),
+    seconds: 3,
+  },
+  'goblet-squat': {
+    from: standing({ uaN: 10, laN: 145, uaF: 10, laF: 145 }),
+    to: standing({ torso: 156, thN: 88, shN: -20, thF: 88, shF: -20, uaN: 26, laN: 150, uaF: 26, laF: 150 }),
+    props: [{ kind: 'bench', x: 58, y: 124, w: 34, h: 26 }, { kind: 'plate', at: 'wristN' }],
+    seconds: 3,
+  },
+  'wall-sit': {
+    from: pose('hip', [74, 116], { torso: 180, uaN: 4, laN: 4, uaF: 4, laF: 4, thN: 90, shN: 0, thF: 90, shF: 0 }),
+    to: pose('hip', [74, 116], { torso: 181, uaN: 4, laN: 4, uaF: 4, laF: 4, thN: 92, shN: 2, thF: 92, shF: 2 }),
+    props: [{ kind: 'wall', x: 64 }],
+    seconds: 5,
+  },
+  'band-pull-apart': {
+    from: standing({ uaN: 90, laN: 90, uaF: 90, laF: 90 }),
+    to: standing({ uaN: -100, laN: -100, uaF: 92, laF: 92 }),
+    props: [{ kind: 'band', a: 'wristN', b: 'wristF' }],
+    seconds: 2.6,
+  },
+  'siddende-benloeft': {
+    from: pose('hip', [70, 142], { torso: 178, uaN: -12, laN: -6, uaF: -12, laF: -6, thN: 90, shN: 90, ftN: 180, thF: 90, shF: 90, ftF: 180 }),
+    to: pose('hip', [70, 142], { torso: 176, uaN: -12, laN: -6, uaF: -12, laF: -6, thN: 102, shN: 102, ftN: 192, thF: 90, shF: 90, ftF: 180 }),
+    seconds: 3,
+  },
+  'step-up': {
+    from: pose('ankleN', [118, 125], { torso: 172, uaN: 2, laN: 2, uaF: 2, laF: 2, thN: 70, shN: -10, thF: -15, shF: -15, ftF: 80 }),
+    to: pose('ankleN', [118, 125], { torso: 178, uaN: 2, laN: 2, uaF: 2, laF: 2, thN: 3, shN: -2, thF: -3, shF: 2 }),
+    props: [{ kind: 'bench', x: 100, y: 128, w: 52, h: 22 }, { kind: 'dumbbell' }],
+    seconds: 3,
+  },
+  'leg-curl': {
+    from: pose('hip', [100, 110], { torso: -92, head: -20, uaN: -10, laN: 20, uaF: -10, laF: 20, thN: 90, shN: 90, ftN: 180, thF: 90, shF: 90, ftF: 180 }),
+    to: pose('hip', [100, 110], { torso: -92, head: -20, uaN: -10, laN: 20, uaF: -10, laF: 20, thN: 92, shN: 215, ftN: 300, thF: 92, shF: 215, ftF: 300 }),
+    props: [{ kind: 'bench', x: 34, y: 114, w: 100, h: 36 }, { kind: 'pad', at: 'ankleN' }],
+    seconds: 3,
+  },
+
   // ─── Yoga (shared/yoga.ts) ────────────────────────────────────────────────
   'kat-ko': {
     from: pose('kneeN', [86, 146], { torso: 100, head: 40, uaN: 0, laN: 0, uaF: 0, laF: 0, thN: 0, shN: -90, ftN: -90, thF: 0, shF: -90, ftF: -90 }),
@@ -432,16 +483,41 @@ ILLUSTRATIONS['brystaabner-vaeg'] = ILLUSTRATIONS['brystmuskelstraek-doeraabning
 
 // Øvelser i andre planer: genkendes på navnet, så de også får en figur.
 const BY_NAME: [RegExp, string][] = [
+  // Mobilitets- og yogapunkter (før de brede styrkeord, fx "udfald" og "squat").
+  [/kat.?ko|cat.?cow/i, 'kat-ko'],
+  [/nedad\w* hund|downward dog|downdog/i, 'nedadgaaende-hund'],
+  [/lavt udfald|low lunge/i, 'lavt-udfald'],
+  [/halv spagat|halv split|half split|hamstring.?pyramide/i, 'halv-split'],
+  [/hukstilling|yogisquat|malasana/i, 'malasana'],
+  [/figur.?4|eye of the needle/i, 'liggende-figur-4'],
+  [/tråd nålen|thread the needle/i, 'traad-naalen'],
+  [/ben op ad væg|legs up the wall/i, 'ben-op-ad-vaeggen'],
+  [/adduktorklem|adductor squeeze/i, 'adduktorklem'],
+  [/siddende benløft|seated leg raise/i, 'siddende-benloeft'],
+  [/barnets stilling|child'?s pose/i, 'barnets-stilling'],
+  [/due\b|pigeon/i, 'due'],
+  [/sommerfugl|butterfly/i, 'sommerfugl'],
+  [/sfinks|sphinx/i, 'sfinks'],
+  [/savasana|hvilestilling/i, 'savasana'],
+  [/crosstrainer|cross.?trainer|elliptical/i, 'crosstrainer'],
+  [/march/i, 'hofteflexor-march'],
+  [/wall.?sit|vægsid/i, 'wall-sit'],
+  [/pull.?apart/i, 'band-pull-apart'],
   [/enbens.*(rdl|dødløft)/i, 'enbens-rdl'],
   [/(rdl|dødløft)/i, 'rdl'],
   [/split squat|udfald/i, 'bulgarian-split-squat'],
-  [/step-?down|step-?up/i, 'step-down'],
+  [/goblet/i, 'goblet-squat'],
+  [/squat/i, 'kropsvaegt-squat'],
+  [/step-?up/i, 'step-up'],
+  [/step-?down/i, 'step-down'],
   [/hip thrust|hoftel(ø|o)ft/i, 'hip-thrust'],
   [/glute bridge|bækkenløft/i, 'glute-bridge'],
   [/nordic/i, 'nordic-hamstring-curl'],
-  [/leg curl/i, 'glideskinne-leg-curl'],
+  [/glideskinne|slider/i, 'glideskinne-leg-curl'],
+  [/leg curl/i, 'leg-curl'],
   [/siddende.*tåhæv/i, 'siddende-tahaev'],
-  [/tåhæv|calf raise/i, 'enbens-tahaev'],
+  [/enbens.*tåhæv|single.?leg.*calf/i, 'enbens-tahaev'],
+  [/tåhæv|calf raise/i, 'tahaev-trin-strakt'],
   [/pulldown|pull-?up|chin/i, 'lat-pulldown'],
   [/t-bar/i, 't-bar-row'],
   [/row/i, 'rows'],

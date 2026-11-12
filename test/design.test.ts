@@ -145,6 +145,30 @@ describe('øvelsesillustrationer', () => {
     expect(illustrationFor('ukendt-id', 'Noget helt andet')).toBeUndefined();
   });
 
+  it('genkender øvelser og mobilitetspunkter fra senere planer på navnet', () => {
+    const expected: [string, string][] = [
+      ['Crosstrainer', 'crosstrainer'],
+      ['Hofteflexor-march, elastik/vægt', 'hofteflexor-march'],
+      ['Squat, kropsvægt', 'kropsvaegt-squat'],
+      ['Goblet squat til kasse', 'goblet-squat'],
+      ['Wall sit', 'wall-sit'],
+      ['Band pull-apart', 'band-pull-apart'],
+      ['Siddende benløft, strakte ben', 'siddende-benloeft'],
+      ['Step-up med håndvægte', 'step-up'],
+      ['Leg Curl', 'leg-curl'],
+      ['Tåhæv, begge ben', 'tahaev-trin-strakt'],
+      ['Kat–ko på alle fire', 'kat-ko'],
+      ['Nedadvendt hund med hælpres', 'nedadgaaende-hund'],
+      ['Lavt udfald, knæ i gulvet', 'lavt-udfald'],
+      ['Halv spagat (hamstring-pyramide)', 'halv-split'],
+      ['Dyb hukstilling med støtte', 'malasana'],
+      ['Tråd nålen (liggende figur-4)', 'liggende-figur-4'],
+      ['Ben op ad væg med mavevejrtrækning', 'ben-op-ad-vaeggen'],
+      ['Adduktorklem, liggende', 'adduktorklem'],
+    ];
+    for (const [name, id] of expected) expect(illustrationFor('ukendt-id', name), name).toBe(ILLUSTRATIONS[id]);
+  });
+
   it('bevarer lemmernes længde og det faste led gennem hele bevægelsen', () => {
     for (const ill of Object.values(ILLUSTRATIONS)) {
       for (const t of [0, 0.25, 0.5, 0.75, 1]) {
