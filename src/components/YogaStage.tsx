@@ -17,7 +17,7 @@ export const clockText = (ms: number) => {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 };
 
-const KIND_LABEL: Record<YogaStep['kind'], string> = { klar: 'Gør dig klar', overgang: 'Næste stilling', skift: 'Skift side', stilling: 'Hold' };
+const KIND_LABEL: Record<YogaStep['kind'], string> = { klar: 'Gør dig klar', overgang: 'Næste øvelse', skift: 'Skift side', stilling: 'Hold' };
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -50,9 +50,15 @@ export function YogaStage({ routine, steps, pos, wide, paused }: { routine: Yoga
   // Det der kommer efter dette hold (næste stilling eller anden side).
   const after = holding ? steps.slice(pos.index + 1).find((s) => s.kind === 'stilling') : undefined;
   const afterText = after && (after.poseIndex === step.poseIndex ? `Anden side: ${SIDE_LABEL[after.side!]}` : `Derefter: ${poseName(routine.poses[after.poseIndex])}`);
-  const kicker = holding ? (step.side ? cap(SIDE_LABEL[step.side]) : KIND_LABEL.stilling) : step.kind === 'skift' ? `Skift til ${SIDE_LABEL[step.side!]}` : KIND_LABEL[step.kind];
+  const poseNo = `Øvelse ${step.poseIndex + 1} af ${routine.poses.length}`;
+  // Under et hold er øvelsen i fokus; i pausen (klar, overgang, skift) vises hvad der kommer, med en kort nedtælling.
+  const kicker = holding
+    ? `${poseNo}${step.side ? ` · ${SIDE_LABEL[step.side]}` : ''}`
+    : step.kind === 'skift'
+      ? `Skift til ${SIDE_LABEL[step.side!]}`
+      : `${KIND_LABEL[step.kind]} · ${step.poseIndex + 1} af ${routine.poses.length}`;
   const sideNote = !holding && step.kind !== 'skift' && step.side ? ` · start med ${SIDE_LABEL[step.side]}` : '';
-  const poseNo = `Stilling ${step.poseIndex + 1} af ${routine.poses.length}`;
+  const startsIn = holding ? undefined : step.kind === 'skift' ? 'Anden side om' : 'Starter om';
   const cue = poseCue(pose);
 
   const accent = holding ? 'text-brand-red' : 'text-ink-2';
@@ -82,8 +88,15 @@ export function YogaStage({ routine, steps, pos, wide, paused }: { routine: Yoga
           )}
           <div className="flex items-center gap-[3vw]">
             <Ring progress={progress} size={Math.round(Math.min(innerHeight * 0.3, innerWidth * 0.26))} stroke={Math.round(innerHeight * 0.022)}>
-              <span className={`num font-bold ${paused ? 'text-ink-2' : ''}`} style={{ fontSize: 'min(11vh, 8vw)' }}>
-                {secondsText(pos.remainingMs)}
+              <span className="flex flex-col items-center">
+                {startsIn && (
+                  <span className="text-ink-2" style={{ fontSize: '2.4vh' }}>
+                    {startsIn}
+                  </span>
+                )}
+                <span className={`num leading-none font-bold ${paused ? 'text-ink-2' : ''}`} style={{ fontSize: 'min(11vh, 8vw)' }}>
+                  {secondsText(pos.remainingMs)}
+                </span>
               </span>
             </Ring>
             <div className="min-w-0">
@@ -95,7 +108,7 @@ export function YogaStage({ routine, steps, pos, wide, paused }: { routine: Yoga
             </div>
           </div>
           <p className="text-ink-2" style={{ fontSize: '2.8vh' }}>
-            {afterText ?? poseNo} · {clockText(pos.totalMs - pos.elapsedMs)} tilbage
+            {afterText ?? (holding ? 'Sidste øvelse' : poseNo)} · {clockText(pos.totalMs - pos.elapsedMs)} tilbage
           </p>
         </div>
       </div>
@@ -110,11 +123,14 @@ export function YogaStage({ routine, steps, pos, wide, paused }: { routine: Yoga
       </p>
       <h2 className="text-[28px] leading-[32px] font-bold">{name}</h2>
       {alias && <p className="-mt-1.5 text-secondary text-ink-2">{alias}</p>}
-      <Ring progress={progress} size={144} stroke={11} label={`${secondsText(pos.remainingMs)} sekunder tilbage`}>
-        <span className={`num text-[46px] leading-none font-bold ${paused ? 'text-ink-2' : ''}`}>{secondsText(pos.remainingMs)}</span>
+      <Ring progress={progress} size={144} stroke={11} label={startsIn ? `${startsIn} ${secondsText(pos.remainingMs)} sekunder` : `${secondsText(pos.remainingMs)} sekunder tilbage`}>
+        <span className="flex flex-col items-center">
+          {startsIn && <span className="text-caption text-ink-2">{startsIn}</span>}
+          <span className={`num text-[46px] leading-none font-bold ${paused ? 'text-ink-2' : ''}`}>{secondsText(pos.remainingMs)}</span>
+        </span>
       </Ring>
       {cue && <p className="max-w-md text-secondary text-ink">{cue}</p>}
-      <p className="text-secondary text-ink-2">{afterText ?? poseNo}</p>
+      <p className="text-secondary text-ink-2">{afterText ?? (holding ? 'Sidste øvelse' : poseNo)}</p>
     </div>
   );
 }

@@ -283,7 +283,8 @@ const scenarios: Scenario[] = [
     },
   },
   { name: '15c-yoga-afspiller', yoga: true, run: (p) => playYoga(p, 95) },
-  { name: '15d-yoga-skift-side', yoga: true, run: (p) => playYoga(p, 209) },
+  { name: '15c2-yoga-naeste-oevelse', yoga: true, run: (p) => playYoga(p, 119) },
+  { name: '15d-yoga-skift-side', yoga: true, run: (p) => playYoga(p, 192) },
   {
     name: '15e-yoga-cast',
     yoga: true,
