@@ -36,6 +36,13 @@ async function playYoga(page: Page, sec: number, pause = false) {
   await page.waitForTimeout(400);
 }
 
+/** Åbner dagens mobilitetssession fra I dag. */
+async function openMobility(page: Page) {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start mobilitet' }).click();
+  await page.getByRole('group', { name: 'Vis mobilitetsblokken som' }).waitFor();
+}
+
 async function startSession(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: 'Start session' }).click();
@@ -304,6 +311,27 @@ const scenarios: Scenario[] = [
   { name: '15h-yoga-tv', yoga: true, viewport: { width: 1280, height: 720 }, run: (p) => p.goto(`/tv/${f.castToken}`).then(() => p.getByText('Tryk OK for lyd').waitFor()) },
   { name: '15i-yoga-tv-kode', viewport: { width: 1280, height: 720 }, run: (p) => p.goto('/tv').then(() => p.getByRole('textbox', { name: 'Kode fra telefonen' }).waitFor()) },
   { name: '15j-yoga-faerdig', yoga: true, run: (p) => playYoga(p, 1300) },
+  // Mobilitetsblokken (planens tjekliste) i en mobilitetssession: vælg tjekliste eller afspiller.
+  { name: '16-mobilitet-tjekliste', run: openMobility },
+  {
+    name: '16b-mobilitet-afspiller-oversigt',
+    full: true,
+    run: async (p) => {
+      await openMobility(p);
+      await p.getByRole('button', { name: 'Afspiller' }).click();
+      await p.getByRole('button', { name: 'Start rutinen' }).waitFor();
+    },
+  },
+  {
+    name: '16c-mobilitet-afspiller',
+    run: async (p) => {
+      await openMobility(p);
+      await p.getByRole('button', { name: 'Afspiller' }).click();
+      await p.getByRole('button', { name: 'Start rutinen' }).click();
+      await p.clock.setFixedTime(new Date(Date.parse(f.NOW) + 20_000));
+      await p.waitForTimeout(400);
+    },
+  },
   { name: '12-login', loggedOut: true, run: (p) => p.goto('/').then(() => p.getByRole('button', { name: /Face ID/ }).waitFor()) },
 ];
 
