@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import type { Session } from '../../shared/plan.schema';
 import type { Workout } from '../../shared/records.schema';
-import { AREA_SHORT, poseName, poseSides, SIDE_LABEL } from '../../shared/yoga';
+import { AREA_SHORT, catalogPose, poseCue, poseName, poseSides, SIDE_LABEL } from '../../shared/yoga';
 import { NoteField } from '../components/NoteField';
 import { clockText, RoutineBar, useLandscape, YogaStage } from '../components/YogaStage';
 import { finishWorkout, patchWorkout } from '../data/workouts';
 import { useCast, useCueSound, useTimeline, useYogaPlayer } from '../data/yoga';
+import { MOBILITY_VIEW_OPTIONS } from '../lib/mobilityView';
 import { useWakeLock } from '../lib/wakeLock';
 import { hasDanishVoice, loadSoundPrefs, previewSound, saveSoundPrefs, unlockYogaAudio, type SoundPrefs } from '../lib/yogaSound';
 import { illustrationFor } from '../logic/illustrations';
@@ -16,6 +17,7 @@ import { Switch } from '../ui/Field';
 import { Figure } from '../ui/Figure';
 import { Card, Group, InsetList } from '../ui/InsetList';
 import { Muted } from '../ui/Screen';
+import { Segmented } from '../ui/Segmented';
 import { Sheet } from '../ui/Sheet';
 
 type YogaSession = Extract<Session, { kind: 'mobilitet' }> & { yoga: NonNullable<Extract<Session, { kind: 'mobilitet' }>['yoga']> };
@@ -26,8 +28,23 @@ const iconButton = 'grid size-10 shrink-0 place-items-center rounded-full bg-sur
  * Yogarutinen: oversigt før start, derefter afspilleren med figur, nedtælling og lyde (klokke ved næste
  * stilling, ding-dong ved skift af side, tik før start, gong til sidst) og evt. stemme. Kan vises på et TV
  * (cast med kode, Chromecast fra Chrome, eller skærmspejling), mens telefonen er fjernbetjening.
+ *
+ * Bruges også til planens mobilitetsblok, når den vises i afspilleren: `onChecklist` skifter tilbage til
+ * tjeklisten, og `onSave` får antallet af gennemførte stillinger, så punkterne kan krydses af.
  */
-export function YogaPage({ workout, session, slug }: { workout: Workout; session: YogaSession; slug: string }) {
+export function YogaPage({
+  workout,
+  session,
+  slug,
+  onChecklist,
+  onSave,
+}: {
+  workout: Workout;
+  session: YogaSession;
+  slug: string;
+  onChecklist?: () => void;
+  onSave?: (reachedPoses: number, complete: boolean) => Promise<void>;
+}) {
   const [, navigate] = useLocation();
   const routine = session.yoga;
   const timeline = useTimeline(routine)!;
@@ -53,6 +70,7 @@ export function YogaPage({ workout, session, slug }: { workout: Workout; session
   const minutes = Math.round(timeline.total / 60_000);
 
   async function save() {
+    if (onSave) await onSave(pos.done ? routine.poses.length : (pos.step?.poseIndex ?? 0), pos.done);
     await patchWorkout(workout.uuid, { duration_sec: Math.round(player.elapsed / 1000) });
     await finishWorkout(workout.uuid);
     if (cast.cast) await cast.stop();
@@ -158,7 +176,15 @@ export function YogaPage({ workout, session, slug }: { workout: Workout; session
           }}
         />
       ) : !started ? (
-        <Overview session={session} minutes={minutes} onStart={player.play} onCast={() => setCastOpen(true)} casting={!!cast.cast} finished={!!workout.finished_at} />
+        <Overview
+          session={session}
+          minutes={minutes}
+          onStart={player.play}
+          onCast={() => setCastOpen(true)}
+          casting={!!cast.cast}
+          finished={!!workout.finished_at}
+          onChecklist={onChecklist}
+        />
       ) : (
         <>
           <div className="pt-4">
@@ -181,10 +207,35 @@ export function YogaPage({ workout, session, slug }: { workout: Workout; session
 }
 
 /** Før start: hvor lang tid, hvilke områder, alle stillinger med tid, og Start. */
-function Overview({ session, minutes, onStart, onCast, casting, finished }: { session: YogaSession; minutes: number; onStart: () => void; onCast: () => void; casting: boolean; finished: boolean }) {
+function Overview({
+  session,
+  minutes,
+  onStart,
+  onCast,
+  casting,
+  finished,
+  onChecklist,
+}: {
+  session: YogaSession;
+  minutes: number;
+  onStart: () => void;
+  onCast: () => void;
+  casting: boolean;
+  finished: boolean;
+  onChecklist?: () => void;
+}) {
   const routine = session.yoga;
   return (
     <div className="pt-4">
+      {onChecklist && (
+        <Segmented
+          className="mb-4"
+          label="Vis mobilitetsblokken som"
+          options={MOBILITY_VIEW_OPTIONS}
+          value="afspiller"
+          onChange={(v) => v === 'tjekliste' && onChecklist()}
+        />
+      )}
       <Card className="mb-6">
         <p className="text-footnote font-semibold tracking-wide text-ink-2 uppercase">Yoga og mobilitet</p>
         <p className="mt-1 flex items-baseline gap-2">
@@ -192,7 +243,7 @@ function Overview({ session, minutes, onStart, onCast, casting, finished }: { se
           <span className="text-unit text-ink-2">min</span>
         </p>
         <p className="mt-2 text-secondary text-ink-2">
-          {routine.poses.length} stillinger{routine.areas.length ? ` · fokus på ${routine.areas.map((a) => AREA_SHORT[a]).join(', ')}` : ''}
+          {routine.poses.length} {onChecklist ? 'øvelser' : 'stillinger'}{routine.areas.length ? ` · fokus på ${routine.areas.map((a) => AREA_SHORT[a]).join(', ')}` : ''}
           {finished && ' · lavet i dag'}
         </p>
         {session.notes.map((n) => (
@@ -229,6 +280,8 @@ function Overview({ session, minutes, onStart, onCast, casting, finished }: { se
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-row">{poseName(p)}</span>
+                  {/* Punkter fra mobilitetsblokken (ikke i yogakataloget): doseringen, fx "2 × 8/side". */}
+                  {!catalogPose(p.poseId) && poseCue(p) && <span className="block truncate text-footnote text-ink-2">{poseCue(p)}</span>}
                   {sides.length > 1 && sides[0].seconds !== sides[1].seconds && (
                     <span className="block text-footnote text-ink-2">Start med {SIDE_LABEL[sides[0].side!]} (strammest)</span>
                   )}

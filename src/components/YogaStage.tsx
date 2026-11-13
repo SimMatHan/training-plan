@@ -19,8 +19,6 @@ export const clockText = (ms: number) => {
 
 const KIND_LABEL: Record<YogaStep['kind'], string> = { klar: 'Gør dig klar', overgang: 'Næste øvelse', skift: 'Skift side', stilling: 'Hold' };
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
 /** Liggende skærm (TV, eller telefonen vendt ved skærmspejling). */
 export function useLandscape() {
   const query = '(orientation: landscape) and (min-width: 560px)';

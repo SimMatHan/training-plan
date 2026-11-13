@@ -1,10 +1,11 @@
 import { CaretDown, CaretLeft, PencilSimple, Plus, Timer } from '@phosphor-icons/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
 import type { Exercise, Plan, Session } from '../../shared/plan.schema';
 import { newExerciseId } from '../../shared/planEdit';
 import type { MobilityCheck, SetLog, Workout } from '../../shared/records.schema';
 import { warmupRound } from '../../shared/mobility';
+import { itemsDone, routineFromMobility } from '../../shared/mobilityRoutine';
 import { formatRange, getExercise, getSession, resolveStrengthSession } from '../../shared/resolve';
 import { scheduledOf } from '../../shared/schedule';
 import { CoachNotes } from '../components/CoachNotes';
@@ -30,10 +31,12 @@ import { EXTRA_STEP, extraSlots, plannedExerciseIds } from '../logic/extras';
 import { moveSlot, orderSlots, parseLayout, serializeLayout, withRemoved, type Layout } from '../logic/layout';
 import { formatLong } from '../lib/dates';
 import { sessionTitle } from '../lib/sessions';
+import { MOBILITY_VIEW_OPTIONS, useMobilityView } from '../lib/mobilityView';
 import { useWakeLock } from '../lib/wakeLock';
 import { mobilityProgress, nextIncomplete, slotProgress, slotSetProgress, type Progress } from '../logic/progress';
 import { ButtonLink, PrimaryButton, SecondaryButton, smallButton, TextButton } from '../ui/Button';
 import { HeroNumber } from '../ui/HeroNumber';
+import { Segmented } from '../ui/Segmented';
 import { Sheet } from '../ui/Sheet';
 import { YogaPage } from './YogaPage';
 
@@ -66,6 +69,7 @@ export function SessionPage() {
   // En flyttet øvelse: følg med, når den nye rækkefølge er gemt og vist.
   const [follow, setFollow] = useState<{ slotId: string; layout: string | null }>();
   const scrolled = useRef(false);
+  const [mobilityView, setMobilityView] = useMobilityView();
   useWakeLock(true);
 
   const plan = active?.plan;
@@ -76,6 +80,10 @@ export function SessionPage() {
   const warmup = !!plan && session?.kind === 'styrke' && warmupRound(plan);
   const roundChecks = useRoundChecks(warmup ? workout?.date : undefined);
   const stepped = !!strength || session?.kind === 'mobilitet';
+  // Mobilitetsblokken som tidsstyret rutine, når den vises i afspilleren i stedet for som tjekliste.
+  const mobilityBlock = plan?.mobility;
+  const mobilityRoutine = useMemo(() => (mobilityBlock ? routineFromMobility({ mobility: mobilityBlock }) : undefined), [mobilityBlock]);
+  const canPlayMobility = session?.kind === 'mobilitet' && !session.yoga && !!mobilityRoutine;
   // Øvelser ud over planen: logget i træningen, men ikke på sessionens pladser i ugen.
   const planned = strength ? plannedExerciseIds(strength.slots) : new Set<string>();
   const extras = plan && strength && logs ? extraSlots(plan, planned, logs.sets) : [];
@@ -125,6 +133,19 @@ export function SessionPage() {
 
   // En yogarutine har sin egen afspiller (med TV-visning).
   if (session?.kind === 'mobilitet' && session.yoga) return <YogaPage workout={workout} session={{ ...session, yoga: session.yoga }} slug={slug} />;
+  // Mobilitetsblokken i afspilleren (valgt på siden). Ved Gem krydses de gennemførte punkter af.
+  if (canPlayMobility && mobilityView === 'afspiller')
+    return (
+      <YogaPage
+        workout={workout}
+        session={{ ...session, yoga: mobilityRoutine! }}
+        slug={slug}
+        onChecklist={() => setMobilityView('tjekliste')}
+        onSave={async (reached, complete) => {
+          await Promise.all(itemsDone(plan, reached, complete).map((id) => setMobilityCheck(workout.uuid, id, true)));
+        }}
+      />
+    );
 
   const timerFor = timer.state?.workoutUuid === workout.uuid;
   const listing = stepped && !finishing;
@@ -254,6 +275,9 @@ export function SessionPage() {
           <CoachNotes notes={weekNotes.filter((n) => n.session_id === workout.planned_session_id && n.session_id)} plan={plan} showSession={false} />
 
           <div className="flex flex-col gap-4">
+            {canPlayMobility && (
+              <Segmented label="Vis mobilitetsblokken som" options={MOBILITY_VIEW_OPTIONS} value={mobilityView} onChange={setMobilityView} />
+            )}
             {mobility && plan.mobility && <MobilitySection plan={plan} checks={mobilityChecks} onToggle={toggleMobility} progress={mobility} warmup={warmup} />}
 
             {slots.map((slot, si) => (
