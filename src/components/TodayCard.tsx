@@ -1,4 +1,4 @@
-import { Check, ListBullets } from '@phosphor-icons/react';
+import { CaretDown, Check, ListBullets } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { ExerciseHistoryEntry } from '../../shared/history';
 import type { PainAssessment } from '../../shared/pain';
@@ -46,6 +46,7 @@ export function TodayCard({
   workouts,
   groin,
   last,
+  part,
 }: {
   plan: Plan;
   week: Week;
@@ -55,9 +56,15 @@ export function TodayCard({
   groin: Map<string, PainAssessment>;
   /** Seneste gang pr. øvelse. */
   last: Map<string, ExerciseHistoryEntry>;
+  /** Kun kortet eller kun øvelserne, så siden kan vise alle dagens kort øverst og øvelserne under dem. */
+  part?: 'card' | 'exercises';
 }) {
   const { status, workout, open, busy } = useSessionOpener(session, week, workouts, scheduled.plannedDay);
   const [overview, setOverview] = useState(false);
+  // Øvelserne er foldet sammen, så dagens kort står samlet øverst.
+  const [expanded, setExpanded] = useState(false);
+  const showCard = part !== 'exercises';
+  const showExercises = part !== 'card';
   const logs = useWorkoutLogs(workout?.uuid);
   // Med en morgenrunde i planen er sessionens mobilitet dagens morgenrunde.
   const warmup = session.kind === 'styrke' && warmupRound(plan);
@@ -89,6 +96,7 @@ export function TodayCard({
 
   return (
     <>
+      {showCard && (
       <Card className="mb-10">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-title">{sessionTitle(session)}</h2>
@@ -119,10 +127,17 @@ export function TodayCard({
           )}
         </div>
       </Card>
+      )}
 
-      {strength && (
+      {showExercises && strength && exercises.length > 0 && (
         <Group
-          title="Øvelser"
+          title={
+            <button type="button" onClick={() => setExpanded((o) => !o)} aria-expanded={expanded} className="-my-2 flex min-h-11 items-center gap-2 text-left">
+              Øvelser
+              <span className="num text-secondary font-normal text-ink-2">{exercises.length}</span>
+              <CaretDown size={18} weight="bold" className={`text-ink-3 transition-transform duration-200 ease-ios ${expanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+          }
           action={
             <button type="button" onClick={() => setOverview(true)} className={smallButton('secondary', 'shrink-0 gap-1.5 px-3')}>
               <ListBullets size={16} weight="bold" aria-hidden="true" />
@@ -130,6 +145,7 @@ export function TodayCard({
             </button>
           }
         >
+          {expanded && (
           <InsetList inset={TILE_INSET}>
             {exercises.map((e) => {
               const r = lastResult(last.get(e.exercise.id), e.exercise.kind);
@@ -146,10 +162,11 @@ export function TodayCard({
               );
             })}
           </InsetList>
+          )}
         </Group>
       )}
 
-      {strength && (
+      {showExercises && strength && (
         <SessionOverview
           open={overview}
           onClose={() => setOverview(false)}

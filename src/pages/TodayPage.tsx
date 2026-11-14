@@ -75,8 +75,9 @@ export function TodayPage() {
               )}
             </Card>
           ) : (
+            // Alle dagens kort (træning og yoga) øverst; øvelserne kan foldes ud under dem.
             todays.map((s) => (
-              <TodayCard key={`${s.sessionId}-${s.plannedDay}`} plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
+              <TodayCard key={`${s.sessionId}-${s.plannedDay}`} part="card" plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
             ))
           )}
           {/* Mobiliteten kan også tages på en dag med træning, når den ikke allerede står som dagens session. */}
@@ -88,6 +89,9 @@ export function TodayPage() {
             </Card>
           )}
           {rounds && <MobilityRounds plan={plan} date={today} />}
+          {todays.map((s) => (
+            <TodayCard key={`${s.sessionId}-${s.plannedDay}-ovelser`} part="exercises" plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
+          ))}
           <MorningPainCards />
           <ProposalBanner />
           <CoachNotes notes={notes} plan={plan} />
