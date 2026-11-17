@@ -15,7 +15,7 @@ export const mmss = (ms: number) => {
  */
 export function RestTimer({ compact, onToggle }: { compact: boolean; onToggle: () => void }) {
   const { state, remainingMs, finished } = useTimer();
-  const { shift, keyboard } = useFixedBottom();
+  const { shift, keyboard, ref } = useFixedBottom();
   // Mens tastaturet er åbent, ville arket dække felterne.
   if (!state || keyboard) return null;
   const progress = state.durationSec ? remainingMs / (state.durationSec * 1000) : 0;
@@ -23,7 +23,7 @@ export function RestTimer({ compact, onToggle }: { compact: boolean; onToggle: (
   const title = finished ? 'Pausen er slut' : `Pause · ${state.label}`;
 
   return (
-    <div role="timer" aria-live={finished ? 'assertive' : 'off'} aria-label={`${title}, ${time}`} className="pb-safe animate-sheet fixed inset-x-0 bottom-0 z-30 rounded-t-card bg-surface shadow-float" style={shift ? { translate: `0 ${shift}px` } : undefined}>
+    <div ref={ref} role="timer" aria-live={finished ? 'assertive' : 'off'} aria-label={`${title}, ${time}`} className="pb-safe animate-sheet fixed inset-x-0 bottom-0 z-30 rounded-t-card bg-surface shadow-float" style={shift ? { translate: `0 ${shift}px` } : undefined}>
       <div className="mx-auto max-w-xl px-4 pt-1.5 pb-4">
         <button type="button" onClick={onToggle} aria-expanded={!compact} aria-label={compact ? 'Vis pausetimeren' : 'Fold pausetimeren sammen'} className="mx-auto flex h-6 w-16 items-center justify-center text-ink-3">
           {compact ? <CaretUp size={18} weight="bold" /> : <CaretDown size={18} weight="bold" />}
