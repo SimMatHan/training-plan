@@ -52,6 +52,8 @@ export function TodayPage() {
   const mobility = getSession(plan, 'mobilitet');
   // Med runder (morgen/aften) tages mobiliteten i rundekortene, ikke som en session på hviledage.
   const rounds = !!plan.mobility?.schedule;
+  // Mobilitet og core tages kun på dage uden styrketræning.
+  const strengthToday = todays.some((s) => getSession(plan, s.sessionId)?.kind === 'styrke');
   const last = new Map<string, ExerciseHistoryEntry>((overview ?? []).map((o) => [o.exerciseId, o.last]));
   const accessory = (
     <>
@@ -80,8 +82,8 @@ export function TodayPage() {
               <TodayCard key={`${s.sessionId}-${s.plannedDay}`} part="card" plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
             ))
           )}
-          {/* Mobiliteten kan også tages på en dag med træning, når den ikke allerede står som dagens session. */}
-          {todays.length > 0 && mobility && plan.mobility && !rounds && !todays.some((s) => s.sessionId === mobility.id) && (
+          {/* Mobiliteten kan også tages på en dag med løb, når den ikke allerede står som dagens session. Ikke på styrkedage. */}
+          {todays.length > 0 && !strengthToday && mobility && plan.mobility && !rounds && !todays.some((s) => s.sessionId === mobility.id) && (
             <Card className="mb-10">
               <h2 className="text-title">{sessionTitle(mobility)}</h2>
               <Muted className="mt-0.5">Kan tages ved siden af dagens træning.</Muted>
