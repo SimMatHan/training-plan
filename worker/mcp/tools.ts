@@ -459,7 +459,7 @@ export const TOOLS: ToolDef[] = [
     name: 'hent_ovelseshistorik',
     title: 'Historik for én øvelse',
     description:
-      'Hver gang en øvelse er logget, nyeste først: dato, uge, sæt med vægt/reps/side, RPE, note, og om "Klar til mere vægt" var udløst. ' +
+      'Hver gang en øvelse er logget, nyeste først: dato, uge, sæt med vægt/reps/side, RPE, note, valgt mulighed (for "X eller Y"-øvelser), og om "Klar til mere vægt" var udløst. ' +
       'Brug list_ovelser for at finde exerciseId, fx "enbens-rdl".',
     input: z.object({
       exerciseId: Slug.max(80).describe('Øvelsens id fra list_ovelser'),
@@ -491,6 +491,7 @@ export const TOOLS: ToolDef[] = [
             sæt: h.sets.map((s) => compact({ nr: s.set_no, side: s.side, kg: s.weight_kg, reps: s.reps, sek: s.seconds })),
             rpe: h.rpe,
             note: h.note,
+            valgt: h.variant ?? undefined,
             topKg: h.topWeight,
             volumenKg: h.volumeKg || null,
             klarTilMereVægt: ready,

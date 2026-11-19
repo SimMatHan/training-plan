@@ -146,9 +146,9 @@ export async function upsertSet(
   );
 }
 
-export async function upsertExerciseNote(workoutUuid: string, exerciseId: string, patch: Partial<Pick<ExerciseNote, 'note' | 'rpe'>>) {
+export async function upsertExerciseNote(workoutUuid: string, exerciseId: string, patch: Partial<Pick<ExerciseNote, 'note' | 'rpe' | 'variant'>>) {
   const uuid = await deterministicUuid('note', workoutUuid, exerciseId);
-  return upsertRecord('exercise_notes', uuid, { uuid, workout_uuid: workoutUuid, exercise_id: exerciseId, note: null, rpe: null }, patch);
+  return upsertRecord('exercise_notes', uuid, { uuid, workout_uuid: workoutUuid, exercise_id: exerciseId, note: null, rpe: null, variant: null }, patch);
 }
 
 export async function setMobilityCheck(workoutUuid: string, itemId: string, done: boolean) {
@@ -183,8 +183,8 @@ export function useWorkoutLogs(workoutUuid: string | undefined) {
   );
 }
 
-/** "Sidste gang" for en øvelse, set fra den aktuelle træning. */
-export function useLastTime(exerciseId: string, currentWorkoutUuid: string): LastTime | undefined {
+/** "Sidste gang" for en øvelse, set fra den aktuelle træning. Med `variant`: sidste gang den mulighed blev taget. */
+export function useLastTime(exerciseId: string, currentWorkoutUuid: string, variant?: string | null): LastTime | undefined {
   return useLiveQuery(async () => {
     const current = await db.workouts.get(currentWorkoutUuid);
     if (!current) return undefined;
@@ -195,8 +195,8 @@ export function useLastTime(exerciseId: string, currentWorkoutUuid: string): Las
       db.workouts.bulkGet(workoutIds),
       db.exercise_notes.where('exercise_id').equals(exerciseId).toArray(),
     ]);
-    return pickLastTime(exerciseId, current, workouts.filter(alive), sets, notes);
-  }, [exerciseId, currentWorkoutUuid]);
+    return pickLastTime(exerciseId, current, workouts.filter(alive), sets, notes, variant);
+  }, [exerciseId, currentWorkoutUuid, variant]);
 }
 
 // ─── Aktiviteter uden for planen (padel o.l.) ───────────────────────────────
