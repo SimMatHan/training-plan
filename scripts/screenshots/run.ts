@@ -168,6 +168,19 @@ const scenarios: Scenario[] = [
     },
   },
   {
+    name: '4l-eller-oevelse',
+    run: async (p) => {
+      await p.goto('/uge');
+      await p.getByRole('button', { name: 'Start Styrke B' }).click();
+      await p.waitForURL(/\/session\//);
+      const card = p.getByRole('article', { name: /Kabelrows/ }).first();
+      await card.getByRole('button', { name: 'Håndvægtsrows', exact: true }).click();
+      await card.evaluate((e) => e.scrollIntoView({ block: 'start' }));
+      await p.evaluate('window.scrollBy(0, -96)');
+      await p.waitForTimeout(300);
+    },
+  },
+  {
     name: '4i-saetur',
     run: async (p) => {
       const card = await toExercise(p, /Copenhagen plank/);

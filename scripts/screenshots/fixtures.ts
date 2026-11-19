@@ -113,7 +113,7 @@ for (const week of plan.weeks.filter((w) => w.weekNo <= 5)) {
               rpe: null,
               done: true,
             });
-          notes.push({ uuid: uuid(), updated_at: w.updated_at, deleted_at: null, workout_uuid: w.uuid, exercise_id: ex.exercise.id, note: null, rpe: 7 });
+          notes.push({ uuid: uuid(), updated_at: w.updated_at, deleted_at: null, workout_uuid: w.uuid, exercise_id: ex.exercise.id, note: null, rpe: 7, variant: null });
         }
     }
     if (kind !== 'mobilitet') {

@@ -82,6 +82,8 @@ export const ExerciseNote = z.object({
   exercise_id: Slug,
   note: z.string().nullable(),
   rpe: Rpe.nullable(),
+  /** Hvilken mulighed der blev taget, når øvelsen hedder "X eller Y" (se shared/choices.ts). Null = ikke valgt. */
+  variant: z.string().trim().min(1).max(60).nullable().default(null),
 });
 export type ExerciseNote = z.infer<typeof ExerciseNote>;
 

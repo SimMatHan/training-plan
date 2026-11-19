@@ -153,6 +153,7 @@ export function ExerciseHistoryPage() {
                       title={formatShort(e.date)}
                       detail={
                         <>
+                          {e.variant && `${e.variant}: `}
                           {summarizeSets(e.sets, kind)}
                           {e.rpe != null && `, RPE ${formatDecimal(e.rpe)}`}
                           {e.note && <span className="block">“{e.note}”</span>}

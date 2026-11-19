@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, ChartLineUp, Copy, DotsThreeVertical, Minus, NotePencil, Plus, Swap, Timer, Trash } from '@phosphor-icons/react';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
+import { exerciseChoices } from '../../shared/choices';
 import type { Exercise, Plan } from '../../shared/plan.schema';
 import { findPlannedDose, readyForMoreWeight } from '../../shared/progression';
 import type { ExerciseNote, SetLog } from '../../shared/records.schema';
@@ -23,6 +24,7 @@ import { keptRows, type Layout } from '../logic/layout';
 import { sidesDiffer, toRounds, type Round } from '../logic/rounds';
 import { Switch } from '../ui/Field';
 import { InsetList, InsetRow } from '../ui/InsetList';
+import { Segmented } from '../ui/Segmented';
 import { Sheet } from '../ui/Sheet';
 import { fieldsOf, gridOf, SetRow } from './SetRow';
 
@@ -104,7 +106,10 @@ export function ExerciseBlock({
   const extraRows = extraSetRows(allPlanned, mine, exercise, dose);
   const rows = [...plannedRows, ...extraRows];
   const note = notes.find((n) => n.exercise_id === exercise.id);
-  const last = useLastTime(exercise.id, workoutUuid);
+  // "Kabelrows eller håndvægtsrows": vælg hvilken der tages i dag, så "sidst" og forslagene følger den.
+  const choices = exerciseChoices(label);
+  const variant = choices.length && note?.variant && choices.includes(note.variant) ? note.variant : null;
+  const last = useLastTime(exercise.id, workoutUuid, variant);
   const history = useExerciseHistory(exercise.id);
 
   const logFor = (side: string | null, setNo: number) => mine.find((s) => s.side === side && s.set_no === setNo);
@@ -129,7 +134,7 @@ export function ExerciseBlock({
 
   // Ny rekord: et færdigt sæt i dag slår alle tidligere sæt (vægt × reps, ellers reps/sekunder).
   const doneToday = mine.filter((s) => s.done);
-  const before = bestScore((history ?? []).filter((e) => e.workoutUuid !== workoutUuid).flatMap((e) => e.sets), exercise.kind);
+  const before = bestScore((history ?? []).filter((e) => e.workoutUuid !== workoutUuid && (!variant || e.variant === variant)).flatMap((e) => e.sets), exercise.kind);
   const record = before != null && before > 0 && doneToday.some((s) => setScore(s, exercise.kind) > before);
 
   const meta = [formatDose(exercise, dose), formatIntensity(dose)].filter(Boolean).join(' · ');
@@ -204,6 +209,18 @@ export function ExerciseBlock({
             <DotsThreeVertical size={24} weight="bold" aria-hidden="true" />
           </button>
         </div>
+
+        {choices.length > 0 && (
+          <div className="mt-3">
+            <Segmented
+              label={`Hvilken ${label.toLowerCase()} i dag`}
+              options={choices.map((c) => ({ value: c, label: c }))}
+              value={variant ?? ''}
+              onChange={(v) => void upsertExerciseNote(workoutUuid, exercise.id, { variant: v })}
+            />
+            {!variant && last?.variant && <p className="mt-1 px-1 text-footnote text-ink-2">Sidst: {last.variant}</p>}
+          </div>
+        )}
 
         {(record || ready || (resolved.planned.cue && !useAlt) || dose.tempo || dose.note || last?.note) && (
           <div className="mt-2 flex flex-col gap-1">
