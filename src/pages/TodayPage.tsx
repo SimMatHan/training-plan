@@ -23,7 +23,8 @@ import { useMe } from '../lib/auth';
 import { formatLong, todayIso, weekday, WEEKDAYS_SHORT } from '../lib/dates';
 import { sessionDetail, sessionTitle } from '../lib/sessions';
 import { Avatar } from '../ui/Avatar';
-import { SecondaryButton } from '../ui/Button';
+import { PrimaryButton, SecondaryButton } from '../ui/Button';
+import { preferPlayer } from '../lib/mobilityView';
 import { Card, Group, InsetList, InsetRow, RowText } from '../ui/InsetList';
 import { Muted, Screen } from '../ui/Screen';
 import { PlanStatus } from './PlanStatus';
@@ -90,7 +91,15 @@ export function TodayPage() {
               <RestDayMobility session={mobility} week={week} workouts={workouts} />
             </Card>
           )}
-          {rounds && <MobilityRounds plan={plan} date={today} />}
+          {/* Med runder: afspilleren øverst (timer og øvelserne på hele skærmen), tjeklisten under. Ikke på styrkedage. */}
+          {rounds && !strengthToday && mobility && (
+            <Card className="mb-3">
+              <h2 className="text-title">{sessionTitle(mobility)}</h2>
+              <Muted className="mt-0.5">Afspiller med timer og øvelserne på hele skærmen.</Muted>
+              <RestDayMobility session={mobility} week={week} workouts={workouts} primary />
+            </Card>
+          )}
+          {rounds && !strengthToday && <MobilityRounds plan={plan} date={today} collapsed={!!mobility} />}
           {todays.map((s) => (
             <TodayCard key={`${s.sessionId}-${s.plannedDay}-ovelser`} part="exercises" plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
           ))}
@@ -152,12 +161,31 @@ export function StatusIcon({ status }: { status: SessionStatus | undefined }) {
   );
 }
 
-function RestDayMobility({ session, week, workouts }: { session: NonNullable<ReturnType<typeof getSession>>; week: Week; workouts: ReturnType<typeof useWeekWorkouts> }) {
+function RestDayMobility({
+  session,
+  week,
+  workouts,
+  primary = false,
+}: {
+  session: NonNullable<ReturnType<typeof getSession>>;
+  week: Week;
+  workouts: ReturnType<typeof useWeekWorkouts>;
+  primary?: boolean;
+}) {
   const { status, open, busy } = useSessionOpener(session, week, workouts);
+  const Button = primary ? PrimaryButton : SecondaryButton;
   return (
-    <SecondaryButton onClick={() => void open()} disabled={busy || !workouts} className="mt-4">
+    <Button
+      onClick={() => {
+        // "Start mobilitet" åbner altid afspilleren; tjeklisten kan vælges inde i den.
+        preferPlayer();
+        void open();
+      }}
+      disabled={busy || !workouts}
+      className="mt-4"
+    >
       {status === 'lavet' ? 'Mobilitet lavet · vis' : status === 'i-gang' ? 'Fortsæt mobilitet' : 'Start mobilitet'}
-    </SecondaryButton>
+    </Button>
   );
 }
 

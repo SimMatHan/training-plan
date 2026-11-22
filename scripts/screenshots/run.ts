@@ -22,6 +22,8 @@ type Scenario = {
   loggedOut?: boolean;
   /** Planen med en yogarutine mandag i uge 6. */
   yoga?: boolean;
+  /** Planen med mobilitetsblokken som morgenrunde. */
+  rounds?: boolean;
   viewport?: { width: number; height: number };
   run: (page: Page) => Promise<void>;
 };
@@ -36,8 +38,9 @@ async function playYoga(page: Page, sec: number, pause = false) {
   await page.waitForTimeout(400);
 }
 
-/** Åbner dagens mobilitetssession fra I dag. */
+/** Åbner dagens mobilitetssession fra I dag. Tirsdag (løb): mobiliteten vises ikke på styrkedage. */
 async function openMobility(page: Page) {
+  await page.clock.setFixedTime(new Date(Date.parse(f.NOW) + 86_400_000));
   await page.goto('/');
   await page.getByRole('button', { name: 'Start mobilitet' }).click();
   await page.getByRole('group', { name: 'Vis mobilitetsblokken som' }).waitFor();
@@ -324,8 +327,16 @@ const scenarios: Scenario[] = [
   { name: '15h-yoga-tv', yoga: true, viewport: { width: 1280, height: 720 }, run: (p) => p.goto(`/tv/${f.castToken}`).then(() => p.getByText('Tryk OK for lyd').waitFor()) },
   { name: '15i-yoga-tv-kode', viewport: { width: 1280, height: 720 }, run: (p) => p.goto('/tv').then(() => p.getByRole('textbox', { name: 'Kode fra telefonen' }).waitFor()) },
   { name: '15j-yoga-faerdig', yoga: true, run: (p) => playYoga(p, 1300) },
-  // Mobilitetsblokken (planens tjekliste) i en mobilitetssession: vælg tjekliste eller afspiller.
-  { name: '16-mobilitet-tjekliste', run: openMobility },
+  // Mobilitetsblokken i en mobilitetssession: afspilleren som standard, tjeklisten kan vælges.
+  {
+    name: '16-mobilitet-tjekliste',
+    run: async (p) => {
+      // Afspilleren er standard; tjeklisten vælges inde i den.
+      await openMobility(p);
+      await p.getByRole('button', { name: 'Tjekliste', exact: true }).click();
+      await p.getByRole('button', { name: 'Afspiller', exact: true }).waitFor();
+    },
+  },
   {
     name: '16b-mobilitet-afspiller-oversigt',
     full: true,
@@ -341,15 +352,32 @@ const scenarios: Scenario[] = [
       await openMobility(p);
       await p.getByRole('button', { name: 'Afspiller' }).click();
       await p.getByRole('button', { name: 'Start rutinen' }).click();
-      await p.clock.setFixedTime(new Date(Date.parse(f.NOW) + 20_000));
+      await p.clock.setFixedTime(new Date(Date.parse(f.NOW) + 86_400_000 + 20_000));
       await p.waitForTimeout(400);
+    },
+  },
+  {
+    name: '16d-mobilitet-morgenrunde-i-dag',
+    rounds: true,
+    run: async (p) => {
+      await p.clock.setFixedTime(new Date(Date.parse(f.NOW) + 86_400_000));
+      await p.goto('/');
+      await p.getByRole('button', { name: 'Start mobilitet' }).waitFor();
+    },
+  },
+  {
+    name: '16e-mobilitet-morgenrunde-afspiller',
+    rounds: true,
+    run: async (p) => {
+      await openMobility(p);
+      await p.getByRole('button', { name: 'Start rutinen' }).waitFor();
     },
   },
   { name: '12-login', loggedOut: true, run: (p) => p.goto('/').then(() => p.getByRole('button', { name: /Face ID/ }).waitFor()) },
 ];
 
 let pulled = false;
-async function api(route: Route, loggedOut: boolean, yoga: boolean) {
+async function api(route: Route, loggedOut: boolean, yoga: boolean, rounds = false) {
   const url = new URL(route.request().url());
   const p = url.pathname.replace(/^\/api/, '').replace(/^\/a\/simon/, '');
   const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
@@ -362,7 +390,7 @@ async function api(route: Route, loggedOut: boolean, yoga: boolean) {
     return json({ title: 'Yoga · hofter og ankler', routine: f.yogaRoutine, state: { playing: true, elapsedMs: 95_000, tvSound: true }, stateAt: now, serverNow: now, tvSeenAt: now, ended: false });
   if (loggedOut) return json({ error: 'Ikke logget ind' }, 401);
   if (p === '/me') return json(f.me);
-  if (p === '/plan/active') return json({ meta: f.meta, plan: yoga ? f.planWithYoga : f.plan });
+  if (p === '/plan/active') return json({ meta: f.meta, plan: yoga ? f.planWithYoga : rounds ? f.planWithRounds : f.plan });
   if (p === '/plan/versions' && route.request().method() === 'POST') return json({ meta: { ...f.meta, version: 2 }, plan: f.plan, diff: [] });
   if (p === '/plan/versions') return json([f.meta]);
   if (p === '/profile') return json(f.profile);
@@ -406,7 +434,7 @@ try {
       });
       await context.clock.setFixedTime(new Date(f.NOW));
       pulled = false;
-      await context.route('**/api/**', (r) => api(r, !!s.loggedOut, !!s.yoga));
+      await context.route('**/api/**', (r) => api(r, !!s.loggedOut, !!s.yoga, !!s.rounds));
       // SF Pro findes ikke på Linux: Inter er den nærmeste stedfortræder.
       await context.addInitScript({
         content: `addEventListener('DOMContentLoaded', () => {

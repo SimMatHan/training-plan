@@ -1,7 +1,7 @@
 import { CaretDown, CaretLeft, PencilSimple, Plus, Timer } from '@phosphor-icons/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
-import type { Exercise, Plan, Session } from '../../shared/plan.schema';
+import type { Exercise, MobilityRound, Plan, Session } from '../../shared/plan.schema';
 import { newExerciseId } from '../../shared/planEdit';
 import type { MobilityCheck, SetLog, Workout } from '../../shared/records.schema';
 import { warmupRound } from '../../shared/mobility';
@@ -49,6 +49,12 @@ const slotDomId = (slotId: string) => `plads-${slotId}`;
  * mobiliteten (hvis planen siger før) og alle øvelserne med deres sættabeller. "Afslut" i
  * toppen fører til smerte, RPE og note. Løb og aktiviteter har kun afslutningen.
  */
+/** Runden, en afspillet mobilitetsblok tæller som: aften efter kl. 14, hvis planen har en aftenrunde, ellers den første. */
+function roundNow(schedule: MobilityRound[] | undefined): MobilityRound | undefined {
+  if (!schedule?.length) return undefined;
+  return schedule.includes('aften') && new Date().getHours() >= 14 ? 'aften' : schedule[0];
+}
+
 export function SessionPage() {
   const [, params] = useRoute('/session/:uuid');
   const uuid = params?.uuid;
@@ -142,7 +148,10 @@ export function SessionPage() {
         slug={slug}
         onChecklist={() => setMobilityView('tjekliste')}
         onSave={async (reached, complete) => {
-          await Promise.all(itemsDone(plan, reached, complete).map((id) => setMobilityCheck(workout.uuid, id, true)));
+          const done = itemsDone(plan, reached, complete);
+          // Med runder (morgen/aften) krydses også dagens runde af, så den står som lavet på I dag.
+          const round = roundNow(plan.mobility?.schedule);
+          await Promise.all(done.flatMap((id) => [setMobilityCheck(workout.uuid, id, true), ...(round ? [setRoundCheck(workout.date, round, id, true)] : [])]));
         }}
       />
     );

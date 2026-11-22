@@ -1,5 +1,5 @@
 // Hvordan mobilitetsblokken vises i en mobilitetssession: som tjekliste eller i afspilleren (stor figur,
-// nedtælling og lyd, som en yogarutine). Valget huskes på telefonen.
+// nedtælling og lyd, som en yogarutine). Afspilleren er standard; valget huskes på telefonen.
 import { useCallback, useState } from 'react';
 
 export type MobilityView = 'tjekliste' | 'afspiller';
@@ -8,9 +8,18 @@ const KEY = 'traeningsnav.mobilityView';
 
 export function loadMobilityView(): MobilityView {
   try {
-    return localStorage.getItem(KEY) === 'afspiller' ? 'afspiller' : 'tjekliste';
+    return localStorage.getItem(KEY) === 'tjekliste' ? 'tjekliste' : 'afspiller';
   } catch {
-    return 'tjekliste';
+    return 'afspiller';
+  }
+}
+
+/** Åbner mobilitetssessionen i afspilleren næste gang (knappen "Start mobilitet" på I dag). */
+export function preferPlayer() {
+  try {
+    localStorage.setItem(KEY, 'afspiller');
+  } catch {
+    // Privat tilstand: afspilleren er standard alligevel.
   }
 }
 

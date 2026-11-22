@@ -10,7 +10,7 @@ const ROUND_TITLE: Record<MobilityRound, string> = { morgen: 'Morgen', aften: 'A
  * runde, uden for sessionerne. Den første runde, der ikke er lavet, står åben. Morgenrunden kan også
  * krydses af som opvarmning i en styrkesession; det er de samme afkrydsninger.
  */
-export function MobilityRounds({ plan, date }: { plan: Plan; date: string }) {
+export function MobilityRounds({ plan, date, collapsed = false }: { plan: Plan; date: string; /** Alle runder foldet sammen (når afspilleren står over dem). */ collapsed?: boolean }) {
   const checks = useRoundChecks(date);
   const rounds = plan.mobility?.schedule;
   if (!plan.mobility || !rounds || !checks) return null;
@@ -27,7 +27,7 @@ export function MobilityRounds({ plan, date }: { plan: Plan; date: string }) {
           checks={checks.filter((c) => c.round === round)}
           onToggle={(itemId, done) => void setRoundCheck(date, round, itemId, done)}
           progress={progress[i]}
-          defaultOpen={i === first}
+          defaultOpen={!collapsed && i === first}
         />
       ))}
     </section>
