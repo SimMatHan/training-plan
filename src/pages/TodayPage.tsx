@@ -91,7 +91,7 @@ export function TodayPage() {
               <RestDayMobility session={mobility} week={week} workouts={workouts} />
             </Card>
           )}
-          {/* Med runder: afspilleren øverst (timer og øvelserne på hele skærmen), tjeklisten under. Ikke på styrkedage. */}
+          {/* Med runder: kun afspilleren (timer og øvelserne på hele skærmen). Ikke på styrkedage. */}
           {rounds && !strengthToday && mobility && (
             <Card className="mb-3">
               <h2 className="text-title">{sessionTitle(mobility)}</h2>
@@ -99,7 +99,8 @@ export function TodayPage() {
               <RestDayMobility session={mobility} week={week} workouts={workouts} primary />
             </Card>
           )}
-          {rounds && !strengthToday && <MobilityRounds plan={plan} date={today} collapsed={!!mobility} />}
+          {/* Tjeklisten for runden kun, hvis planen ingen mobilitetssession har at afspille. */}
+          {rounds && !strengthToday && !mobility && <MobilityRounds plan={plan} date={today} />}
           {todays.map((s) => (
             <TodayCard key={`${s.sessionId}-${s.plannedDay}-ovelser`} part="exercises" plan={plan} week={week} scheduled={s} session={getSession(plan, s.sessionId)!} workouts={workouts} groin={groin} last={last} />
           ))}
