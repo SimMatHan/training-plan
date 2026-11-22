@@ -49,6 +49,8 @@ export default defineConfig({
         // Worker-ruter: må aldrig få app-skallen fra service workeren (fx /authorize i browseren).
         navigateFallbackDenylist: [/^\/api\//, /^\/cal\//, /^\/mcp/, /^\/authorize/, /^\/oauth\//, /^\/\.well-known\//],
         cleanupOutdatedCaches: true,
+        // Påmindelser: push- og klik-håndtering (public/push-sw.js).
+        importScripts: ['push-sw.js'],
         // Første installation overtager siden med det samme (offline fra første besøg).
         // Senere versioner venter stadig på "Opdater" (skipWaiting er slået fra).
         clientsClaim: true,

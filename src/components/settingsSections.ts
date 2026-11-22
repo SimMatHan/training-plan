@@ -1,6 +1,6 @@
 // Sektionerne i Indstillinger: titel, ikon og en kort forklaring. Bruges både af sektionernes
 // overskrifter og af oversigten øverst, så de altid stemmer overens.
-import { CalendarBlank, ClipboardText, Database, DeviceMobile, Heartbeat, LockKey, Sparkle, UserCircle, UserPlus, Users, type Icon } from '@phosphor-icons/react';
+import { Bell, CalendarBlank, ClipboardText, Database, DeviceMobile, Heartbeat, LockKey, Sparkle, UserCircle, UserPlus, Users, type Icon } from '@phosphor-icons/react';
 
 export interface SettingsSection {
   id: string;
@@ -21,6 +21,7 @@ export const SECTIONS = {
     'Smerte-monitors får en score efter hver træning og et spørgsmål morgenen efter (trafiklys). Mobilitetstests minder dig om en ny måling efter 14 dage.',
   ),
   deling: section('deling', 'Deling', Users, 'En træner kan se din uge, historik og Claudes forslag og bruge Claude til at lave dit program. Kun du kan logge og godkende forslag.'),
+  paamindelser: section('paamindelser', 'Påmindelser', Bell, 'En notifikation kl. 6 om morgenen på dage uden styrketræning, så du husker mobilitet. Gælder denne telefon.'),
   kalender: section('kalender', 'Kalender', CalendarBlank, 'Abonnér på træningsplanen i din kalender. Den opdaterer sig selv, når planen ændres, når du logger en session, og når du flytter en.'),
   claude: section('claude', 'Claude', Sparkle, 'Én forbindelse pr. atlet, så Claude aldrig blander jeres data.'),
   sikkerhed: section('sikkerhed', 'Sikkerhed', LockKey, 'Du logger ind med en passkey (Face ID). Passkeys fra iCloud-nøgleringen virker på alle dine Apple-enheder.'),

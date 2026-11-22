@@ -9,6 +9,11 @@
 		"enabled": true
 	},
 	"minify": true,
+	// Morgenpåmindelsen om mobilitet kl. 6 dansk tid. Cron er i UTC: kl. 4 (sommertid) og 5 (vintertid);
+	// koden sender kun i den kørsel, hvor klokken er 6 i Danmark.
+	"triggers": {
+		"crons": ["0 4 * * *", "0 5 * * *"]
+	},
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS",
