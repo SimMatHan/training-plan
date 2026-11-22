@@ -24,6 +24,8 @@ export interface ExerciseHistoryEntry {
   sets: SetLog[];
   rpe: number | null;
   note: string | null;
+  /** Den valgte mulighed for en "X eller Y"-øvelse. */
+  variant: string | null;
   topWeight: number | null;
   /** Σ vægt × reps (kg). */
   volumeKg: number;
@@ -57,6 +59,7 @@ export function exerciseHistory(
         sets: counted,
         rpe: note?.rpe ?? null,
         note: note?.note || null,
+        variant: note?.variant ?? null,
         topWeight: weights.length ? Math.max(...weights) : null,
         volumeKg: Math.round(counted.reduce((sum, s) => sum + (s.weight_kg ?? 0) * (s.reps ?? 0), 0) * 10) / 10,
         totalReps: counted.reduce((sum, s) => sum + (s.reps ?? 0), 0),

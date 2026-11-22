@@ -3,6 +3,7 @@ import planJson from '../plan/plan.v1.json';
 import { PlanSchema } from '../shared/plan.schema';
 import type { SetLog, Workout } from '../shared/records.schema';
 import { resolveStrengthSession } from '../shared/resolve';
+import { exerciseChoices } from '../shared/choices';
 import { ghostFor, pickLastTime, previousSet, summarizeSets } from '../src/logic/lastTime';
 import { formatDecimal, parseDecimal, sanitizeDecimal } from '../src/logic/numbers';
 import { restAfter } from '../src/logic/rest';
@@ -99,6 +100,18 @@ describe('sidste gang', () => {
     expect(previousSet(undefined, ['H'], 1, 'weight_reps')).toBeUndefined();
     const bodyweight = pickLastTime('enbens-rdl', { uuid: C, date: '2026-10-12' }, [workout(A, '2026-09-28')], [set(A, 1, null, null, 12)], [])!;
     expect(previousSet(bodyweight, [null], 1, 'bodyweight_reps')).toBe('12 reps');
+  });
+
+  it('følger den valgte mulighed for en "X eller Y"-øvelse', () => {
+    const T = '2026-10-05T18:00:00.000Z';
+    const note = (w: string, variant: string | null) => ({ uuid: w, updated_at: T, deleted_at: null, workout_uuid: w, exercise_id: 'enbens-rdl', note: null, rpe: null, variant });
+    const notes = [note(A, 'Kabelrows'), note(B, 'Håndvægtsrows')];
+    const now = { uuid: C, date: '2026-10-12' };
+    expect(pickLastTime('enbens-rdl', now, workouts, sets, notes)?.variant).toBe('Håndvægtsrows');
+    expect(pickLastTime('enbens-rdl', now, workouts, sets, notes, 'Kabelrows')?.workout.uuid).toBe(A);
+    expect(pickLastTime('enbens-rdl', now, workouts, sets, notes, 'Andet')).toBeUndefined();
+    expect(exerciseChoices('Kabelrows eller håndvægtsrows')).toEqual(['Kabelrows', 'Håndvægtsrows']);
+    expect(exerciseChoices('Hip thrust')).toEqual([]);
   });
 
   it('opsummerer sæt', () => {

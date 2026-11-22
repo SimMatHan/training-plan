@@ -3,6 +3,7 @@ import type { PlanVersionMeta } from '../../shared/records.schema';
 import { AccountSection, MonitoringSection, SecuritySection, SharingSection, UsersSection } from '../components/AccountSections';
 import { CalendarSection } from '../components/CalendarSection';
 import { ClaudeSection } from '../components/ClaudeSection';
+import { ReminderSection } from '../components/ReminderSection';
 import { PrimaryButton, SecondaryButton, smallButton } from '../ui/Button';
 import { Card, Group, InsetList, InsetRow, RowText, SectionIcon, Subheading } from '../ui/InsetList';
 import { groupProps, SECTIONS } from '../components/settingsSections';
@@ -129,6 +130,8 @@ export function SettingsPage() {
       <MonitoringSection />
 
       <SharingSection />
+
+      <ReminderSection />
 
       <CalendarSection />
 

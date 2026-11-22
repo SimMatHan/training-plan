@@ -8,25 +8,32 @@ export interface LastTime {
   sets: SetLog[];
   rpe: number | null;
   note: string | null;
+  /** Den valgte mulighed for en "X eller Y"-øvelse. */
+  variant: string | null;
 }
 
 const hasValue = (s: SetLog) => s.done || s.reps != null || s.seconds != null || s.weight_kg != null;
 
-/** Seneste træning før (eller samme dag som) den aktuelle, hvor øvelsen blev logget. */
+/**
+ * Seneste træning før (eller samme dag som) den aktuelle, hvor øvelsen blev logget. Med `variant`
+ * (for "X eller Y"-øvelser) kun de træninger, hvor den mulighed var valgt.
+ */
 export function pickLastTime(
   exerciseId: string,
   current: { uuid: string; date: string },
   workouts: Workout[],
   setLogs: SetLog[],
   notes: ExerciseNote[],
+  variant?: string | null,
 ): LastTime | undefined {
+  const noteOf = (workoutUuid: string) => notes.find((n) => n.workout_uuid === workoutUuid && n.exercise_id === exerciseId && !n.deleted_at);
   const byWorkout = new Map<string, SetLog[]>();
   for (const s of setLogs) {
     if (s.exercise_id !== exerciseId || s.deleted_at || s.workout_uuid === current.uuid || !hasValue(s)) continue;
     byWorkout.set(s.workout_uuid, [...(byWorkout.get(s.workout_uuid) ?? []), s]);
   }
   const candidates = workouts
-    .filter((w) => !w.deleted_at && byWorkout.has(w.uuid) && w.date <= current.date)
+    .filter((w) => !w.deleted_at && byWorkout.has(w.uuid) && w.date <= current.date && (!variant || noteOf(w.uuid)?.variant === variant))
     .sort((a, b) => (a.date === b.date ? (b.started_at ?? '').localeCompare(a.started_at ?? '') : b.date.localeCompare(a.date)));
   const workout = candidates[0];
   if (!workout) return undefined;
@@ -34,8 +41,8 @@ export function pickLastTime(
   const sets = (done.some((s) => s.done) ? done.filter((s) => s.done) : done).sort(
     (a, b) => a.set_no - b.set_no || (a.side ?? '').localeCompare(b.side ?? ''),
   );
-  const note = notes.find((n) => n.workout_uuid === workout.uuid && n.exercise_id === exerciseId && !n.deleted_at);
-  return { workout, sets, rpe: note?.rpe ?? null, note: note?.note || null };
+  const note = noteOf(workout.uuid);
+  return { workout, sets, rpe: note?.rpe ?? null, note: note?.note || null, variant: note?.variant ?? null };
 }
 
 export interface Ghost {

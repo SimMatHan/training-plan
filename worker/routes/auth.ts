@@ -21,6 +21,7 @@ import { appOrigin, clearSessionCookie, clientIp, requireAdmin, requireSession, 
 import type { AppEnv } from '../env';
 import { assertPositiveId, createAthleteForUser, getSharing, grantCoach, listAthletesForUser, ownAthlete, updateAthlete } from '../services/athletes';
 import { authAttemptStatus, recordAuthAttempt } from '../services/audit';
+import { getVapidKeys, isSubscribed, sendPush, subscribePush, unsubscribePush } from '../services/push';
 import { ConflictError, NotFoundError, ValidationError } from '../services/errors';
 import {
   addPasskey,
@@ -220,6 +221,8 @@ const Onboarding = z.object({
   coach: z.boolean(),
 });
 
+const PushBody = z.object({ endpoint: z.string().max(1000) });
+
 export const meRoutes = new Hono<AppEnv>()
   .use('*', requireSession)
   .get('/', async (c) => c.json(await getMe(c.env.DB, c.var.user)))
@@ -260,6 +263,32 @@ export const meRoutes = new Hono<AppEnv>()
     if (await findPasskey(c.env.DB, key.credentialId)) throw new ConflictError('Den passkey er allerede tilføjet');
     await addPasskey(c.env.DB, { userId: c.var.user.id, ...key, label: body.label || deviceLabel(c.req.header('User-Agent')) });
     return c.json(await listPasskeys(c.env.DB, c.var.user.id));
+  })
+  // Påmindelser (Web Push) til denne enhed. Gælder brugerens egen atlet.
+  .get('/push/key', async (c) => c.json({ publicKey: (await getVapidKeys(c.env.DB)).publicKey }))
+  .post('/push/status', async (c) => {
+    const { endpoint } = PushBody.parse(await c.req.json());
+    return c.json({ subscribed: await isSubscribed(c.env.DB, c.var.user.id, endpoint) });
+  })
+  .post('/push', async (c) => {
+    const { endpoint } = PushBody.parse(await c.req.json());
+    const athlete = await ownAthlete(c.env.DB, c.var.user.id);
+    if (!athlete) throw new ValidationError('Påmindelser kræver din egen atlet');
+    await subscribePush(c.env.DB, c.var.user.id, athlete.id, endpoint);
+    return c.json({ subscribed: true });
+  })
+  .delete('/push', async (c) => {
+    const { endpoint } = PushBody.parse(await c.req.json());
+    await unsubscribePush(c.env.DB, c.var.user.id, endpoint);
+    return c.json({ subscribed: false });
+  })
+  // En prøvebesked med det samme, så man kan se, at det virker.
+  .post('/push/test', async (c) => {
+    const { endpoint } = PushBody.parse(await c.req.json());
+    if (!(await isSubscribed(c.env.DB, c.var.user.id, endpoint))) throw new ValidationError('Påmindelser er ikke slået til på denne enhed');
+    const result = await sendPush(endpoint, await getVapidKeys(c.env.DB), appOrigin(c.env, c.req.url));
+    if (result === 'udløbet') await unsubscribePush(c.env.DB, c.var.user.id, endpoint);
+    return c.json({ result });
   });
 
 // ─── /api/admin ─────────────────────────────────────────────────────────────

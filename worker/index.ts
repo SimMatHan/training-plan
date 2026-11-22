@@ -53,4 +53,9 @@ export default {
     }
     return env.ASSETS.fetch(request);
   },
+  // Cron (wrangler.jsonc): morgenpåmindelsen om mobilitet kl. 6 dansk tid.
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext) {
+    const { sendMorningReminders } = await import('./services/push');
+    ctx.waitUntil(sendMorningReminders(env.DB, env.APP_ORIGIN ? new URL(env.APP_ORIGIN).origin : undefined).then((r) => console.log('påmindelser', r)));
+  },
 } satisfies ExportedHandler<Env>;
