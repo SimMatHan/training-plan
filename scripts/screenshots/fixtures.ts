@@ -159,4 +159,6 @@ export const planWithYoga = PlanSchema.parse({
   ],
   weeks: planJson.weeks.map((w) => (w.weekNo === 6 ? { ...w, sessions: [{ sessionId: 'yoga', day: 1, label: 'Yoga · hofter og ankler (20 min)' }, ...w.sessions] } : w)),
 });
+// Mobilitetsblokken som morgenrunde (mobility.schedule), som i planer med "mobilitet hver morgen".
+export const planWithRounds = PlanSchema.parse({ ...planJson, mobility: { ...planJson.mobility, schedule: ['morgen'] } });
 export const castToken = 'a1b2c3d4e5f60718293a4b5c6d7e8f90';
