@@ -290,6 +290,13 @@ export const ILLUSTRATIONS: Record<string, Illustration> = {
     props: [{ kind: 'wall', x: 75 }],
     seconds: 4,
   },
+  // På alle fire med det fjerne ben strakt ud til siden (set fra siden skråt frem langs gulvet).
+  // Hoften skubbes roligt tilbage mod hælen og frem igen; knæ og hænder bliver i gulvet.
+  'adduktor-rock': {
+    from: pose('kneeN', [96, 146], { torso: 100, head: 10, uaN: 0, laN: 0, uaF: 0, laF: 0, thN: 0, shN: -90, ftN: -90, thF: 62, shF: 62, ftF: 90 }),
+    to: pose('kneeN', [96, 146], { torso: 104, head: 10, uaN: -4, laN: 25, uaF: -4, laF: 25, thN: 30, shN: -90, ftN: -90, thF: 62, shF: 62, ftF: 90 }),
+    seconds: 4.4,
+  },
   'vaeg-engle': {
     from: pose('ankleN', [104, 147], { torso: 184, thN: -4, shN: 0, thF: -4, shF: 0, uaN: 118, laN: 184, uaF: 118, laF: 184 }),
     to: pose('ankleN', [104, 147], { torso: 184, thN: -4, shN: 0, thF: -4, shF: 0, uaN: 178, laN: 180, uaF: 178, laF: 180 }),
@@ -346,6 +353,21 @@ export const ILLUSTRATIONS: Record<string, Illustration> = {
     to: pose('hip', [100, 110], { torso: -92, head: -20, uaN: -10, laN: 20, uaF: -10, laF: 20, thN: 92, shN: 215, ftN: 300, thF: 92, shF: 215, ftF: 300 }),
     props: [{ kind: 'bench', x: 34, y: 114, w: 100, h: 36 }, { kind: 'pad', at: 'ankleN' }],
     seconds: 3,
+  },
+  // Siddende på bænken, ét ben ad gangen: tåen på et trin, håndvægten på knæet. Hoften står fast, så
+  // knæet løftes, når hælen går op; det andet ben hviler med foden i gulvet.
+  'enbens-siddende-tahaev': {
+    from: pose('hip', [90, 114], { torso: 165, uaN: 3, laN: 70, uaF: 3, laF: 70, thN: 90, shN: 0, ftN: 115, thF: 90, shF: -8, ftF: 90 }),
+    to: pose('hip', [90, 114], { torso: 165, uaN: -3, laN: 93, uaF: -3, laF: 93, thN: 104, shN: 1.5, ftN: 68, thF: 90, shF: -8, ftF: 90 }),
+    props: [{ kind: 'bench', x: 48, y: 112, w: 46, h: 38 }, { kind: 'bench', x: 122, y: 143, w: 26, h: 7 }, { kind: 'dumbbell', hands: 'naer' }],
+    seconds: 2.6,
+  },
+  // Brystet mod en skråbænk, armene hænger med håndvægtene og trækkes op langs siden.
+  'skraabaenk-haandvaegtsrow': {
+    from: pose('ankleN', [52, 147], { torso: 122, head: 10, thN: -54, shN: -54, thF: -54, shF: -54, uaN: 0, laN: 0, uaF: 0, laF: 0 }),
+    to: pose('ankleN', [52, 147], { torso: 122, head: 10, thN: -54, shN: -54, thF: -54, shF: -54, uaN: -65, laN: 5, uaF: -65, laF: 5 }),
+    props: [{ kind: 'incline', from: [70, 150], to: [146, 92] }, { kind: 'dumbbell' }],
+    seconds: 2.8,
   },
 
   // ─── Yoga (shared/yoga.ts) ────────────────────────────────────────────────
@@ -493,6 +515,7 @@ const BY_NAME: [RegExp, string][] = [
   [/tråd nålen|thread the needle/i, 'traad-naalen'],
   [/ben op ad væg|legs up the wall/i, 'ben-op-ad-vaeggen'],
   [/adduktorklem|adductor squeeze/i, 'adduktorklem'],
+  [/adduktor.?rock|adductor.?rock|rock.?back/i, 'adduktor-rock'],
   [/siddende benløft|seated leg raise/i, 'siddende-benloeft'],
   [/barnets stilling|child'?s pose/i, 'barnets-stilling'],
   [/due\b|pigeon/i, 'due'],
@@ -515,11 +538,14 @@ const BY_NAME: [RegExp, string][] = [
   [/nordic/i, 'nordic-hamstring-curl'],
   [/glideskinne|slider/i, 'glideskinne-leg-curl'],
   [/leg curl/i, 'leg-curl'],
-  [/siddende.*tåhæv/i, 'siddende-tahaev'],
+  // Tåhæv med bøjet knæ er siddende, også når navnet ikke siger det.
+  [/enbens.*tåhæv.*(bøjet|siddende)|(bøjet|siddende).*enbens.*tåhæv|single.?leg.*seated.*calf/i, 'enbens-siddende-tahaev'],
+  [/siddende.*tåhæv|tåhæv.*bøjet knæ|bøjet knæ.*tåhæv|seated.*calf/i, 'siddende-tahaev'],
   [/enbens.*tåhæv|single.?leg.*calf/i, 'enbens-tahaev'],
   [/tåhæv|calf raise/i, 'tahaev-trin-strakt'],
   [/pulldown|pull-?up|chin/i, 'lat-pulldown'],
   [/t-bar/i, 't-bar-row'],
+  [/row.*(bryst|chest|skrå|incline)|(bryst|chest|skrå|incline).*row|chest.?supported/i, 'skraabaenk-haandvaegtsrow'],
   [/row/i, 'rows'],
   [/face pull/i, 'face-pull'],
   [/skulderpres|shoulder press/i, 'skulderpres'],

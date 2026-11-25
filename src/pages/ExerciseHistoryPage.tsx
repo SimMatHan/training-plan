@@ -2,6 +2,7 @@ import { CaretDown } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { useRoute, useSearch } from 'wouter';
 import type { ExerciseHistoryEntry } from '../../shared/history';
+import type { ExerciseKind } from '../../shared/plan.schema';
 import { getExercise, getSession } from '../../shared/resolve';
 import { useViewedAthlete } from '../components/AthletePicker';
 import { ExerciseIllustration } from '../components/ExerciseIllustration';
@@ -11,6 +12,7 @@ import { useRemote } from '../data/remote';
 import { formatShort, todayIso } from '../lib/dates';
 import { summarizeSets } from '../logic/lastTime';
 import { formatDecimal } from '../logic/numbers';
+import { bestE1rm, bestReps, repsAtTop, totalSeconds } from '../logic/strength';
 import { HeroNumber } from '../ui/HeroNumber';
 import { Card, Group, InsetList, InsetRow, RowText, RowValue } from '../ui/InsetList';
 import { LineChart } from '../ui/LineChart';
@@ -19,7 +21,47 @@ import { Segmented } from '../ui/Segmented';
 import { PlanStatus } from './PlanStatus';
 import { ReadOnlyNote } from './ProposalPage';
 
-type Metric = 'top' | 'volumen';
+type Metric = 'top' | 'reps' | 'styrke' | 'volumen' | 'bedste' | 'alt' | 'laengste';
+
+type E = ExerciseHistoryEntry;
+interface Series {
+  unit: string;
+  label: string;
+  value: (e: E) => number | null;
+  /** Forklaring under grafen. */
+  note?: string;
+}
+
+/** Hvad grafen kan vise pr. øvelsestype. Den første er standard. */
+const METRICS: Record<ExerciseKind, { value: Metric; label: string; series: Series }[]> = {
+  weight_reps: [
+    { value: 'top', label: 'Vægt', series: { unit: 'kg', label: 'Topvægt', value: (e) => e.topWeight } },
+    {
+      value: 'reps',
+      label: 'Reps',
+      series: { unit: 'reps', label: 'Reps ved topvægt', value: repsAtTop, note: 'Flest reps i et sæt med dagens tungeste vægt.' },
+    },
+    {
+      value: 'styrke',
+      label: 'Styrke',
+      series: {
+        unit: 'kg',
+        label: 'Beregnet 1RM',
+        value: (e) => bestE1rm(e.sets),
+        note: 'Beregnet 1RM samler vægt og reps i ét tal: det bedste sæt, vægt × (1 + reps / 30). Det stiger både med flere kilo og med flere reps på samme vægt.',
+      },
+    },
+    { value: 'volumen', label: 'Volumen', series: { unit: 'kg', label: 'Volumen (vægt × reps)', value: (e) => e.volumeKg } },
+  ],
+  bodyweight_reps: [
+    { value: 'bedste', label: 'Bedste sæt', series: { unit: 'reps', label: 'Reps i bedste sæt', value: (e) => bestReps(e.sets) } },
+    { value: 'alt', label: 'I alt', series: { unit: 'reps', label: 'Reps i alt', value: (e) => e.totalReps } },
+  ],
+  time: [
+    { value: 'laengste', label: 'Længste sæt', series: { unit: 'sek', label: 'Længste sæt', value: (e) => e.maxSeconds } },
+    { value: 'alt', label: 'I alt', series: { unit: 'sek', label: 'Sekunder i alt', value: (e) => totalSeconds(e.sets) } },
+  ],
+};
 const PERIODS = [
   { months: 1, label: '1 md' },
   { months: 3, label: '3 mdr' },
@@ -43,7 +85,7 @@ export function ExerciseHistoryPage() {
   const local = useExerciseHistory(exerciseId);
   const remote = useRemote<ExerciseHistoryEntry[]>(viewed.slug, viewed.own ? null : `/history/exercises/${encodeURIComponent(exerciseId)}`);
   const remotePlan = useRemote<ActivePlan | null>(viewed.slug, viewed.own ? null : '/plan/active');
-  const [metric, setMetric] = useState<Metric>('top');
+  const [metric, setMetric] = useState<Metric>();
   const [months, setMonths] = useState<number>(3);
   const history = viewed.own ? local : remote.data;
   const active = viewed.own ? ownPlan : (remotePlan.data ?? undefined);
@@ -57,16 +99,10 @@ export function ExerciseHistoryPage() {
   const chronological = [...(history ?? [])].reverse();
   const inPeriod = chronological.filter((e) => e.date >= from);
 
-  // Vægtøvelser: topvægt eller volumen. Kropsvægt: reps i alt. Tid: længste sæt.
-  type E = ExerciseHistoryEntry;
-  const series =
-    kind === 'weight_reps'
-      ? metric === 'top'
-        ? { unit: 'kg', label: 'Topvægt', value: (e: E) => e.topWeight }
-        : { unit: 'kg', label: 'Volumen (vægt × reps)', value: (e: E) => e.volumeKg }
-      : kind === 'time'
-        ? { unit: 'sek', label: 'Længste sæt', value: (e: E) => e.maxSeconds }
-        : { unit: 'reps', label: 'Reps i alt', value: (e: E) => e.totalReps };
+  // Vægtøvelser: topvægt, reps ved topvægt, beregnet 1RM eller volumen. Kropsvægt: reps. Tid: sekunder.
+  const options = METRICS[kind];
+  const chosen = options.find((o) => o.value === metric) ?? options[0];
+  const series = chosen.series;
   const toPoints = (list: E[]) =>
     list.map((e) => ({ key: e.workoutUuid, date: e.date, value: series.value(e) })).filter((p): p is { key: string; date: string; value: number } => p.value != null);
   const points = toPoints(inPeriod);
@@ -102,18 +138,7 @@ export function ExerciseHistoryPage() {
         <Muted>Ingen logninger endnu.</Muted>
       ) : (
         <>
-          {kind === 'weight_reps' && (
-            <Segmented
-              className="mb-5"
-              label="Vis"
-              value={metric}
-              onChange={setMetric}
-              options={[
-                { value: 'top', label: 'Vægt' },
-                { value: 'volumen', label: 'Volumen' },
-              ]}
-            />
-          )}
+          <Segmented className="mb-5" label="Vis" value={chosen.value} onChange={setMetric} options={options.map(({ value, label }) => ({ value, label }))} />
           {best != null && (
             <div className="mb-4 flex items-start justify-between gap-3 px-1">
               <HeroNumber className="min-w-0" label="Bedste resultat" value={formatDecimal(best)} unit={series.unit} />
@@ -123,10 +148,11 @@ export function ExerciseHistoryPage() {
 
           <Card className="mb-3">
             {points.length > 0 ? (
-              <LineChart key={`${metric}-${months}`} label={series.label} unit={series.unit} points={points} />
+              <LineChart key={`${chosen.value}-${months}`} label={series.label} unit={series.unit} points={points} />
             ) : (
-              <Muted>{all.length ? 'Ingen logninger i perioden.' : 'Ingen vægt logget endnu.'}</Muted>
+              <Muted>{all.length ? 'Ingen logninger i perioden.' : kind === 'weight_reps' ? 'Ingen vægt logget endnu.' : 'Intet logget endnu.'}</Muted>
             )}
+            {series.note && points.length > 0 && <p className="mt-2 text-footnote text-ink-2">{series.note}</p>}
           </Card>
 
           {points.length > 0 && (

@@ -7,6 +7,8 @@ import { PlanProvider } from './data/plan';
 import { startUserSession } from './data/session';
 import { loadMe, ownAthlete, useAuth } from './lib/auth';
 import { InvitePage, LoginPage, OnboardingPage, Splash } from './pages/AuthPages';
+import { CalendarPage } from './pages/CalendarPage';
+import { DayPage } from './pages/DayPage';
 import { ExerciseHistoryPage } from './pages/ExerciseHistoryPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { MobilityPage } from './pages/MobilityPage';
@@ -77,6 +79,8 @@ export function App() {
         <Route path="/mobilitet" component={MobilityPage} />
         <Route path="/ankel" component={MobilityPage} />
         <Route path="/uge" component={WeekPage} />
+        <Route path="/kalender" component={CalendarPage} />
+        <Route path="/dag/:date" component={DayPage} />
         <Route path="/historik/oevelse/:id" component={ExerciseHistoryPage} />
         <Route path="/historik" component={HistoryPage} />
         <Route path="/plan/:sessionId" component={PlanEditPage} />

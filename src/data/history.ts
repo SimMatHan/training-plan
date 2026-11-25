@@ -30,6 +30,15 @@ export function useExerciseOverview(): ExerciseOverview[] | undefined {
   }, []);
 }
 
+/** Hele historikken for alle loggede øvelser (nyeste først pr. øvelse), til fremgangen. */
+export function useAllExerciseHistories(): Map<string, ExerciseHistoryEntry[]> | undefined {
+  return useLiveQuery(async () => {
+    const [workouts, sets, notes] = await Promise.all([db.workouts.toArray(), db.set_logs.toArray(), db.exercise_notes.toArray()]);
+    const ids = [...new Set(sets.filter((s) => !s.deleted_at).map((s) => s.exercise_id))];
+    return new Map(ids.map((id) => [id, exerciseHistory(id, workouts, sets, notes)] as const).filter(([, h]) => h.length > 0));
+  }, []);
+}
+
 export function useExerciseHistory(exerciseId: string): ExerciseHistoryEntry[] | undefined {
   return useLiveQuery(async () => {
     const sets = await db.set_logs.where('exercise_id').equals(exerciseId).toArray();

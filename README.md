@@ -652,11 +652,24 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
   sæt rekorden (vægt × reps), får øvelsen "Ny rekord".
 - **Hele træningen:** "Se hele træningen" ved Øvelser på I dag viser hele sessionen i ét ark: figur, dosering, sidste
   gang og fremskridt pr. øvelse, talt i runder.
+- **Kalender** (femte fane, `/kalender?m=YYYY-MM`): måneden mandag–søndag med planens ugenummer i venstre side og en prik
+  pr. session i kategoriens farve: fyldt = lavet, ring = planlagt, grå ring = misset eller sprunget over (plus en grøn
+  prik for en dag med mobilitetsrunde). Samme regler som kalenderfeedet: en lavet session står på den dag, den blev
+  lavet, en planlagt på sin (evt. flyttede) dag (`src/logic/calendar.ts`). Under gitteret står måneden i tal
+  (træninger, løbe-km, dage med mobilitet). Alt læses fra den lokale database, så kalenderen virker offline.
+- **Dagens overblik** (`/dag/<dato>`): tryk på en dag i kalenderen, på datoen i en ugerække under **Uge** eller på
+  ugedagen i et ugekort under **Historik → Uger**. Øverst sæt, volumen, løbe-km og tid for dagen; derefter hver
+  session med status (lavet, planlagt, misset, sprunget over, "planlagt torsdag" hvis den er lavet en anden dag),
+  varighed, RPE, smerte pr. monitor med trafiklys og noten. Lavede styrkesessioner viser hver øvelse med figur, sæt,
+  vægt, reps, RPE og note; planlagte viser øvelserne med ugens dosering og en **Start**-knap. Løb viser distance, tid,
+  tempo og puls. Til sidst mobilitetsrunderne punkt for punkt, morgenens smertescore, målinger og ugens fokus. Pilene
+  øverst skifter dag; en øvelse åbner dens historik og graf.
 - **Øvelsesillustrationer:** hver øvelse og hvert mobilitetspunkt har en tændstiksmand (`src/logic/illustrations.ts`),
   defineret som led-vinkler for en start- og en slutstilling (`src/logic/figure.ts`). Figuren bevæger sig blødt mellem
   dem, lemmerne bevarer deres længde, og et valgt led (fx foden) står fast. En miniature står ved navnet i
   logningen, på historikken og i mobilitetslisten; tryk viser bevægelsen. Nye øvelser i en plan får en figur på id
-  eller genkendes på navnet; en test fejler, hvis en af planens øvelser mangler en. `/dev/figurer` (dev-build) viser
+  eller genkendes på navnet; en test fejler, hvis en af planens øvelser mangler en (både `plan.v1.json` og listen over
+  Simons nuværende plan i `test/design.test.ts`). `/dev/figurer` (dev-build) viser
   dem alle med start og slut; `?vis=rdl,sideplanke` viser udvalgte større.
 - **Logo** i `brand/` (kilde: `brand/icon.svg`); `npm run icons` laver resten.
 - **Screenshots:** `npm run screenshots` starter Vite, svarer selv på `/api` med fem ugers falsk historik
@@ -704,6 +717,21 @@ og det vigtigste tal (sidste gangs tal) står stort i gradient.
 "Klar til mere vægt" vises på en øvelse, når alle planlagte sæt sidste gang ramte toppen af
 rep-intervallet, og øvelsens RPE var logget og ≤ planens mål (`shared/progression.ts`).
 Tallene ændres aldrig automatisk.
+
+**Fremgang** (**Historik → Fremgang**, `src/logic/strength.ts`) viser, om du bliver stærkere. Hver øvelse sammenlignes fra
+første til seneste gang i perioden (1 md, 3 mdr eller alt):
+
+- Vægtøvelser måles på **beregnet 1RM** (Epley: det bedste sæt, vægt × (1 + reps / 30)), så både flere kilo og flere reps
+  på samme vægt er fremgang. Rækken viser også topvægt og reps ved topvægt, fx `50 → 60 kg · 8 → 10 reps`. En vægtøvelse
+  taget uden vægt (fx armstrækninger) måles på reps. Kropsvægt måles på reps i bedste sæt, tid på længste sæt.
+- For en "X eller Y"-øvelse sammenlignes kun gange med den senest valgte mulighed, så kabel og håndvægt ikke blandes.
+- Øvelserne deles i **Går frem**, **Står stille** (under 1 %) og **Går tilbage**, med en lille kurve og ændringen i procent.
+- Øverst **typisk fremgang** uge for uge: medianen af alle øvelsers fremgang i forhold til deres første gang, så én
+  øvelse fra 2 til 10 kg ikke trækker kurven.
+
+Grafen på en øvelse (**Historik → øvelse**) kan for vægtøvelser vise **Vægt** (topvægt), **Reps** (reps ved topvægt),
+**Styrke** (beregnet 1RM) og **Volumen**; for kropsvægt reps i bedste sæt eller i alt, og for tid længste sæt eller i alt.
+Trænervisningen har samme fane (hentet fra serveren, én forespørgsel pr. øvelse).
 
 ### Smerte-trafiklys (pr. monitor)
 

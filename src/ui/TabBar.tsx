@@ -9,7 +9,7 @@ export interface Tab {
   active: boolean;
 }
 
-/** 4 faner, gennemsigtig med blur, hårfin topkant, safe-area i bunden. Aktiv = --brand-red. */
+/** 4–5 faner, gennemsigtig med blur, hårfin topkant, safe-area i bunden. Aktiv = --brand-red. */
 export function TabBar({ tabs }: { tabs: Tab[] }) {
   const { shift, ref } = useFixedBottom();
   return (

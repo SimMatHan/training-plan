@@ -165,8 +165,43 @@ describe('øvelsesillustrationer', () => {
       ['Tråd nålen (liggende figur-4)', 'liggende-figur-4'],
       ['Ben op ad væg med mavevejrtrækning', 'ben-op-ad-vaeggen'],
       ['Adduktorklem, liggende', 'adduktorklem'],
+      ['Adduktor-rock på alle fire, venstre ben ud', 'adduktor-rock'],
+      ['Enbens tåhæv, bøjet knæ (håndvægt på knæet)', 'enbens-siddende-tahaev'],
+      ['Enbens tåhæv, stående', 'enbens-tahaev'],
+      ['Siddende tåhæv (bøjet knæ)', 'siddende-tahaev'],
+      ['Tåhæv, bøjet knæ', 'siddende-tahaev'],
+      ['Håndvægtsrow, brystet mod skråbænk', 'skraabaenk-haandvaegtsrow'],
+      ['Chest supported row', 'skraabaenk-haandvaegtsrow'],
+      ['Kabelrows eller håndvægtsrows', 'rows'],
+      ['Skråbænkspres, håndvægt', 'skraapres-haandvaegt'],
     ];
     for (const [name, id] of expected) expect(illustrationFor('ukendt-id', name), name).toBe(ILLUSTRATIONS[id]);
+  });
+
+  it('findes for alle øvelser og mobilitetspunkter i Simons plan (version 19)', () => {
+    // [id, navn] som planen har dem (list_ovelser og mobility.items).
+    const v19: [string, string][] = [
+      ['adduktorklem', 'Adduktorklem'], ['hip-thrust', 'Hip thrust'], ['dead-bug', 'Dead bug'], ['lat-pulldown', 'Lat pulldown'],
+      ['rows', 'Kabelrows eller håndvægtsrows'], ['face-pull', 'Face pull'], ['enbens-tahaev', 'Enbens tåhæv, stående'],
+      ['pallof-press', 'Pallof press'], ['copenhagen-plank', 'Copenhagen plank, venstre side'], ['sideplanke', 'Sideplanke'],
+      ['skraapres-haandvaegt', 'Skråbænkspres, håndvægt'], ['baenkpres-eller-armstraekninger', 'Bænkpres eller armstrækninger'],
+      ['skulderpres', 'Skulderpres, håndvægt'], ['triceps-pushdown', 'Triceps pushdown'], ['prone-y-t', 'Prone Y-T på skråbænk'],
+      ['hip-airplane', 'Hip airplane'], ['enbens-hip-thrust', 'Enbens hip thrust'], ['glideskinne-leg-curl', 'Glideskinne leg curl'],
+      ['pull-up-elastik', 'Pull-up med elastik'], ['t-bar-row', 'T-bar row'], ['hammer-curl', 'Hammer curl'],
+      ['overhead-triceps-extension', 'Overhead triceps extension'], ['siddende-tahaev', 'Siddende tåhæv (bøjet knæ)'],
+      ['crosstrainer', 'Crosstrainer'], ['march-elastik', 'Hofteflexor-march, elastik/vægt'], ['leg-curl', 'Leg Curl'],
+      ['glute-bridge', 'Bro (glute bridge)'], ['kropsvaegt-squat', 'Squat, kropsvægt'], ['tahaev-begge-ben', 'Tåhæv, begge ben'],
+      ['band-pull-apart', 'Band pull-apart'], ['enbens-rdl-2', 'Enbens RDL'], ['goblet-squat', 'Goblet squat til kasse'],
+      ['step-up', 'Step-up med håndvægte'], ['wall-sit', 'Wall sit'], ['siddende-benloeft', 'Siddende benløft, strakte ben'],
+      ['enbens-siddende-tahaev', 'Enbens tåhæv, bøjet knæ (håndvægt på knæet)'],
+      ['skraabaenk-haandvaegtsrow', 'Håndvægtsrow, brystet mod skråbænk'],
+      ['yoga-kat-ko', 'Kat–ko på alle fire'], ['yoga-nedadvendt-hund', 'Nedadvendt hund med hælpres'],
+      ['yoga-lavt-udfald', 'Lavt udfald, knæ i gulvet'], ['yoga-halv-spagat', 'Halv spagat (hamstring-pyramide)'],
+      ['yoga-hukstilling', 'Dyb hukstilling med støtte'], ['yoga-traad-naalen', 'Tråd nålen (liggende figur-4)'],
+      ['yoga-ben-op-ad-vaeg', 'Ben op ad væg med mavevejrtrækning'], ['daglig-adduktor-rock', 'Adduktor-rock på alle fire, venstre ben ud'],
+      ['daglig-siddende-benloeft', 'Siddende benløft, strakte ben'], ['daglig-adduktorklem', 'Adduktorklem, liggende'],
+    ];
+    expect(v19.filter(([id, name]) => !illustrationFor(id, name)).map(([id]) => id)).toEqual([]);
   });
 
   it('bevarer lemmernes længde og det faste led gennem hele bevægelsen', () => {
