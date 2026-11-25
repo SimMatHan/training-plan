@@ -1,5 +1,6 @@
 import { DotsThree } from '@phosphor-icons/react';
 import { useState } from 'react';
+import { Link } from 'wouter';
 import type { Plan, Session, Week } from '../../shared/plan.schema';
 import type { Workout } from '../../shared/records.schema';
 import { dateOfDay, getSession } from '../../shared/resolve';
@@ -20,12 +21,19 @@ import { SessionOptionsSheet } from './SessionOptionsSheet';
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function Day({ date, today }: { date: string; today: boolean }) {
-  return (
-    <span className="w-12 shrink-0 whitespace-nowrap">
+/** Dagen i en ugerække. Med `href` er den et link til dagens overblik. */
+function Day({ date, today, href }: { date: string; today: boolean; href?: string }) {
+  const content = (
+    <>
       <span className={`block text-secondary ${today ? 'font-semibold text-ink' : 'text-ink-2'}`}>{today ? 'I dag' : cap(WEEKDAYS_SHORT[weekday(date)])}</span>
-      <span className="num block text-footnote text-ink-2">{formatShort(date)}</span>
-    </span>
+      <span className={`num block text-footnote text-ink-2 ${href ? 'underline decoration-separator underline-offset-2' : ''}`}>{formatShort(date)}</span>
+    </>
+  );
+  if (!href) return <span className="w-12 shrink-0 whitespace-nowrap">{content}</span>;
+  return (
+    <Link href={href} aria-label={`Se dagen ${formatShort(date)}`} className="-my-2 w-12 shrink-0 py-2 whitespace-nowrap">
+      {content}
+    </Link>
   );
 }
 
@@ -61,7 +69,7 @@ export function WeekSessions({ plan, week, today = todayIso() }: { plan: Plan; w
           ].filter(Boolean);
           return (
             <InsetRow key={`${s.sessionId}-${s.plannedDay}`} current={state === 'today'} chevron={false} className="gap-2.5">
-              <Day date={date} today={state === 'today'} />
+              <Day date={date} today={state === 'today'} href={`/dag/${date}?tilbage=${encodeURIComponent(`/uge?uge=${week.weekNo}`)}`} />
               <RowText
                 muted={missed || skipped}
                 title={sessionTitle(session)}

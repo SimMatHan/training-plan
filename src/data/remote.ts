@@ -9,6 +9,29 @@ export interface Remote<T> {
   loading: boolean;
 }
 
+/**
+ * Historikken for flere øvelser hos en anden atlet (trænervisningens fremgang): én GET pr. øvelse.
+ * `ids` = null henter intet.
+ */
+export function useRemoteHistories<T>(slug: string, ids: string[] | null): Remote<Map<string, T[]>> {
+  const [state, setState] = useState<Remote<Map<string, T[]>>>({ loading: true });
+  const key = ids?.join(',') ?? null;
+  useEffect(() => {
+    if (key === null) return setState({ loading: false });
+    let cancelled = false;
+    setState((s) => ({ ...s, loading: true }));
+    const list = key ? key.split(',') : [];
+    Promise.all(list.map((id) => athleteApi<T[]>(slug, `/history/exercises/${encodeURIComponent(id)}`).then((h) => [id, h] as const))).then(
+      (pairs) => !cancelled && setState({ data: new Map(pairs), loading: false }),
+      (e) => !cancelled && setState({ loading: false, error: e instanceof OfflineError ? 'Ingen forbindelse. Trænervisningen kræver net.' : (e as Error).message }),
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, key]);
+  return state;
+}
+
 /** GET /api/a/<slug><path>. `path` = null henter intet. */
 export function useRemote<T>(slug: string, path: string | null): Remote<T> {
   const [state, setState] = useState<Remote<T>>({ loading: true });

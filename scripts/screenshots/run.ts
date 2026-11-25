@@ -11,6 +11,7 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { chromium, type Page, type Route } from 'playwright';
 import { createServer } from 'vite';
+import { dateOfDay } from '../../shared/resolve';
 import * as f from './fixtures';
 
 const OUT = path.resolve(import.meta.dirname, '../../screenshots');
@@ -280,11 +281,42 @@ const scenarios: Scenario[] = [
       await p.getByText(/Sprunget over · Kalender\/tid/).evaluate((e) => e.scrollIntoView({ block: 'center' }));
     },
   },
+  {
+    name: '19-fremgang',
+    full: true,
+    run: async (p) => {
+      await p.goto('/historik');
+      await p.getByRole('button', { name: 'Fremgang' }).click();
+      await p.getByText('Typisk fremgang siden første gang').waitFor();
+    },
+  },
+  {
+    name: '19b-oevelse-styrke',
+    run: async (p) => {
+      await p.goto('/historik/oevelse/enbens-rdl');
+      await p.getByRole('button', { name: 'Styrke' }).click();
+      await p.getByText(/Beregnet 1RM samler/).waitFor();
+    },
+  },
   { name: '8-historik-oevelse', run: (p) => p.goto('/historik/oevelse/enbens-rdl').then(() => p.getByText('Bedste resultat').waitFor()) },
   { name: '8-historik-oevelse-hele', full: true, run: (p) => p.goto('/historik/oevelse/enbens-rdl').then(() => p.getByText('Bedste resultat').waitFor()) },
   { name: '9-uge', run: (p) => p.goto('/uge').then(() => p.getByText('Styrke A').first().waitFor()) },
   { name: '9-uge-hele', full: true, run: (p) => p.goto('/uge').then(() => p.getByText('Styrke A').first().waitFor()) },
   { name: '9-uge-forrige', run: (p) => p.goto('/uge?uge=5').then(() => p.getByText('Styrke A').first().waitFor()) },
+  { name: '17-kalender', run: (p) => p.goto('/kalender').then(() => p.getByText('November i tal').waitFor()) },
+  { name: '17b-kalender-forrige', full: true, run: (p) => p.goto('/kalender?m=2026-10').then(() => p.getByText('Oktober i tal').waitFor()) },
+  {
+    // Dagens overblik for en lavet styrkesession (første session i uge 5): sæt, vægt, RPE og smerte.
+    name: '18-dag',
+    full: true,
+    run: async (p) => {
+      const week = f.plan.weeks.find((w) => w.weekNo === 5)!;
+      const s = week.sessions.find((x) => f.plan.sessions.find((y) => y.id === x.sessionId)?.kind === 'styrke')!;
+      await p.goto(`/dag/${dateOfDay(week, s.day)}`);
+      await p.getByRole('link', { name: 'Åbn' }).first().waitFor();
+    },
+  },
+  { name: '18b-dag-i-dag', full: true, run: (p) => p.goto('/dag/2026-11-02').then(() => p.getByRole('button', { name: /^Start/ }).first().waitFor()) },
   { name: '10-indstillinger', full: true, run: (p) => p.goto('/indstillinger').then(() => p.getByText('Version 1').first().waitFor()) },
   { name: '11-mobilitet', run: (p) => p.goto('/mobilitet').then(() => p.getByText('Knee-to-wall').first().waitFor()) },
   {

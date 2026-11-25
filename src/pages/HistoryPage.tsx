@@ -2,11 +2,12 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { Link, useSearch } from 'wouter';
 import type { Plan } from '../../shared/plan.schema';
 import { getSession, weekForDate } from '../../shared/resolve';
-import type { WeeklySummary } from '../../shared/history';
+import type { ExerciseHistoryEntry, WeeklySummary } from '../../shared/history';
 import { AthletePicker, useViewedAthlete } from '../components/AthletePicker';
-import { useExerciseOverview, useWeeklySummaries, type ExerciseOverview } from '../data/history';
+import { ProgressOverview } from '../components/ProgressOverview';
+import { useAllExerciseHistories, useExerciseOverview, useWeeklySummaries, type ExerciseOverview } from '../data/history';
 import { usePlan, type ActivePlan } from '../data/plan';
-import { useRemote } from '../data/remote';
+import { useRemote, useRemoteHistories } from '../data/remote';
 import { athleteApi } from '../lib/api';
 import { ReadOnlyNote } from './ProposalPage';
 import { formatShort, todayIso, weekday, WEEKDAYS_SHORT } from '../lib/dates';
@@ -24,14 +25,15 @@ import { StatusDot, StatusLight } from '../ui/StatusLight';
 import { CaretDown, Check } from '@phosphor-icons/react';
 import { PlanStatus } from './PlanStatus';
 
-type Tab = 'oevelser' | 'uger';
+type Tab = 'oevelser' | 'fremgang' | 'uger';
 
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso + 'T00:00:00Z') + n * 86_400_000).toISOString().slice(0, 10);
 const TAB_KEY = 'traeningsnav.historyTab';
 
 function readTab(): Tab {
   try {
-    return localStorage.getItem(TAB_KEY) === 'uger' ? 'uger' : 'oevelser';
+    const t = localStorage.getItem(TAB_KEY);
+    return t === 'uger' || t === 'fremgang' ? t : 'oevelser';
   } catch {
     return 'oevelser';
   }
@@ -63,12 +65,15 @@ export function HistoryPage() {
         onChange={choose}
         options={[
           { value: 'oevelser', label: 'Øvelser' },
+          { value: 'fremgang', label: 'Fremgang' },
           { value: 'uger', label: 'Uger' },
         ]}
       />
       {viewed.own ? (
         tab === 'oevelser' ? (
           <OwnExercises />
+        ) : tab === 'fremgang' ? (
+          <OwnProgress />
         ) : (
           <WeekList />
         )
@@ -84,6 +89,13 @@ function OwnExercises() {
   const overview = useExerciseOverview();
   if (!overview || !active) return <Muted>Henter …</Muted>;
   return <ExerciseList overview={overview} plan={active.plan} />;
+}
+
+function OwnProgress() {
+  const { active } = usePlan();
+  const histories = useAllExerciseHistories();
+  if (!histories || !active) return <Muted>Henter …</Muted>;
+  return <ProgressOverview histories={histories} plan={active.plan} />;
 }
 
 /** Øvelser med historik. `query` sendes med til detaljesiden (trænervisning: ?atlet=<slug>). */
@@ -131,7 +143,9 @@ function WeekList() {
 /** Trænervisning: en anden atlets historik, hentet fra serveren og skrivebeskyttet. */
 function CoachHistory({ slug, tab }: { slug: string; tab: Tab }) {
   const plan = useRemote<ActivePlan | null>(slug, '/plan/active');
-  const overview = useRemote<ExerciseOverview[]>(slug, tab === 'oevelser' ? '/history/exercises' : null);
+  const overview = useRemote<ExerciseOverview[]>(slug, tab === 'uger' ? null : '/history/exercises');
+  // Fremgang kræver mindst to gange pr. øvelse; kun de øvelser hentes.
+  const histories = useRemoteHistories<ExerciseHistoryEntry>(slug, tab === 'fremgang' && overview.data ? overview.data.filter((o) => o.times >= 2).map((o) => o.exerciseId) : null);
   const [weeks, setWeeks] = useState<WeeklySummary[]>();
   const p = plan.data?.plan;
   const today = todayIso();
@@ -152,6 +166,10 @@ function CoachHistory({ slug, tab }: { slug: string; tab: Tab }) {
   if (plan.error || overview.error) return <ErrorText>{plan.error ?? overview.error}</ErrorText>;
   if (plan.loading) return <Muted>Henter …</Muted>;
   if (tab === 'oevelser') return overview.data ? <ExerciseList overview={overview.data} plan={p} query={`?atlet=${slug}`} /> : <Muted>Henter …</Muted>;
+  if (tab === 'fremgang') {
+    if (histories.error) return <ErrorText>{histories.error}</ErrorText>;
+    return histories.data ? <ProgressOverview histories={histories.data} plan={p} query={`?atlet=${slug}`} /> : <Muted>Henter …</Muted>;
+  }
   if (!p) return <Muted>Ingen plan endnu.</Muted>;
   if (!weeks) return <Muted>Henter …</Muted>;
   if (weeks.length === 0) return <Muted>Planen er ikke startet endnu.</Muted>;
@@ -213,8 +231,10 @@ export function WeekCard({ week, isCurrent, plan, readOnly = false }: { week: We
           <div className="border-t-[0.5px] border-separator px-4 pt-1 pb-3">
             <ul className="inset-list" style={ROW_INSET}>
               {week.sessions.map((s) => (
-                <li key={s.sessionId} className="flex items-start gap-3 py-2.5">
-                  <span className="w-9 shrink-0 text-secondary text-ink-2">{WEEKDAYS_SHORT[s.day]}</span>
+                <li key={`${s.sessionId}-${s.plannedDay}`} className="flex items-start gap-3 py-2.5">
+                  <span className="w-9 shrink-0 text-secondary text-ink-2">
+                    {link(`/dag/${addDays(week.startDate, s.day - 1)}?tilbage=/historik`, WEEKDAYS_SHORT[s.day])}
+                  </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-body">
                       {s.workoutUuid ? link(`/session/${s.workoutUuid}`, title(s.sessionId, s.name)) : title(s.sessionId, s.name)}
